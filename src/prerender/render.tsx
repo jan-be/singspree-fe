@@ -34,7 +34,7 @@ const escapeHtml = (s: string) => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-function documentFor({ title, description, url, body }: { title: string; description: string; url: string; body: string }) {
+function documentFor({ title, description, url, body, noindex = false }: { title: string; description: string; url: string; body: string; noindex?: boolean }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,7 +42,7 @@ function documentFor({ title, description, url, body }: { title: string; descrip
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}" />
-  <link rel="canonical" href="${url}" />
+  ${noindex ? '<meta name="robots" content="noindex" />\n  ' : ''}<link rel="canonical" href="${url}" />
   <link rel="icon" type="image/svg+xml" href="${SITE}/icon.svg" />
   <link rel="icon" type="image/png" sizes="192x192" href="${SITE}/icon-192.png" />
   <link rel="apple-touch-icon" href="${SITE}/apple-touch-icon.png" />
@@ -66,9 +66,9 @@ function documentFor({ title, description, url, body }: { title: string; descrip
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 let written = 0;
-for (const { path: route, title, description, Content } of STATIC_PAGES) {
+for (const { path: route, title, description, Content, noindex } of STATIC_PAGES) {
   const body = renderToStaticMarkup(<Content />);
-  const html = documentFor({ title, description, url: `${SITE}${route}`, body });
+  const html = documentFor({ title, description, url: `${SITE}${route}`, body, noindex });
 
   // /contact becomes build/bot/contact.html, which nginx reaches by rewriting
   // the request path — so the file name is the route, and nothing maps them.
