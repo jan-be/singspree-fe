@@ -56,7 +56,7 @@ function documentFor({ title, description, url, body, noindex = false }: { title
 <body>
 <header><a href="${SITE}/">SingSpree</a></header>
 <main>${body}</main>
-<footer><a href="${SITE}/">Home</a> · <a href="${SITE}/privacy-policy">Privacy Policy</a> · <a href="${SITE}/tos">Terms of Service</a> · <a href="${SITE}/contact">Contact</a>
+<footer><a href="${SITE}/">Home</a>
 <br />${SOCIAL_LINKS.map(l => `<a href="${l.href}" rel="me noopener">${l.label}</a>`).join(' · ')}</footer>
 </body>
 </html>
