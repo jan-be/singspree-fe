@@ -701,7 +701,11 @@
         "party_one": "party",
         "party_other": "parties",
         "song_one": "song",
-        "song_other": "songs"
+        "song_other": "songs",
+        "googleVisitor_one": "from Google",
+        "googleVisitor_other": "from Google",
+        "bingVisitor_one": "from Bing",
+        "bingVisitor_other": "from Bing"
       },
       "metrics": {
         "plays": {
@@ -762,6 +766,12 @@
           "hint": "Songs the AI chart generator finished",
           "unit_one": "AI chart",
           "unit_other": "AI charts"
+        },
+        "googlePerBing": {
+          "label": "Google to Bing",
+          "hint": "Visitors who came by a Google search for each one who came by Bing: browsers that sang, by the page they arrived from (Google in any country and its Android app; www. and cn.bing.com). Recorded since Sept 16, 2026",
+          "unit_one": "from Google per one from Bing",
+          "unit_other": "from Google per one from Bing"
         }
       }
     },

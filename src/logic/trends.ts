@@ -12,7 +12,8 @@
 import { formatDuration } from './duration';
 
 /** A count the backend sends per day and per range (adminTrends.ts) */
-export type TrendCount = 'plays' | 'singers' | 'parties' | 'seconds' | 'returning' | 'scoredSingers' | 'partySingers' | 'partySongs' | 'accounts' | 'scores' | 'charts';
+export type TrendCount = 'plays' | 'singers' | 'parties' | 'seconds' | 'returning' | 'scoredSingers' | 'partySingers' | 'partySongs' | 'accounts' | 'scores' | 'charts'
+  | 'googleVisitors' | 'bingVisitors';
 /** A day's or a range's counts */
 export type TrendCounts = Partial<Record<TrendCount, number>>;
 /** One day (YYYY-MM-DD, in Berlin) of counts */
@@ -31,7 +32,8 @@ export interface TrendsData {
   since?: Partial<Record<TrendCount, string>>;
 }
 
-export type TrendKey = 'plays' | 'singers' | 'parties' | 'hours' | 'returning' | 'singersPerParty' | 'songsPerParty' | 'accounts' | 'scores' | 'charts';
+export type TrendKey = 'plays' | 'singers' | 'parties' | 'hours' | 'returning' | 'singersPerParty' | 'songsPerParty' | 'accounts' | 'scores' | 'charts'
+  | 'googlePerBing';
 
 /** One chart (TREND_METRICS) */
 export interface TrendMetric {
@@ -39,7 +41,7 @@ export interface TrendMetric {
   of: TrendCount;
   per?: TrendCount;
   scale?: number;
-  kind?: 'hours' | 'rate';
+  kind?: 'hours' | 'rate' | 'ratio';
   units?: [string, string];
   context?: TrendCount;
 }
@@ -59,7 +61,8 @@ export interface TrendPoint {
 /**
  * The charts, most telling first. `of` is the count it is made of, `per` the
  * count it is divided by (a rate), `scale` turns the count into the unit shown
- * (seconds into hours). `kind` picks the number format; a rate's `units`
+ * (seconds into hours). `kind` picks the number format (a 'ratio' is a rate
+ * that is mostly below one, so it gets two decimals); a rate's `units`
  * name its two counts in the tooltip, and `context` is a count shown beside
  * the value there.
  */
@@ -74,6 +77,8 @@ export const TREND_METRICS: TrendMetric[] = [
   { key: 'accounts', of: 'accounts' },
   { key: 'scores', of: 'scores' },
   { key: 'charts', of: 'charts' },
+  // search visitors: how far Google has come against Bing, which sends most of them
+  { key: 'googlePerBing', of: 'googleVisitors', per: 'bingVisitors', kind: 'ratio', units: ['googleVisitor', 'bingVisitor'] },
 ];
 
 export const RANGES = [30, 90, 365];
@@ -187,8 +192,9 @@ const numberFormat = (lang: string, options?: Intl.NumberFormatOptions) => {
 /**
  * A metric's value as the cards show it: whole counts as they are (12,345,
  * 123K past a hundred thousand), averages of counts with one decimal while
- * small, rates always with one, and hours as hours, or under an hour as
- * minutes and seconds (formatDuration), so a quiet day is "12 min", not "0 hr".
+ * small, rates always with one (ratios with two), and hours as hours, or
+ * under an hour as minutes and seconds (formatDuration), so a quiet day is
+ * "12 min", not "0 hr".
  */
 export function formatValue(metric: Pick<TrendMetric, 'kind'>, value: number | null, lang = 'en') {
   if (value == null || !Number.isFinite(value)) return '–';
@@ -197,6 +203,7 @@ export function formatValue(metric: Pick<TrendMetric, 'kind'>, value: number | n
     return numberFormat(lang, { style: 'unit', unit: 'hour', unitDisplay: 'short', maximumFractionDigits: value < 10 ? 1 : 0 }).format(value);
   }
   if (metric.kind === 'rate') return numberFormat(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
+  if (metric.kind === 'ratio') return numberFormat(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
   if (value >= 100000) return numberFormat(lang, { notation: 'compact', maximumFractionDigits: 1 }).format(value);
   return numberFormat(lang, { maximumFractionDigits: value < 100 && !Number.isInteger(value) ? 1 : 0 }).format(value);
 }

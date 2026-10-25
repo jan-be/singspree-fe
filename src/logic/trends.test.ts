@@ -127,6 +127,11 @@ describe('trend formats', () => {
     expect(formatValue(metric('hours'), 42 / 3600)).toBe('42 sec');
     expect(formatValue(metric('plays'), null)).toBe('–');
     expect(formatValue(metric('singersPerParty'), 2.5, 'de')).toBe('2,5');
+    // a ratio mostly below one: Google's visitors over Bing's
+    expect(formatValue(metric('googlePerBing'), 12 / 42)).toBe('0.29');
+    expect(formatValue(metric('googlePerBing'), 1.5, 'de')).toBe('1,50');
+    expect(valueOf(metric('googlePerBing'), { googleVisitors: 12, bingVisitors: 42 })).toBeCloseTo(0.2857, 4);
+    expect(valueOf(metric('googlePerBing'), { googleVisitors: 3, bingVisitors: 0 })).toBeNull(); // nothing to divide by
   });
 
   it('changes with their direction', () => {

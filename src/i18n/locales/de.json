@@ -701,7 +701,11 @@
         "party_one": "Party",
         "party_other": "Partys",
         "song_one": "Song",
-        "song_other": "Songs"
+        "song_other": "Songs",
+        "googleVisitor_one": "über Google",
+        "googleVisitor_other": "über Google",
+        "bingVisitor_one": "über Bing",
+        "bingVisitor_other": "über Bing"
       },
       "metrics": {
         "plays": {
@@ -762,6 +766,12 @@
           "hint": "Songs, die der KI-Chart-Generator fertig gemacht hat",
           "unit_one": "KI-Chart",
           "unit_other": "KI-Charts"
+        },
+        "googlePerBing": {
+          "label": "Google zu Bing",
+          "hint": "Besucher über eine Google-Suche je Besucher über Bing: Browser, die gesungen haben, nach der Seite, von der sie kamen (Google in jedem Land und seine Android-App; www. und cn.bing.com). Erfasst seit dem 16. Sept. 2026",
+          "unit_one": "über Google je einem über Bing",
+          "unit_other": "über Google je einem über Bing"
         }
       }
     },
