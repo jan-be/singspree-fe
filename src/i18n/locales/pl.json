@@ -148,6 +148,8 @@
     "backInAs": "Wróć jako {{name}}"
   },
   "party": {
+    "hitGreat": "ŚWIETNIE!",
+    "hitAwesome": "REWELACJA!",
     "waitingForHost": "Czekanie na gospodarza, aż wybierze piosenkę...",
     "partyLabel": "Impreza:",
     "leaveParty": "Opuść imprezę",

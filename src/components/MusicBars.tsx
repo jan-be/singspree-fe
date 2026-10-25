@@ -275,6 +275,9 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, gapDragEnabled, s
   const [canvasKey, setCanvasKey] = useState(0); // a new <canvas> when the worker failed with the old one
   const particleIdRef = useRef(0);
   const lastSpawnRef = useRef(0);
+  // A hit streak's cheer ("GREAT!", "AWESOME!") in the page's language, for the frame loop
+  const cheersRef = useRef({ great: '', awesome: '' });
+  cheersRef.current = { great: t('party.hitGreat'), awesome: t('party.hitAwesome') };
 
   // --- Gap drag state (host only) ---
   // Drag the cursor left/right to shift the gap. Past a threshold, snap to
@@ -493,7 +496,7 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, gapDragEnabled, s
       return { offset: (myIdx - center) * spread, count: overlapping.length };
     };
 
-    const feedback = []; // { username, text, x, y }
+    const feedback: { hue: number; awesome: boolean; x: number; y: number }[] = [];
     for (const { username, chart, visibleNotes, semitones } of perPlayer) {
       // Place each note and classify it against the chart, then group into
       // continuous line segments (gold only where a golden note is overlapped)
@@ -542,7 +545,7 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, gapDragEnabled, s
       const active = segments.find(s => s.endTick >= cursorTick - Math.max(2, Math.ceil(0.5 * ticksPerSec)) && s.startTick <= cursorTick);
       if (active && active.hitCount >= GREAT_THRESHOLD) {
         const lastPt = active.points[active.points.length - 1];
-        feedback.push({ hue, text: active.hitCount >= AWESOME_THRESHOLD ? "AWESOME!" : "GREAT!", x: lastPt.x, y: lastPt.y - 20 });
+        feedback.push({ hue, awesome: active.hitCount >= AWESOME_THRESHOLD, x: lastPt.x, y: lastPt.y - 20 });
       }
     }
     P.endClip(); // end cursor clip
@@ -600,15 +603,16 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, gapDragEnabled, s
     }
 
     // --- Feedback text ("GREAT!", "AWESOME!") ---
+    const cheers = cheersRef.current;
     for (const fb of feedback) {
-      if (fb.text === "AWESOME!") {
+      if (fb.awesome) {
         // pulse like the old animate-pulse class
-        P.text(fb.text, fb.x, fb.y, {
+        P.text(cheers.awesome, fb.x, fb.y, {
           font: "bold 16px sans-serif", align: "center", baseline: "middle", fill: "#FFD700",
           stroke: "rgba(255,215,0,0.3)", lineWidth: 3, alpha: 0.75 + 0.25 * Math.sin(now / 160),
         });
       } else {
-        P.text(fb.text, fb.x, fb.y, { font: "bold 13px sans-serif", align: "center", baseline: "middle", fill: `hsl(${fb.hue}, 100%, 80%)` });
+        P.text(cheers.great, fb.x, fb.y, { font: "bold 13px sans-serif", align: "center", baseline: "middle", fill: `hsl(${fb.hue}, 100%, 80%)` });
       }
     }
 

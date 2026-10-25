@@ -144,6 +144,8 @@
     "backInAs": "Rientra come {{name}}"
   },
   "party": {
+    "hitGreat": "OTTIMO!",
+    "hitAwesome": "FANTASTICO!",
     "waitingForHost": "In attesa che l'organizzatore scelga una canzone...",
     "partyLabel": "Festa:",
     "leaveParty": "Lascia la festa",

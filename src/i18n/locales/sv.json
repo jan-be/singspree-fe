@@ -144,6 +144,8 @@
     "backInAs": "Tillbaka som {{name}}"
   },
   "party": {
+    "hitGreat": "TOPPEN!",
+    "hitAwesome": "GRYMT!",
     "waitingForHost": "Väntar på att värden ska välja en låt...",
     "partyLabel": "Fest:",
     "leaveParty": "Lämna fest",

@@ -142,6 +142,8 @@
     "backInAs": "Masuk lagi sebagai {{name}}"
   },
   "party": {
+    "hitGreat": "HEBAT!",
+    "hitAwesome": "LUAR BIASA!",
     "waitingForHost": "Menunggu tuan rumah memilih lagu...",
     "partyLabel": "Pesta:",
     "leaveParty": "Tinggalkan Pesta",

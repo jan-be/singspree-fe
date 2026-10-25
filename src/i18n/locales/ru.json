@@ -148,6 +148,8 @@
     "backInAs": "Вернуться как {{name}}"
   },
   "party": {
+    "hitGreat": "ОТЛИЧНО!",
+    "hitAwesome": "ПОТРЯСАЮЩЕ!",
     "waitingForHost": "Ожидание выбора песни ведущим...",
     "partyLabel": "Вечеринка:",
     "leaveParty": "Покинуть вечеринку",

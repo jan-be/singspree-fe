@@ -144,6 +144,8 @@
     "backInAs": "Terug als {{name}}"
   },
   "party": {
+    "hitGreat": "SUPER!",
+    "hitAwesome": "GEWELDIG!",
     "waitingForHost": "Wachten tot de host een liedje kiest...",
     "partyLabel": "Feest:",
     "leaveParty": "Feest verlaten",

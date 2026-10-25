@@ -152,6 +152,8 @@
     "backInAs": "العودة باسم {{name}}"
   },
   "party": {
+    "hitGreat": "رائع",
+    "hitAwesome": "مذهل",
     "waitingForHost": "في انتظار المضيف لاختيار أغنية...",
     "partyLabel": "الحفلة:",
     "leaveParty": "مغادرة الحفلة",

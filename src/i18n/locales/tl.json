@@ -144,6 +144,8 @@
     "backInAs": "Bumalik bilang {{name}}"
   },
   "party": {
+    "hitGreat": "MAGALING!",
+    "hitAwesome": "NAPAKAGALING!",
     "waitingForHost": "Naghihintay sa host na pumili ng kanta...",
     "partyLabel": "Party:",
     "leaveParty": "Umalis sa Party",

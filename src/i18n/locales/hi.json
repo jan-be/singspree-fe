@@ -144,6 +144,8 @@
     "backInAs": "{{name}} के रूप में वापस शामिल हों"
   },
   "party": {
+    "hitGreat": "बढ़िया!",
+    "hitAwesome": "ज़बरदस्त!",
     "waitingForHost": "होस्ट द्वारा गाना चुनने की प्रतीक्षा हो रही है...",
     "partyLabel": "पार्टी:",
     "leaveParty": "पार्टी छोड़ें",

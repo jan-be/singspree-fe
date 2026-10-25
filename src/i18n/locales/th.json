@@ -142,6 +142,8 @@
     "backInAs": "กลับเข้าในชื่อ {{name}}"
   },
   "party": {
+    "hitGreat": "เยี่ยม!",
+    "hitAwesome": "สุดยอด!",
     "waitingForHost": "รอโฮสต์เลือกเพลง...",
     "partyLabel": "ปาร์ตี้:",
     "leaveParty": "ออกจากปาร์ตี้",

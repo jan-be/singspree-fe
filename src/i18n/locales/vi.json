@@ -142,6 +142,8 @@
     "backInAs": "Vào lại với tên {{name}}"
   },
   "party": {
+    "hitGreat": "HAY LẮM!",
+    "hitAwesome": "TUYỆT VỜI!",
     "waitingForHost": "Đang chờ chủ phòng chọn bài hát...",
     "partyLabel": "Tiệc:",
     "leaveParty": "Rời tiệc",

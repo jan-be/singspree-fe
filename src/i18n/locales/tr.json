@@ -144,6 +144,8 @@
     "backInAs": "{{name}} olarak geri dön"
   },
   "party": {
+    "hitGreat": "HARİKA!",
+    "hitAwesome": "MUHTEŞEM!",
     "waitingForHost": "Ev sahibinin şarkı seçmesi bekleniyor...",
     "partyLabel": "Parti:",
     "leaveParty": "Partiden Ayrıl",

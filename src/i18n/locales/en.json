@@ -145,6 +145,8 @@
     "backInAs": "Get back in as {{name}}"
   },
   "party": {
+    "hitGreat": "GREAT!",
+    "hitAwesome": "AWESOME!",
     "waitingForHost": "Waiting for host to pick a song...",
     "partyLabel": "Party:",
     "leaveParty": "Leave Party",

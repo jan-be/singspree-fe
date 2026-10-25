@@ -142,6 +142,8 @@
     "backInAs": "{{name}}として戻る"
   },
   "party": {
+    "hitGreat": "ナイス！",
+    "hitAwesome": "すごい！",
     "waitingForHost": "ホストが曲を選ぶのを待っています...",
     "partyLabel": "パーティー：",
     "leaveParty": "パーティーを退出",

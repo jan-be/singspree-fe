@@ -145,6 +145,8 @@
     "backInAs": "Als {{name}} wieder rein"
   },
   "party": {
+    "hitGreat": "SUPER!",
+    "hitAwesome": "WAHNSINN!",
     "waitingForHost": "Warte auf den Host...",
     "partyLabel": "Party:",
     "leaveParty": "Party verlassen",

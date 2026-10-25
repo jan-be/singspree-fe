@@ -142,6 +142,8 @@
     "backInAs": "以 {{name}} 回到派對"
   },
   "party": {
+    "hitGreat": "很棒！",
+    "hitAwesome": "太棒了！",
     "waitingForHost": "等待主持人選歌...",
     "partyLabel": "派對：",
     "leaveParty": "離開派對",
