@@ -36,11 +36,17 @@ const Page = ({ title, children }: { title: string; children: React.ReactNode })
  */
 const LangHome = () => {
   const { lang = '' } = useParams(); // the route's own segment: always there
+  const location = useLocation();
   useEffect(() => {
     if (supportedLanguages.includes(lang) && i18n.language !== lang) i18n.changeLanguage(lang);
   }, [lang]);
   if (!supportedLanguages.includes(lang)) return <NotFoundPage />;
-  if (lang === 'en') return <Navigate to="/" replace />;
+  if (lang === 'en') {
+    // English lives at /: switched here, before leaving, as LegacyLangRedirect does
+    // (/ itself keeps whatever language was set)
+    if (i18n.language !== 'en') i18n.changeLanguage('en');
+    return <Navigate to={`/${location.search}${location.hash}`} replace />;
+  }
   return <Page title="SingSpree – Free Online Karaoke with Friends"><EntryPage /></Page>;
 };
 
