@@ -12,6 +12,12 @@
  *     mixer directly, except on a phone or tablet acting as the host (opening
  *     the microphone into Web Audio would put it in call mode, see
  *     MicrophoneInput.ts).
+ *   - Where two devices cannot reach each other directly (a firewall, a VPN
+ *     app, a Wi-Fi that keeps its devices apart), the audio goes through
+ *     Cloudflare's TURN relay: the server hands it out while the party has
+ *     voices on (rtc:ice), so each page asks again when they come on, and a
+ *     phone waits for that (at most ICE_WAIT_MS) before its first try.
+ *     ?voicerelay: through the relay only, to try it out.
  *   - The host's page sets the singers' level and the echo effect
  *     (singspree_voices_level, singspree_voices_echo) and each singer's level
  *     (the volume panel), and plays the voices at the page's volume.
@@ -36,6 +42,9 @@ const OUT_KEY = 'singspree_voice_out';
 const LEVEL_KEY = 'singspree_voices_level';
 const ECHO_KEY = 'singspree_voices_echo';
 const VIEW_MS = 400;
+const ICE_WAIT_MS = 3_000;
+/** Whether ICE servers include a TURN relay */
+const hasRelay = (servers: RTCIceServer[]) => servers.some(s => [s.urls].flat().some(u => /^turns?:/.test(u)));
 
 const read = (key: string) => { try { return localStorage.getItem(key); } catch { return null; } };
 const write = (key: string, value: string) => { try { localStorage.setItem(key, value); } catch { /* private mode: this page only */ } };
@@ -103,6 +112,9 @@ export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio,
   const [echo, setEchoState] = useState(() => read(ECHO_KEY) === '1');
   const [linkState, setLinkState] = useState<VoiceLinkState | null>(null);
   const iceRef = useRef<RTCIceServer[]>(DEFAULT_ICE);
+  // the servers for a party with voices on are in (with the relay), or waited for long enough
+  const [iceReady, setIceReady] = useState(false);
+  const relayOnly = useMemo(() => { try { return new URLSearchParams(window.location.search).has('voicerelay'); } catch { return false; } }, []);
   const socketRef = useRef(socket);
   socketRef.current = socket;
   const pageAudioRef = useRef(pageAudio);
@@ -128,8 +140,8 @@ export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio,
 
   // A phone: its own microphone's connection to the host's page
   const link = useMemo<VoiceLink | null>(() => (isHost ? null : createVoiceLink({
-    send, iceServers: () => iceRef.current, onState: setLinkState, log, report,
-  })), [isHost, send, log, report]);
+    send, iceServers: () => iceRef.current, relayOnly, onState: setLinkState, log, report,
+  })), [isHost, send, log, report, relayOnly]);
   useEffect(() => () => link?.close(), [link]);
 
   // The host's page: the mixer, and what it shows
@@ -137,16 +149,27 @@ export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio,
   const mixer = useMemo<VoiceMixer | null>(() => (isHost ? createVoiceMixer({
     send: (to, signal) => send({ ...signal, to }),
     iceServers: () => iceRef.current,
+    relayOnly,
     onChange: () => { if (singers && mixerRef.current) singers.set(mixerRef.current.singers()); },
     log,
     report,
-  }) : null), [isHost, send, log, report, singers]);
+  }) : null), [isHost, send, log, report, singers, relayOnly]);
   const mixerRef = useRef(mixer);
   mixerRef.current = mixer;
   useEffect(() => () => mixer?.close(), [mixer]);
 
+  // Voices on: the servers again (now with the relay), and until they are in (or ICE_WAIT_MS) no try
+  useEffect(() => {
+    setIceReady(false);
+    if (!partyVoices) return;
+    const ws = socketRef.current();
+    if (ws) sendRtcIce(ws);
+    const t = setTimeout(() => setIceReady(true), ICE_WAIT_MS);
+    return () => clearTimeout(t);
+  }, [partyVoices]);
+
   // The singer's side follows the switches
-  useEffect(() => { link?.setWanted(wanted); }, [link, wanted]);
+  useEffect(() => { link?.setWanted(wanted && iceReady); }, [link, wanted, iceReady]);
 
   // The host's side: on with the party's voices, in the page's AudioContext
   useEffect(() => {
@@ -184,6 +207,7 @@ export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio,
   const onMessage = useCallback((msg: PartyServerMessage) => {
     if (msg.type === 'rtc:ice' && Array.isArray(msg.data?.iceServers)) {
       iceRef.current = msg.data.iceServers.length ? msg.data.iceServers : DEFAULT_ICE;
+      if (hasRelay(iceRef.current)) setIceReady(true);
     } else if (msg.type === 'rtc:signal' && msg.data) {
       const { from, ...signal } = msg.data;
       if (mixerRef.current) mixerRef.current.handleSignal(from, signal);
@@ -200,8 +224,8 @@ export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio,
 
   const extraVoice = useCallback((name: string): ExtraVoice => (isHost
     ? { onTrack: track => { if (localDirect) mixerRef.current?.setLocal(name, track); } }
-    : { link: (sendSignal, onState) => createVoiceLink({ send: sendSignal, iceServers: () => iceRef.current, onState, log: line => log(`${name}: ${line}`), report: r => report({ ...r, mic: name }) }) }
-  ), [isHost, localDirect, log, report]);
+    : { link: (sendSignal, onState) => createVoiceLink({ send: sendSignal, iceServers: () => iceRef.current, relayOnly, onState, log: line => log(`${name}: ${line}`), report: r => report({ ...r, mic: name }) }) }
+  ), [isHost, localDirect, log, report, relayOnly]);
 
   return {
     voiceOut,
@@ -219,7 +243,7 @@ export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio,
     onSocketOpen: useCallback((ws: Pick<PartySocket, 'sendObj'>) => sendRtcIce(ws), []),
     onMessage,
     extraVoice,
-    extraWanted: wanted && (!isHost || localDirect),
+    extraWanted: wanted && (isHost ? localDirect : iceReady),
     debugLines: useCallback(() => {
       const m = mixerRef.current;
       if (m) {

@@ -78,6 +78,8 @@ export interface VoiceMixerOptions {
   /** sends a signal to a singer's page (rtc:signal with `to`); false while the party socket is down */
   send: (to: string, signal: VoiceSignal) => boolean;
   iceServers: () => RTCIceServer[];
+  /** through the TURN relay only (?voicerelay, for trying the relay out) */
+  relayOnly?: boolean;
   /** the singers or their states changed */
   onChange?: () => void;
   log?: (line: string) => void;
@@ -184,7 +186,7 @@ const holdWithElement = (stream: MediaStream) => {
 
 let ids = 0;
 
-export function createVoiceMixer({ send, iceServers, onChange = () => {}, log = () => {}, report = () => {}, peer = config => new RTCPeerConnection(config) as MixerPeer, holdStream = holdWithElement }: VoiceMixerOptions): VoiceMixer {
+export function createVoiceMixer({ send, iceServers, relayOnly = false, onChange = () => {}, log = () => {}, report = () => {}, peer = config => new RTCPeerConnection(config) as MixerPeer, holdStream = holdWithElement }: VoiceMixerOptions): VoiceMixer {
   const singers = new Map<string, Singer>();
   let enabled = false;
   let ctx: AudioContext | null = null;
@@ -486,7 +488,7 @@ export function createVoiceMixer({ send, iceServers, onChange = () => {}, log = 
     const link = signal.link;
     s.link = link;
     let pc: MixerPeer;
-    try { pc = peer({ iceServers: iceServers(), bundlePolicy: 'max-bundle' }); } catch (e) {
+    try { pc = peer({ iceServers: iceServers(), bundlePolicy: 'max-bundle', ...(relayOnly ? { iceTransportPolicy: 'relay' as const } : {}) }); } catch (e) {
       log(`voices: no RTCPeerConnection (${e instanceof Error ? e.message : e})`);
       send(from, { link, bye: true });
       return;

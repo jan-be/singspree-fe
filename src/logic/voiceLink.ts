@@ -101,6 +101,8 @@ export interface VoiceLinkOptions {
   send: (signal: VoiceSignal) => boolean;
   /** the STUN/TURN servers the party server named (rtc:ice) */
   iceServers: () => RTCIceServer[];
+  /** through the TURN relay only (?voicerelay, for trying the relay out) */
+  relayOnly?: boolean;
   onState?: (state: VoiceLinkState) => void;
   log?: (line: string) => void;
   /** how each try went (connected, or why not), for the server's log */
@@ -270,7 +272,7 @@ const BYE_RETRY_MS = 30_000;       // the host's page said no (it was busy, relo
 /**
  * The singer's side of one microphone's voice connection to the host's page.
  */
-export function createVoiceLink({ send, iceServers, onState = () => {}, log = () => {}, report = () => {}, peer = config => new RTCPeerConnection(config) as VoicePeer }: VoiceLinkOptions): VoiceLink {
+export function createVoiceLink({ send, iceServers, relayOnly = false, onState = () => {}, log = () => {}, report = () => {}, peer = config => new RTCPeerConnection(config) as VoicePeer }: VoiceLinkOptions): VoiceLink {
   let wanted = false;
   let active = false;
   let track: MediaStreamTrack | null = null;   // the page's microphone
@@ -355,7 +357,7 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
     const tried = notes = newNotes();
     let conn: VoicePeer;
     try {
-      conn = peer({ iceServers: iceServers(), bundlePolicy: 'max-bundle' });
+      conn = peer({ iceServers: iceServers(), bundlePolicy: 'max-bundle', ...(relayOnly ? { iceTransportPolicy: 'relay' as const } : {}) });
     } catch (e) {
       // no WebRTC on this browser at all: nothing to try again
       log(`voice: no RTCPeerConnection (${e instanceof Error ? e.message : e})`);
