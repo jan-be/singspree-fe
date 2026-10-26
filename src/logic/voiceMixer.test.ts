@@ -81,6 +81,7 @@ describe('createVoiceMixer: connections', () => {
     mixer.handleSignal('Ann', { link: 'l1', bye: true }); // the old one's bye: nothing
     expect(peers[1].closed).toBe(false);
     mixer.handleSignal('Ann', { link: 'l2', bye: true });
+    await flush(); // (after the host side's report of the try)
     expect(peers[1].closed).toBe(true);
     expect(mixer.singers()).toEqual([]);
     expect(sent.filter(s => s.signal.bye)).toEqual([]); // their side ended it: nothing to tell

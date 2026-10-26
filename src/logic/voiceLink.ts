@@ -68,6 +68,8 @@ export interface VoiceReport {
   states: string;
   /** the candidate pairs at the end: how many in each state, and the connectivity checks each way */
   pairs: PairSummary | null;
+  /** the most each of those counts reached while ICE ran (Chrome deletes pairs that never answer before the end) */
+  peak?: PairSummary | null;
   route?: string | null;
   rttMs?: number | null;
 }
@@ -223,8 +225,22 @@ export interface TryNotes {
   local: Record<string, number>;
   remote: Record<string, number>;
   states: string[];
+  /** the highest pair counts seen while it ran (watchPairs) */
+  peak: PairSummary | null;
 }
-export const newNotes = (): TryNotes => ({ t0: performance.now(), answered: false, local: {}, remote: {}, states: [] });
+export const newNotes = (): TryNotes => ({ t0: performance.now(), answered: false, local: {}, remote: {}, states: [], peak: null });
+
+/** Keeps the highest of each pair count in `notes.peak` */
+export const notePeak = (notes: TryNotes, now: PairSummary) => {
+  const p = notes.peak;
+  notes.peak = p ? Object.fromEntries(Object.entries(now).map(([k, v]) => [k, Math.max(v, p[k as keyof PairSummary])])) as unknown as PairSummary : now;
+};
+
+/** Reads a connection's pairs every 2 s while it is not connected, into the try's peak; returns the stop */
+export function watchPairs(conn: Pick<RTCPeerConnection, 'getStats'>, notes: TryNotes): () => void {
+  const id = setInterval(() => { conn.getStats().then(stats => notePeak(notes, pairSummary(stats)), () => {}); }, 2000);
+  return () => clearInterval(id);
+}
 export const noteState = (notes: TryNotes, state: string) => { notes.states.push(`${state}@${Math.round(performance.now() - notes.t0)}`); };
 
 /** How a connection's audio goes, and its round trip, from its stats: the selected candidate pair */
@@ -266,6 +282,7 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
   let failures = 0;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let watchTimer: ReturnType<typeof setTimeout> | null = null;
+  let stopPairs: (() => void) | null = null;
   let closed = false;
   let notes = newNotes();
   let state: VoiceLinkState = { phase: 'off', route: null, rttMs: null, reason: null };
@@ -280,6 +297,8 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
     if (retryTimer) clearTimeout(retryTimer);
     if (watchTimer) clearTimeout(watchTimer);
     retryTimer = watchTimer = null;
+    stopPairs?.();
+    stopPairs = null;
   };
 
   // (`close` false: the caller still reads its stats, and closes it after)
@@ -304,7 +323,7 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
   };
   // The try's report: its notes and, where the connection is still there, its candidate pairs
   const sendReport = (conn: VoicePeer | null, id: string, result: VoiceReport['result'], tried: TryNotes) => {
-    const base = { link: id, side: 'singer' as const, result, ms: Math.round(performance.now() - tried.t0), answered: tried.answered, local: tried.local, remote: tried.remote, states: tried.states.join(' ') };
+    const base = { link: id, side: 'singer' as const, result, ms: Math.round(performance.now() - tried.t0), answered: tried.answered, local: tried.local, remote: tried.remote, states: tried.states.join(' '), peak: tried.peak };
     if (!conn) { report({ ...base, pairs: null }); return Promise.resolve(); }
     return conn.getStats().then(stats => report({ ...base, pairs: pairSummary(stats) }), () => report({ ...base, pairs: null }));
   };
@@ -326,7 +345,7 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
       const route = routeOf(stats);
       if (pc === conn && state.phase === 'on') set(route);
       report({ link: id, side: 'singer', result: 'connected', ms: Math.round(performance.now() - tried.t0), answered: tried.answered,
-        local: tried.local, remote: tried.remote, states: tried.states.join(' '), pairs: pairSummary(stats), ...route });
+        local: tried.local, remote: tried.remote, states: tried.states.join(' '), pairs: pairSummary(stats), peak: tried.peak, ...route });
     }).catch(() => {});
   };
 
@@ -367,6 +386,8 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
       if (s === 'connected') {
         failures = 0;
         if (watchTimer) { clearTimeout(watchTimer); watchTimer = null; }
+        stopPairs?.();
+        stopPairs = null;
         set({ phase: 'on', reason: null });
         readRoute(id, tried);
         log('voice: on the speakers');
@@ -449,6 +470,8 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
         if (watchTimer) clearTimeout(watchTimer);
         const tried = notes;
         watchTimer = setTimeout(() => { if (pc === conn && conn.connectionState !== 'connected') fail(`no way through in time (${tried.states.join(' ')})`, 'no_path'); }, CONNECT_TIMEOUT_MS);
+        stopPairs?.();
+        stopPairs = watchPairs(conn, tried);
         conn.setRemoteDescription(signal.description)
           .then(() => {
             const queued = pending;

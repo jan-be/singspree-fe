@@ -24,7 +24,7 @@
  * Chrome plays a remote WebRTC stream into Web Audio only while the stream is
  * also attached to a media element: each gets a muted <audio>.
  */
-import { countKind, newNotes, noteState, pairSummary, routeOf, tuneOpusAnswer } from './voiceLink';
+import { countKind, newNotes, noteState, pairSummary, routeOf, tuneOpusAnswer, watchPairs } from './voiceLink';
 import { createHowlDetector, dbToGain, feedbackCap, gainToDb, HOWL_MEMORY_S } from './voiceGuard';
 import guardWorkletUrl from './VoiceGuardWorklet.ts?worker&url';
 import VoiceLoopWorker from './VoiceLoopWorker.ts?worker';
@@ -153,6 +153,8 @@ interface Singer {
   lastInbound: { at: number; emitted: number; delay: number; received: number; lost: number } | null;
   /** the connection's notes for its report (null: reported, or none) */
   notes: TryNotes | null;
+  /** stops reading its pairs into the notes' peak */
+  stopPairs: (() => void) | null;
   measureId: string;
   detector: ReturnType<typeof createHowlDetector>;
 }
@@ -417,7 +419,7 @@ export function createVoiceMixer({ send, iceServers, onChange = () => {}, log = 
       s = {
         name, kind, link: null, pc: null, pending: [], stream: null, from: null, copy: null, release: null, chain: null, connected: false,
         level: 1, rms: 0, open: false, gain: 1, cap: 1, lag: null, coupling: null, howlTimes: [], duckUntil: 0,
-        route: kind === 'local' ? 'local' : null, jitterMs: null, lossPct: null, packetsPerSec: null, lastInbound: null, notes: null,
+        route: kind === 'local' ? 'local' : null, jitterMs: null, lossPct: null, packetsPerSec: null, lastInbound: null, notes: null, stopPairs: null,
         measureId: `v${++ids}`, detector: createHowlDetector({ stepS: TICK_MS / 1000 }),
       };
       singers.set(name, s);
@@ -428,15 +430,19 @@ export function createVoiceMixer({ send, iceServers, onChange = () => {}, log = 
   const reportOn = (s: Singer, pc: MixerPeer, result: VoiceReport['result']) => {
     const notes = s.notes, link = s.link;
     s.notes = null;
+    s.stopPairs?.();
+    s.stopPairs = null;
     if (!notes || !link) return Promise.resolve();
     const base = { link, singer: s.name, side: 'host' as const, result, ms: Math.round(performance.now() - notes.t0), answered: true,
-      local: notes.local, remote: notes.remote, states: notes.states.join(' ') };
+      local: notes.local, remote: notes.remote, states: notes.states.join(' '), peak: notes.peak };
     return pc.getStats().then(
       stats => report({ ...base, pairs: pairSummary(stats), ...(result === 'connected' ? routeOf(stats) : {}) }),
       () => report({ ...base, pairs: null }),
     );
   };
   const endConnection = (s: Singer, bye: boolean) => {
+    s.stopPairs?.();
+    s.stopPairs = null;
     if (s.pc) {
       s.pc.onicecandidate = null;
       s.pc.onconnectionstatechange = null;
@@ -488,6 +494,7 @@ export function createVoiceMixer({ send, iceServers, onChange = () => {}, log = 
     s.pc = pc;
     const notes = s.notes = newNotes();
     noteState(notes, 'new');
+    s.stopPairs = watchPairs(pc, notes);
     pc.onicecandidate = ({ candidate }) => {
       if (s.pc !== pc) return;
       if (candidate) countKind(notes.local, candidate.candidate);
@@ -616,7 +623,13 @@ export function createVoiceMixer({ send, iceServers, onChange = () => {}, log = 
         return;
       }
       if (!s || s.link !== signal.link) return; // an older connection's
-      if (signal.bye) { remove(s, false); return; }
+      if (signal.bye) {
+        // the singer gave up before it came up: this side's view of the checks first, while it has them
+        const pc = s.pc;
+        if (pc && !s.connected && s.notes) { noteState(s.notes, 'bye'); reportOn(s, pc, 'no_path').finally(() => { if (s.pc === pc) remove(s, false); }); }
+        else remove(s, false);
+        return;
+      }
       if (signal.candidate !== undefined && s.pc) {
         if (signal.candidate === null) { if (s.pc.remoteDescription) s.pc.addIceCandidate().catch(() => {}); return; }
         if (s.notes) countKind(s.notes.remote, signal.candidate.candidate);
