@@ -3412,6 +3412,18 @@ const PartyPage = () => {
     );
   }
 
+  // What plays after the score screen. With songs in the queue (or for
+  // joiners) a line; with an empty queue the host gets tiles: the automatic
+  // pick first and highlighted, then more similar songs. A song still being
+  // charted does not count: it plays once it is ready.
+  const queuedNext = firstPlayable(queue);
+  const endNext = queuedNext ?? nextSongInfo;
+  const endLocals = similarSongs.map(s => s.localMatch).filter(l => l != null);
+  const endTiles: QueueSong[] | null = canControl && !queuedNext && (endNext?.songId || endLocals.length > 0) ? [
+    ...(endNext && hasSongId(endNext) ? [endNext] : []),
+    ...endLocals.filter(l => l.songId !== endNext?.songId),
+  ].slice(0, 6) : null;
+
   return (
     <div className="relative flex flex-col h-dvh overflow-hidden">
       {/* The blurred thumbnail is a full-screen layer; while the video plays,
@@ -3830,15 +3842,20 @@ const PartyPage = () => {
 
       {/* Song ended overlay */}
       {songEnded && (
-        // Scrolls when the content is taller than the screen (phones in
-        // landscape); centred otherwise
-        <div className="fixed inset-0 z-50 bg-[rgba(20,15,44,0.88)] backdrop-blur-md overflow-y-auto">
+        // Centred; when the scores are taller than the screen (phones in
+        // landscape) they scroll, and the buttons and the countdown under
+        // them stay in view
+        <div className="fixed inset-0 z-50 bg-[rgba(20,15,44,0.88)] backdrop-blur-md">
           {/* SingSpree: back to the menu (a host keeps the party, a joiner leaves it) */}
           <Link to="/" onClick={handleGoToMenu} className="capsule fixed top-2.5 left-2.5 sm:top-3 sm:left-4 z-10 px-3 no-underline">
             <Wordmark height={28} />
           </Link>
-          <div className="min-h-full flex p-4 pt-12 short:p-2 short:pt-10">
-          <div className="m-auto w-full max-w-lg text-center">
+          <div className="h-full flex p-4 pt-12 short:p-2 short:pt-10">
+          <div className="m-auto w-full max-w-lg max-h-full flex flex-col text-center">
+          {/* The part that scrolls. Its bottom padding (--fade) fades out, so
+              what scrolls under the buttons has no hard edge; -mx-1 px-1 is
+              room for the picked tile's ring */}
+          <div className="min-h-0 overflow-y-auto overscroll-contain -mx-1 px-1 [--fade:1rem] pb-(--fade) [mask-image:linear-gradient(to_bottom,#000_calc(100%_-_var(--fade)),transparent)] [&::-webkit-scrollbar-track]:bg-transparent">
             {/* Title */}
             <h2 className="text-3xl sm:text-4xl md:text-5xl short:text-2xl font-bold tracking-[-0.03em] text-white leading-tight mb-3 short:mb-1 animate-slide-up">
               {t('party.songComplete')}
@@ -4007,75 +4024,59 @@ const PartyPage = () => {
               </div>
             )}
 
-            {/* Next up + countdown */}
-            <div className="flex flex-col items-center gap-4 short:gap-2">
-              {/* What plays next. With songs in the queue (or for joiners) a
-                  line; with an empty queue the host gets tiles: the automatic
-                  pick first and highlighted, then more similar songs. A song
-                  still being charted does not count: it plays once it is ready. */}
-              {(() => {
-                const queued = firstPlayable(queue);
-                const next = queued ?? nextSongInfo;
-                const locals = similarSongs.map(s => s.localMatch).filter(l => l != null);
-                const choosing = canControl && !queued && (next?.songId || locals.length > 0);
-                if (!choosing) {
-                  if (next?.title) {
-                    const names = namesOf(next);
-                    return (
-                      <div className="text-white/60">
-                        {t('party.upNext')} <span className="text-[#ff7ade] font-semibold" lang={names.lang}>{names.title}</span>
-                        <span className="text-white/50" lang={names.lang}> - {names.artist}</span>
+            {/* The host picks what plays next from tiles (endNext) */}
+            {endTiles && (
+              <div className="grid grid-cols-3 gap-2 w-full">
+                {endTiles.map((song, i) => {
+                  const isPick = i === 0 && song.songId === endNext?.songId;
+                  return (
+                    <button
+                      key={song.songId}
+                      type="button"
+                      onClick={() => {
+                        handleQueueAdd(song); // the tiles are songs with an id
+                        setSongEnded(false);
+                        advanceSong();
+                      }}
+                      className={`text-left rounded-xl p-1.5 transition-colors cursor-pointer ${i >= 3 ? 'short:hidden' : ''} ${
+                        isPick
+                          ? 'bg-white/[0.10] ring-2 ring-[#ff5cd6]'
+                          : 'hover:bg-white/[0.06]'
+                      }`}
+                    >
+                      {song.videoId && (
+                        <div className="relative overflow-hidden rounded-lg">
+                          <img src={`https://i.ytimg.com/vi/${song.videoId}/mqdefault.jpg`} alt="" className="block w-full aspect-video object-cover" loading="lazy" />
+                          {song.generated && <AiBadge look="pill" beta={song.beta} />}
+                        </div>
+                      )}
+                      <div className="px-1 pt-1.5 pb-0.5">
+                        <div className={`text-xs sm:text-sm truncate ${isPick ? 'text-white font-semibold' : 'text-white/90'}`} lang={namesOf(song).lang}>{namesOf(song).title}</div>
+                        <div className="text-[11px] sm:text-xs text-white/45 truncate" lang={namesOf(song).lang}>{namesOf(song).artist}</div>
                       </div>
-                    );
-                  }
-                  return <div className="text-white/50">{t('party.noMoreSongs')}</div>;
-                }
-                const tiles: QueueSong[] = [
-                  ...(next && hasSongId(next) ? [next] : []),
-                  ...locals.filter(l => l.songId !== next?.songId),
-                ].slice(0, 6);
-                return (
-                  <div className="grid grid-cols-3 gap-2 w-full">
-                    {tiles.map((song, i) => {
-                      const isPick = i === 0 && song.songId === next?.songId;
-                      return (
-                        <button
-                          key={song.songId}
-                          type="button"
-                          onClick={() => {
-                            handleQueueAdd(song); // the tiles are songs with an id
-                            setSongEnded(false);
-                            advanceSong();
-                          }}
-                          className={`text-left rounded-xl p-1.5 transition-colors cursor-pointer ${i >= 3 ? 'short:hidden' : ''} ${
-                            isPick
-                              ? 'bg-white/[0.10] ring-2 ring-[#ff5cd6]'
-                              : 'hover:bg-white/[0.06]'
-                          }`}
-                        >
-                          {song.videoId && (
-                            <div className="relative overflow-hidden rounded-lg">
-                              <img src={`https://i.ytimg.com/vi/${song.videoId}/mqdefault.jpg`} alt="" className="block w-full aspect-video object-cover" loading="lazy" />
-                              {song.generated && <AiBadge look="pill" beta={song.beta} />}
-                            </div>
-                          )}
-                          <div className="px-1 pt-1.5 pb-0.5">
-                            <div className={`text-xs sm:text-sm truncate ${isPick ? 'text-white font-semibold' : 'text-white/90'}`} lang={namesOf(song).lang}>{namesOf(song).title}</div>
-                            <div className="text-[11px] sm:text-xs text-white/45 truncate" lang={namesOf(song).lang}>{namesOf(song).artist}</div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
+            {/* What plays next as a line, the buttons and the countdown: never scrolled away */}
+            <div className="flex-shrink-0 flex flex-col items-center gap-4 short:gap-2">
+              {!endTiles && (endNext?.title ? (
+                <div className="text-white/60">
+                  {t('party.upNext')} <span className="text-[#ff7ade] font-semibold" lang={namesOf(endNext).lang}>{namesOf(endNext).title}</span>
+                  <span className="text-white/50" lang={namesOf(endNext).lang}> - {namesOf(endNext).artist}</span>
+                </div>
+              ) : (
+                <div className="text-white/50">{t('party.noMoreSongs')}</div>
+              ))}
               <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
                 {/* Share score image */}
                 <ShareCard songInfo={songInfoRef.current} scores={endScores} currentUserName={currentUserName} songId={activeSongId} playerColors={playerColors}
                   take={endTake?.songId === activeSongId ? endTake : null} onVideo={setShareVideo}
                   play={currentPlayRef.current && { ...currentPlayRef.current, partyId }} />
-
+  
                 {canControl ? (
                   <>
                     {/* Stay here — host and co-hosts. The host's mouse already
@@ -4092,7 +4093,7 @@ const PartyPage = () => {
                     >
                       {t('party.stayHere')}
                     </button>
-
+  
                     {/* Next Song — the host's appears when the countdown is cancelled, a co-host's at once */}
                     {(countdownCancelled || !isHost) && (
                       <button
@@ -4112,7 +4113,7 @@ const PartyPage = () => {
                     <div className="text-white/60 text-sm italic">{t('party.waitingForHostAction')}</div>
                   )
                 )}
-
+  
                 {/* Countdown circle — visible while countdown is running */}
                 {!countdownCancelled && <CountdownRing startRef={countdownStartRef} duration={COUNTDOWN_DURATION} />}
               </div>
