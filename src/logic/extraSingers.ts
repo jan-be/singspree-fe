@@ -14,13 +14,14 @@
 import { initMicInput, micErrorKind } from './MicrophoneInput';
 import { createBleedController, FALLBACK_DELAY } from './bleedController';
 import { createSingingGate } from './singingGate';
-import { keepWebSocket, sendPartyJoin, sendPartyLeave, sendPingReply, sendPlayerNote } from './WebsocketHandling';
+import { keepWebSocket, sendPartyJoin, sendPartyLeave, sendPingReply, sendPlayerNote, sendRtcSignal } from './WebsocketHandling';
 import { randomId } from './sessionId';
 import type { MicErrorKind, MicInput, MicStats, ProcessedPitch } from './MicrophoneInput';
 import type { BleedController } from './bleedController';
 import type { GateLyrics } from './singingGate';
 import type { KeptWebSocket, PartySocket } from './WebsocketHandling';
 import type { PartyServerMessage } from '../types/party-messages';
+import type { VoiceLink, VoiceLinkPhase, VoiceLinkState, VoiceSignal } from './voiceLink';
 
 export const NAME_MAX = 24;
 const STORE_KEY = 'singspree_extra_mics';
@@ -51,8 +52,8 @@ export interface BleedStems {
   urls?: { karaoke: string } | null;
 }
 
-/** The part of a running microphone (initMicInput) an extra singer uses */
-export type ExtraMic = Pick<MicInput, 'stats' | 'setOnAudio' | 'setOnProcessing' | 'setActive' | 'stopMicInput'>;
+/** The part of a running microphone (initMicInput) an extra singer uses (its track: for the voices on the speakers) */
+export type ExtraMic = Pick<MicInput, 'stats' | 'setOnAudio' | 'setOnProcessing' | 'setActive' | 'stopMicInput'> & Partial<Pick<MicInput, 'track'>>;
 
 /** What an extra singer uses of its socket (keepWebSocket's PartySocket) */
 export type SingerSocket = Pick<PartySocket, 'sendObj' | 'send' | 'readyState' | 'onmessage'>;
@@ -69,6 +70,19 @@ export interface ExtraSingerState {
   /** 'taken': the name is someone else's; 'closed': the party takes nobody new; else why the microphone failed */
   error: null | 'taken' | 'closed' | MicErrorKind;
   stats: MicStats | null;
+  /** its voice on the host's speakers (voiceLink.ts): left out where it has no connection of its own */
+  voice?: VoiceLinkPhase;
+}
+
+/**
+ * An extra microphone's voice on the host's speakers: on a phone, a connection
+ * of its own to the host's page over its own socket (`link`); on the host's
+ * page, the page's mixer takes the microphone directly (`onTrack`: its track
+ * while open and wanted, null otherwise).
+ */
+export interface ExtraVoice {
+  link?: (send: (signal: VoiceSignal) => boolean, onState: (state: VoiceLinkState) => void) => VoiceLink;
+  onTrack?: (track: MediaStreamTrack | null) => void;
 }
 
 /** An extra microphone as a singer (createExtraSinger) */
@@ -81,6 +95,8 @@ export interface ExtraSinger {
   setActive(on: boolean): void;
   /** the song the page plays and its stems: the delay is measured against them */
   syncSong(songId: string | undefined, stems: BleedStems | null): void;
+  /** its voice on the host's speakers: wanted (the singer's switch, the party's voices) or not */
+  setVoice(on: boolean): void;
   /** for good (slot removed, page left): the seat goes with it */
   close(): void;
 }
@@ -194,10 +210,11 @@ export function syncBleedSong(bleed: BleedController | null, current: string | n
  *   isSongPlaying()
  *   held()       the song time is not the party's yet (the host's page on its way to its spot): no notes
  *   onState(s)   { phase: 'off' | 'starting' | 'on', error: null | 'taken' | 'closed' | mic error kind, stats }
+ *   voice        its voice on the host's speakers (ExtraVoice), if the page offers it
  * initMic / keep: for tests.
  */
 export function createExtraSinger({ slot, partyId, songTime, chart = () => undefined, isSongPlaying, held = () => false, onState = () => {}, gpu = false,
-  initMic = initMicInput, keep = keepWebSocket }: {
+  voice, initMic = initMicInput, keep = keepWebSocket }: {
   slot: Pick<ExtraMicSlot, 'name' | 'deviceId' | 'color' | 'guestId'>,
   partyId: string,
   songTime: () => number,
@@ -207,6 +224,7 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
   held?: () => boolean,
   onState?: (state: ExtraSingerState) => void,
   gpu?: boolean,
+  voice?: ExtraVoice,
   initMic?: (options: { deviceId?: string, gpu?: boolean }) => Promise<ExtraMic>,
   keep?: (options: SingerSocketOptions) => KeptWebSocket,
 }): ExtraSinger {
@@ -220,6 +238,11 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
   const set = (patch: Partial<ExtraSingerState>) => { state = { ...state, ...patch }; onState(state); };
   // talk near this microphone goes on without its pitch, like the page's own
   const gate = createSingingGate();
+  // its voice on the host's speakers: over its own socket, or straight into the host page's mixer
+  let voiceOn = false;
+  let hostUp = true;
+  const link = voice?.link?.(signal => (ws ? sendRtcSignal(ws, signal) : false), st => set({ voice: st.phase })) ?? null;
+  const giveTrack = () => voice?.onTrack?.(voiceOn && mic?.track ? mic.track : null);
 
   const socket = keep({
     onOpen: (sock) => {
@@ -229,6 +252,13 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
         let m: PartyServerMessage;
         try { m = JSON.parse(e.data); } catch { return; }
         if (m.type === 'ping:request') sendPingReply(sock, { serverTs: m.data?.serverTs });
+        else if (m.type === 'rtc:signal') link?.handleSignal(m.data);
+        else if (m.type === 'party:host_status') {
+          // the host's page is back: the connection it had is gone with the old one
+          const up = m.data?.connected !== false;
+          if (up && !hostUp) link?.hostBack();
+          hostUp = up;
+        }
         else if (m.type === 'error' && m.data?.code === 'name_taken') set({ error: 'taken' });
         // the party takes no new people and the server could not tell this page is in it (a page from before this one)
         else if (m.type === 'error' && m.data?.code === 'joining_closed') set({ error: 'closed' });
@@ -266,6 +296,9 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
           m.setOnAudio((samples, pos) => bleed?.pushAudio(samples, pos));
           m.setOnProcessing(onPitch);
           m.setActive(isSongPlaying());
+          link?.setTrack(m.track ?? null);
+          link?.setActive(isSongPlaying());
+          giveTrack();
           set({ phase: 'on', stats: m.stats });
         })
         .catch((e: unknown) => {
@@ -275,20 +308,30 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
       return opening;
     },
     closeMic() {
+      link?.setTrack(null);
       mic?.stopMicInput();
       mic = null;
+      giveTrack();
       bleed?.dispose();
       bleed = null;
       if (state.phase !== 'off') set({ phase: 'off', stats: null });
     },
     /** song playing or paused: the pipeline runs or idles, like the page's own */
-    setActive(on: boolean) { mic?.setActive(on); },
+    setActive(on: boolean) { mic?.setActive(on); link?.setActive(on); },
     /** the song the page plays and its stems: the delay is measured against them */
     syncSong(songId: string | undefined, stems: BleedStems | null) { bleedSong = syncBleedSong(bleed, bleedSong, songId, stems); },
+    /** its voice on the host's speakers: wanted or not */
+    setVoice(on: boolean) {
+      if (on === voiceOn) return;
+      voiceOn = on;
+      link?.setWanted(on);
+      giveTrack();
+    },
     /** for good (slot removed, page left): the seat goes with it */
     close() {
       closed = true;
       this.closeMic();
+      link?.close();
       if (ws) { try { sendPartyLeave(ws); } catch { /* */ } }
       socket.close();
     },

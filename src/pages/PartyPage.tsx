@@ -26,6 +26,7 @@ import { createBleedController, FALLBACK_DELAY } from "../logic/bleedController"
 import { createSingingGate } from "../logic/singingGate";
 import { isPitchGpuEnabled } from "../logic/pitchGpuFlag";
 import { createExtraSinger, loadExtraMics, saveExtraMics } from "../logic/extraSingers";
+import { usePartyVoices } from "../logic/usePartyVoices";
 import { getGapOverride, setGapOverride, clearGapOverride } from "../logic/gapOverrides";
 import { carryGap } from "../logic/gapFrame";
 import { getAndSetHitNotesByPlayer, applyRemoteNotes } from "../logic/MicInputToTick";
@@ -107,6 +108,7 @@ import type { PartySocket } from "../logic/WebsocketHandling";
 import type { BleedController } from "../logic/bleedController";
 import type { FriendSuggestion, SongScores } from "../logic/authApi";
 import type { ExtraMicSlot, ExtraSinger } from "../logic/extraSingers";
+import type { PartyVoices } from "../logic/usePartyVoices";
 import type { MicErrorKind, MicInput, MicPhase, MicStats } from "../logic/MicrophoneInput";
 import type { DialogShare } from "../components/ShareDialog";
 import type { SimilarSong } from "../components/SimilarSongs";
@@ -502,9 +504,12 @@ const PartyPage = () => {
   const micSetActiveRef = useRef<MicInput['setActive'] | null>(null);
   // This device's other microphones, each a singer of its own (extraSingers.ts): slot id → { singer, key }
   const extraSingersRef = useRef(new Map<string, { singer: ExtraSinger; key: string }>());
-  // Play / pause reach every microphone of this device
+  // The singers' voices on the host's speakers (usePartyVoices.ts), set further down
+  const voicesRef = useRef<PartyVoices | null>(null);
+  // Play / pause reach every microphone of this device (and what it sends to the speakers)
   const setMicsActive = useCallback((on: boolean) => {
     micSetActiveRef.current?.(on);
+    voicesRef.current?.setActive(on);
     for (const { singer } of extraSingersRef.current.values()) singer.setActive(on);
   }, []);
   // How late this device's singing reaches the scoring, measured from the
@@ -702,8 +707,9 @@ const PartyPage = () => {
   const instrumentalLevelRef = useRef(instrumentalLevel);
   instrumentalLevelRef.current = instrumentalLevel;
   const stemPlayerRef = useRef<PageStemPlayer | null>(null);    // StemPlayer: both stems decoded, played on the context's clock
-  // The shared AudioContext and its two GainNodes (instrumental, vocals), made together
-  const audioRef = useRef<{ ctx: AudioContext; karaoke: GainNode; vocals: GainNode } | null>(null);
+  // The shared AudioContext and its two GainNodes (instrumental, vocals), made together, and
+  // `music`: both stems' mix (no output of its own), which the voices on the speakers are measured against
+  const audioRef = useRef<{ ctx: AudioContext; karaoke: GainNode; vocals: GainNode; music: GainNode } | null>(null);
   const sessionKeeperRef = useRef<HTMLAudioElement | null>(null); // silent <audio> looping while the stems play (see keepAudioSession)
 
   hasStemsRef.current = hasStems;
@@ -719,6 +725,32 @@ const PartyPage = () => {
     audio.vocals.gain.value = master * (vocalsLevelRef.current / 100);
     if (audio.ctx.state === 'suspended') audio.ctx.resume().catch(e => debugLog('stems', 'resume() rejected:', e));
   }, []);
+
+  // The page's AudioContext with its gains, made on first use (the stems, the
+  // voices on the speakers) and again if it was closed; null without Web Audio
+  const pageAudio = useCallback(() => {
+    let audio = audioRef.current;
+    if (audio && audio.ctx.state !== 'closed') return audio;
+    let made: AudioContext;
+    try {
+      const latencyHint = audioLatencyHint(); // a ?latency= trial (audioLatencyFlag.ts), else the default
+      made = new (window.AudioContext || window.webkitAudioContext)(latencyHint !== null ? { latencyHint } : undefined);
+    } catch (e) {
+      debugError('stems', `Web Audio unavailable (${thrownField(e, 'message')})`);
+      return null;
+    }
+    const kGain = made.createGain();
+    kGain.connect(made.destination);
+    const vGain = made.createGain();
+    vGain.connect(made.destination);
+    const music = made.createGain();
+    kGain.connect(music);
+    vGain.connect(music);
+    audio = { ctx: made, karaoke: kGain, vocals: vGain, music };
+    audioRef.current = audio;
+    applyStemGains();
+    return audio;
+  }, [applyStemGains]);
 
   // ── Load and play the stems when they become available ──
   useEffect(() => {
@@ -747,22 +779,10 @@ const PartyPage = () => {
     };
 
     // Set up AudioContext + GainNodes (reuse context across songs, recreate if closed)
-    let audio = audioRef.current;
-    if (!audio || audio.ctx.state === 'closed') {
-      let made: AudioContext;
-      try {
-        const latencyHint = audioLatencyHint(); // a ?latency= trial (audioLatencyFlag.ts), else the default
-        made = new (window.AudioContext || window.webkitAudioContext)(latencyHint !== null ? { latencyHint } : undefined);
-      } catch (e) {
-        fallBackToYouTube(`Web Audio unavailable (${thrownField(e, 'message')})`);
-        return;
-      }
-      const kGain = made.createGain();
-      kGain.connect(made.destination);
-      const vGain = made.createGain();
-      vGain.connect(made.destination);
-      audio = { ctx: made, karaoke: kGain, vocals: vGain };
-      audioRef.current = audio;
+    const audio = pageAudio();
+    if (!audio) {
+      fallBackToYouTube('Web Audio unavailable');
+      return;
     }
     const { ctx } = audio;
     if (ctx.state === 'suspended') ctx.resume().catch(() => {});
@@ -1079,6 +1099,18 @@ const PartyPage = () => {
   iframePlayerRef.current = iframePlayer;
   const wssRef = useRef(wss);
   wssRef.current = wss;
+
+  // The singers' voices on the host's speakers: a phone sends its microphone,
+  // the host's page plays them (usePartyVoices.ts)
+  const voices = usePartyVoices({
+    isHost,
+    partyVoices: partySettings.voices,
+    socket: () => wssRef.current ?? null,
+    myName: currentUserName,
+    pageAudio,
+    volume,
+  });
+  voicesRef.current = voices;
   const isHostRef = useRef(isHost);
   isHostRef.current = isHost;
   const isCohostRef = useRef(isCohost);
@@ -2255,6 +2287,8 @@ const PartyPage = () => {
     lines.push(m
       ? `mic: ${m.active === false ? 'idle' : 'active'} ${m.provider ?? 'wasm'} chunks=${m.totalChunks} (${m.chunksPerSec}/s) notes=${m.totalNotes} (${m.notesPerSec}/s) gated=${m.gatedChunks}${m.droppedChunks ? ` dropped=${m.droppedChunks}` : ''} gain=${(m.inputGain ?? 1).toFixed(2)} infer=${(m.inferMs ?? 0).toFixed(1)}ms${m.inferErrors ? ` errors=${m.inferErrors}` : ''} floor=${m.noiseFloor?.toFixed(5)} last=${m.lastFreq?.toFixed(1)}Hz vol=${m.lastVolume?.toFixed(4)}`
       : micActiveRef.current ? 'mic: closed until a song plays' : 'mic: not active');
+    // the voices on the speakers: a phone's connection, or each voice the host's page plays
+    for (const line of voicesRef.current?.debugLines() ?? []) lines.push(line);
     lines.push(navigator.userAgent);
     return lines.join('\n');
   }, []);
@@ -2295,6 +2329,9 @@ const PartyPage = () => {
       micRecorderRef.current = result.recorder;
       micSetActiveRef.current = result.setActive;
       result.setActive(isSongPlaying());
+      // a copy goes to the host's speakers, when wanted (usePartyVoices.ts)
+      voicesRef.current?.setMicTrack(result.track);
+      voicesRef.current?.setActive(isSongPlaying());
       try { localStorage.setItem('singspree_mic_on', '1'); } catch { /* */ }
       micActiveRef.current = true;
       bleedRef.current?.dispose();
@@ -2335,6 +2372,7 @@ const PartyPage = () => {
     micRecorderRef.current = null;
     micSetActiveRef.current = null;
     micStatsRef.current = null;
+    voicesRef.current?.setMicTrack(null);
     setSetOnProcessing(undefined);
     for (const { singer } of extraSingersRef.current.values()) singer.closeMic();
   }, [stopAndUploadRecording]);
@@ -2526,8 +2564,10 @@ const PartyPage = () => {
         isSongPlaying,
         held: songTimeHeld,
         gpu: isPitchGpuEnabled(),
+        voice: voicesRef.current?.extraVoice(slot.name.trim()),
         onState: st => setExtraStates(prev => ({ ...prev, [id]: st })),
       });
+      singer.setVoice(!!voicesRef.current?.extraWanted);
       running.set(id, { singer, key: keyOf(slot) });
       if (stopMicRef.current) singer.openMic();
       singer.syncSong(activeSongIdRef.current, stemPlayerRef.current);
@@ -2544,6 +2584,10 @@ const PartyPage = () => {
     for (const { singer } of extraSingersRef.current.values()) singer.close();
     extraSingersRef.current.clear();
   }, []);
+  // ...and their voices on the speakers follow the switches
+  useEffect(() => {
+    for (const { singer } of extraSingersRef.current.values()) singer.setVoice(voices.extraWanted);
+  }, [voices.extraWanted, extraStates]);
   // For the mic panel: the other microphones and the names already sung under
   // in the party (not counting this device's own)
   const multiMic = useMemo(() => {
@@ -2657,6 +2701,8 @@ const PartyPage = () => {
 
     const onOpen = (wsInstance: PartySocket) => {
       sendPartyJoin(wsInstance, { partyId, username: currentUserNameRef.current, isShowingVideo: true, color: ownColorRef.current, part: myPartRef.current });
+      // where the voices on the speakers find a way (the answer: rtc:ice)
+      voicesRef.current?.onSocketOpen(wsInstance);
 
       // Only host sends song lifecycle messages. After a reconnect the server
       // has the song already (song:start again would save it as a stopped
@@ -2811,7 +2857,10 @@ const PartyPage = () => {
         }
       }
 
-      // Co-hosts, the joining switch, the host page's auto-skip (also in party:state)
+      // The voices on the speakers: their connections' setup, the host coming back, someone leaving
+      voicesRef.current?.onMessage(jsonObj);
+
+      // Co-hosts, the joining switch, the host page's auto-skip, the voices (also in party:state)
       if (jsonObj.type === "party:state" || jsonObj.type === "party:settings") {
         setPartySettings(prev => readSettings(prev, jsonObj.data));
         // A co-host switched auto-skip: this page is the one that skips. Not
@@ -3258,6 +3307,12 @@ const PartyPage = () => {
     const w = wssRef.current;
     if (w) sendPartySettings(w, { joiningOpen: open });
   }, []);
+  const handleSetVoices = useCallback((on: boolean) => {
+    const w = wssRef.current;
+    if (w) sendPartySettings(w, { voices: on });
+    // the switch is a tap: the host page's sound may start here (a suspended context)
+    if (on && isHost) { const ctx = pageAudio()?.ctx; if (ctx?.state === 'suspended') ctx.resume().catch(() => {}); }
+  }, [isHost, pageAudio]);
   const people = useMemo(
     () => (canControl ? cardPeople({ members, cohosts: partySettings.cohosts, owner: partyOwner, extras: extraNames, me: currentUserName }) : []),
     [canControl, members, partySettings.cohosts, partyOwner, extraNames, currentUserName],
@@ -3419,6 +3474,13 @@ const PartyPage = () => {
         playerColors={playerColors}
         onSetCohost={handleSetCohost}
         onSetJoiningOpen={handleSetJoiningOpen}
+        voices={partySettings.voices}
+        onSetVoices={partySettings.known && (authUser?.voicesOnSpeakers || partySettings.voices) ? handleSetVoices : undefined}
+        voice={voices.available ? { on: voices.voiceOut, onChange: voices.setVoiceOut, state: voices.linkState } : undefined}
+        singerVoices={isHost && partySettings.voices && voices.singers ? {
+          singers: voices.singers, level: voices.singersLevel, onLevelChange: voices.setSingersLevel,
+          echo: voices.echo, onEchoChange: voices.setEcho, onSingerLevelChange: voices.setSingerLevel,
+        } : undefined}
       />
       {/* While the camera films, the singer sees it */}
       {cameraLive && filmRef.current && <CameraPreview film={filmRef.current} onOff={() => handleCameraChange(false)} />}

@@ -198,3 +198,60 @@ describe('an extra microphone as a singer', () => {
     singer.close();
   });
 });
+
+describe("an extra microphone's voice on the host's speakers", () => {
+  const voiceSetup = (kind: 'link' | 'local') => {
+    const sock = fakeSocket();
+    const keep = vi.fn(({ onOpen }: SingerSocketOptions) => { onOpen(sock, { reconnect: false }); return { close: vi.fn() }; });
+    const track = { id: 'mic-track' } as MediaStreamTrack;
+    const mic = { ...fakeMic(), track };
+    const link = { setWanted: vi.fn(), setTrack: vi.fn(), setActive: vi.fn(), hostBack: vi.fn(), handleSignal: vi.fn(), close: vi.fn(), state: { phase: 'off' as const, route: null, rttMs: null } };
+    let linkSend: ((s: { link: string; bye?: true }) => boolean) | null = null;
+    let linkState: ((s: { phase: 'on'; route: null; rttMs: null }) => void) | null = null;
+    const onTrack = vi.fn();
+    const states: ExtraSingerState[] = [];
+    const singer = createExtraSinger({
+      slot: { name: 'Mic 2', deviceId: 'dev2', color: 200, guestId: 'mic-x' }, partyId: 'ABCD',
+      songTime: () => 1, isSongPlaying: () => true, onState: st => states.push(st), initMic: async () => mic, keep,
+      voice: kind === 'link' ? { link: (send, onState) => { linkSend = send; linkState = onState; return link; } } : { onTrack },
+    });
+    return { singer, sock, link, onTrack, states, track, send: () => linkSend, report: () => linkState };
+  };
+
+  test('on a phone: a connection of its own over its own socket, given the track once the microphone is open', async () => {
+    const { singer, sock, link, states, track, send, report } = voiceSetup('link');
+    singer.setVoice(true);
+    expect(link.setWanted).toHaveBeenCalledWith(true);
+    await singer.openMic();
+    expect(link.setTrack).toHaveBeenLastCalledWith(track);
+    expect(link.setActive).toHaveBeenLastCalledWith(true);
+    expect(send()?.({ link: 'x', bye: true })).toBe(true);
+    expect(sock.sent.at(-1)).toEqual({ type: 'rtc:signal', data: { link: 'x', bye: true } });
+    receive(sock, { type: 'rtc:signal', data: { from: 'Host', link: 'x', candidate: null } });
+    expect(link.handleSignal).toHaveBeenCalledWith({ from: 'Host', link: 'x', candidate: null });
+    receive(sock, { type: 'party:host_status', data: { connected: false } });
+    receive(sock, { type: 'party:host_status', data: { connected: true } });
+    expect(link.hostBack).toHaveBeenCalledTimes(1);
+    report()?.({ phase: 'on', route: null, rttMs: null });
+    expect(states.at(-1)?.voice).toBe('on');
+    singer.closeMic();
+    expect(link.setTrack).toHaveBeenLastCalledWith(null);
+    singer.close();
+    expect(link.close).toHaveBeenCalled();
+  });
+
+  test("on the host's page: its track straight to the mixer while wanted and open", async () => {
+    const { singer, onTrack, track } = voiceSetup('local');
+    await singer.openMic();
+    expect(onTrack).toHaveBeenLastCalledWith(null);
+    singer.setVoice(true);
+    expect(onTrack).toHaveBeenLastCalledWith(track);
+    singer.closeMic();
+    expect(onTrack).toHaveBeenLastCalledWith(null);
+    await singer.openMic();
+    expect(onTrack).toHaveBeenLastCalledWith(track);
+    singer.setVoice(false);
+    expect(onTrack).toHaveBeenLastCalledWith(null);
+    singer.close();
+  });
+});

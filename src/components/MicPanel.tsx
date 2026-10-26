@@ -10,6 +10,7 @@ import { NAME_MAX, freeDevices, nameProblem, newExtraMic, type ExtraMicSlot, typ
 import type { MicPhase, MicStats } from '../logic/MicrophoneInput';
 import { useAuth } from '../logic/AuthContext';
 import type { ValueStore } from '../logic/valueStore';
+import type { VoiceLinkState } from '../logic/voiceLink';
 
 /**
  * Microphone panel (top right): join / leave singing, input device, a live
@@ -27,6 +28,10 @@ import type { ValueStore } from '../logic/valueStore';
  * "Save recordings" (saveRecordings, on unless turned off; logic/takes.ts):
  * on, each song sung here is kept to listen to on the singer's profile;
  * off, nothing is recorded at all.
+ *
+ * "My voice on the speakers" (voice, while the party has voices on;
+ * usePartyVoices.ts): this microphone also plays through the host's speakers,
+ * with how the connection to the host's page is doing.
  */
 
 /** An extra microphone's state: its singer's (extraSingers.ts), or the page's 'sameDevice' (two on one input) */
@@ -63,6 +68,8 @@ export interface MicPanelProps {
   onOpenChange?: (open: boolean) => void;
   saveRecordings?: boolean;
   onSaveRecordingsChange?: (on: boolean) => void;
+  /** the singer's switch for their voice on the host's speakers; state: the connection (null on the host's page) */
+  voice?: { on: boolean; onChange: (on: boolean) => void; state: VoiceLinkState | null };
 }
 
 const Spinner = () => (
@@ -84,6 +91,18 @@ const Meter = ({ pct }: { pct: number }) => (
     <div className="h-full rounded-full bg-gradient-to-r from-neon-green to-neon-cyan transition-[width] duration-75" style={{ width: `${pct}%` }} />
   </div>
 );
+
+/** How the singer's voice on the speakers is doing, under its switch */
+const VoiceStatus = ({ voice, micActive, t }: { voice: NonNullable<MicPanelProps['voice']>; micActive: boolean; t: TFunction }) => {
+  const st = voice.state;
+  const [text, tone] = !voice.on ? [t('voices.mineHint'), 'text-white/45']
+    : !st ? [t('voices.mineLocal'), 'text-white/45']           // the host's page: straight in
+      : st.phase === 'on' ? [st.route === 'relay' ? t('voices.onSpeakersRelayed') : t('voices.onSpeakers'), 'text-neon-green']
+        : st.phase === 'failed' ? [t('voices.failed'), 'text-red-400']
+          : st.phase === 'connecting' ? [t('voices.connecting'), 'text-neon-cyan']
+            : [micActive ? t('voices.withSong') : t('voices.withMic'), 'text-white/45'];
+  return <p id="mic-voice-out-state" role={st?.phase === 'failed' ? 'alert' : undefined} data-voice-state={st?.phase ?? 'local'} className={`mt-1 text-xs leading-snug ${tone}`}>{text}</p>;
+};
 
 /** One extra microphone: its name (kept when the field is left), input, level and state */
 interface ExtraMicRowProps {
@@ -137,6 +156,8 @@ const ExtraMicRow = ({ slot, state, level, devices, defaultFree, slots, taken, o
       </select>
       <Meter pct={state?.phase === 'on' ? levelPct(level) : 0} />
       {state?.phase === 'starting' && <p className="text-xs text-neon-cyan">{t('mic.starting')}</p>}
+      {state?.phase === 'on' && state.voice === 'on' && <p className="text-xs text-neon-green">{t('voices.onSpeakers')}</p>}
+      {state?.phase === 'on' && state.voice === 'failed' && <p className="text-xs text-red-400">{t('voices.failed')}</p>}
       {error && <p role="alert" className="text-xs text-red-400">{error}</p>}
     </div>
   );
@@ -146,7 +167,7 @@ const MicPanel = ({
   micActive, micPhase = null, micError = null, onJoin, onLeave, statsRef,
   deviceId, onDeviceChange, multiMic,
   ownColor, onColorChange, latency, onOpenChange,
-  saveRecordings = true, onSaveRecordingsChange,
+  saveRecordings = true, onSaveRecordingsChange, voice,
 }: MicPanelProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -289,6 +310,25 @@ const MicPanel = ({
               <p id="mic-save-recordings-hint" className="mt-1 text-xs text-white/45 leading-snug">
                 {t(user ? 'mic.saveRecordingsHint' : 'mic.saveRecordingsHintGuest')}
               </p>
+            </div>
+          )}
+
+          {voice && (
+            <div>
+              <div className="flex items-center justify-between gap-3">
+                <span id="mic-voice-out" className="text-xs text-white/70">{t('voices.mine')}</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={voice.on}
+                  aria-labelledby="mic-voice-out"
+                  aria-describedby="mic-voice-out-state"
+                  data-voice-out=""
+                  onClick={() => voice.onChange(!voice.on)}
+                  className="switch"
+                />
+              </div>
+              <VoiceStatus voice={voice} micActive={micActive} t={t} />
             </div>
           )}
 

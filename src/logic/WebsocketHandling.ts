@@ -1,4 +1,5 @@
 import { getGuestId } from './sessionId';
+import type { VoiceSignal } from './voiceLink';
 
 // Same origin as the page (ws for http, wss for https), so the dev server,
 // `vite preview` and production all reach the backend through /api/ws.
@@ -245,6 +246,8 @@ export interface PartyJoin {
 export interface PartySettings {
   joiningOpen?: boolean;
   autoSkip?: boolean;
+  /** the singers' microphones on the host page's speakers */
+  voices?: boolean;
 }
 
 /** What a co-host has the host's page do (playback:control) */
@@ -321,6 +324,22 @@ export const sendPlaybackControl = (ws: ObjSocket, { action, time, on }: { actio
     type: "playback:control",
     data: { action, ...(action === 'seek' ? { time } : {}), ...(action === 'duet' ? { on: !!on } : {}) },
   });
+};
+
+/**
+ * A voice connection's setup (voiceLink.ts, voiceMixer.ts): a singer's goes to
+ * the host's page, the host page's to `to`. Only while the party has voices on
+ * (a bye always). Returns false while the socket is not open.
+ */
+export const sendRtcSignal = (ws: Pick<PartySocket, 'sendObj' | 'readyState'>, signal: VoiceSignal & { to?: string }): boolean => {
+  if (ws.readyState !== 1) return false; // WebSocket.OPEN
+  ws.sendObj({ type: "rtc:signal", data: signal });
+  return true;
+};
+
+/** Which STUN/TURN servers this page's voice connections may use: the server answers with rtc:ice. */
+export const sendRtcIce = (ws: ObjSocket) => {
+  ws.sendObj({ type: "rtc:ice", data: {} });
 };
 
 /** Leave the party for good (a closed socket alone counts as a reload). */

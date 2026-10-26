@@ -434,6 +434,28 @@
     "saveRecordingsHint": "在個人頁面重聽你唱過的歌。",
     "saveRecordingsHintGuest": "登入後可在個人頁面重聽你唱過的歌。"
   },
+  "voices": {
+    "partySwitch": "歌手的聲音走喇叭",
+    "partySwitchHint": "每位歌手的手機把麥克風聲音傳到主持人的螢幕，由它透過喇叭播放。每個人都可以關掉自己的。",
+    "mine": "我的聲音走喇叭",
+    "mineHint": "關閉：麥克風只用於計分。",
+    "mineLocal": "你唱歌時透過這台裝置的喇叭播放。",
+    "onSpeakers": "正在喇叭播放",
+    "onSpeakersRelayed": "正在喇叭播放（經中繼，稍有延遲）",
+    "connecting": "正在連接喇叭…",
+    "failed": "連不上主持人的喇叭，正在重試…連同一個 Wi-Fi 會更順利。",
+    "withMic": "麥克風開啟後開始。",
+    "withSong": "歌曲播放後開始。",
+    "singers": "歌手聲音",
+    "echo": "回音",
+    "nobody": "還沒有聲音：歌手用麥克風加入後就會進來。",
+    "lag": "延遲 {{ms}} 毫秒",
+    "relayed": "經中繼",
+    "howled": "嘯叫：已調低音量。讓手機遠離喇叭，或調低音量。",
+    "late": "聲音來得晚。藍牙喇叭延遲很大，用線連接更快。",
+    "capped": "為防止嘯叫已被壓低。",
+    "singerLevel": "{{name}} 的音量"
+  },
   "auth": {
     "signIn": "登入",
     "signOut": "登出",
@@ -677,7 +699,9 @@
     "influencerMode": "網紅模式",
     "influencerModeHint": "在派對中的麥克風旁加入相機按鈕，讓你分享的影片能拍到你唱歌的樣子。相機只在歌曲播放時拍攝，除非你分享影片，拍下的畫面都只會留在此裝置上。",
     "rustPartyPage": "Rust 版派對頁面",
-    "rustPartyPageHint": "在用 Rust 撰寫的新版派對頁面中開啟派對。這是測試版：多載入約 2 MB，還沒有最新的功能（例如網紅模式的相機），螢幕閱讀器也無法讀取。如果有什麼不正常，可以在這裡關閉。"
+    "rustPartyPageHint": "在用 Rust 撰寫的新版派對頁面中開啟派對。這是測試版：多載入約 2 MB，還沒有最新的功能（例如網紅模式的相機），螢幕閱讀器也無法讀取。如果有什麼不正常，可以在這裡關閉。",
+    "voicesOnSpeakers": "聲音走喇叭",
+    "voicesOnSpeakersHint": "在派對的 QR 卡片上加一個開關：每位歌手的手機會把麥克風聲音傳到主持人的螢幕，由它透過喇叭播放。同一個 Wi-Fi、用有線喇叭效果最好（藍牙會有延遲）。"
   },
   "camera": {
     "title": "相機",

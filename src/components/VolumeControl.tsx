@@ -2,6 +2,24 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SpeakerIcon, MicIcon, MicOffIcon, NoteIcon } from './Icons';
 import { markPopoverClosed } from '../logic/popoverGuard';
+import { useStoreValue } from '../logic/valueStore';
+import type { ValueStore } from '../logic/valueStore';
+import type { VoiceSingerView } from '../logic/voiceMixer';
+
+/** The host page's voices on the speakers (usePartyVoices.ts): the singers' level, the echo, each singer */
+export interface SingerVoicesControl {
+  singers: ValueStore<VoiceSingerView[]>;
+  /** 0–100 */
+  level: number;
+  onLevelChange: (level: number) => void;
+  echo: boolean;
+  onEchoChange: (on: boolean) => void;
+  /** 0–1 */
+  onSingerLevelChange: (name: string, level: number) => void;
+}
+
+/** A voice this late is heard behind the music (a Bluetooth speaker alone adds half a second) */
+const LATE_MS = 250;
 
 export interface VolumeControlProps {
   volume: number;
@@ -15,6 +33,8 @@ export interface VolumeControlProps {
   volumeTooltip: boolean;
   stemsHint?: boolean;
   onDismissStemsHint?: () => void;
+  /** the host's page while the party has voices on */
+  singerVoices?: SingerVoicesControl;
 }
 
 /**
@@ -36,10 +56,13 @@ export interface VolumeControlProps {
  * stemsHint / onDismissStemsHint: one-time callout explaining the Vocals
  *   slider on the first song with stems; dismissed by its button or by
  *   opening the control.
+ * singerVoices: the host's page while the party has voices on: the singers'
+ *   level, the echo effect, and each voice with its level, how late it comes
+ *   out and whether feedback held it down.
  */
 const VolumeControl = ({
   volume, restoreVolume, vocalsLevel, instrumentalLevel = 100, onVolumeChange, onVocalsLevelChange, onInstrumentalLevelChange,
-  hasStems, volumeTooltip, stemsHint = false, onDismissStemsHint,
+  hasStems, volumeTooltip, stemsHint = false, onDismissStemsHint, singerVoices,
 }: VolumeControlProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -47,6 +70,8 @@ const VolumeControl = ({
   const lastVolumeRef = useRef(volume > 0 ? volume : restoreVolume > 0 ? restoreVolume : 100);
   const lastVocalsRef = useRef(vocalsLevel > 0 ? vocalsLevel : 100);
   const lastInstrumentalRef = useRef(instrumentalLevel > 0 ? instrumentalLevel : 100);
+  const lastSingersRef = useRef(singerVoices && singerVoices.level > 0 ? singerVoices.level : 80);
+  useEffect(() => { if (singerVoices && singerVoices.level > 0) lastSingersRef.current = singerVoices.level; }, [singerVoices]);
 
   useEffect(() => { if (volume > 0) lastVolumeRef.current = volume; }, [volume]);
   useEffect(() => { if (vocalsLevel > 0) lastVocalsRef.current = vocalsLevel; }, [vocalsLevel]);
@@ -153,9 +178,76 @@ const VolumeControl = ({
               />
             </>
           )}
+
+          {singerVoices && (
+            <div className="border-t border-white/10 pt-3 space-y-3" data-singer-voices="">
+              <SliderRow
+                icon={<MicIcon size={16} />}
+                label={t('voices.singers')}
+                value={singerVoices.level}
+                onChange={singerVoices.onLevelChange}
+                onToggle={() => singerVoices.onLevelChange(singerVoices.level > 0 ? 0 : lastSingersRef.current)}
+                accent="var(--color-neon-green)"
+              />
+              <SingerRows control={singerVoices} />
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <span id="voices-echo" className="text-white/70">{t('voices.echo')}</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={singerVoices.echo}
+                  aria-labelledby="voices-echo"
+                  onClick={() => singerVoices.onEchoChange(!singerVoices.echo)}
+                  className="switch"
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
+  );
+};
+
+/** Each voice the host's page plays: its level, a meter, how late it is and what the feedback guard did */
+const SingerRows = ({ control }: { control: SingerVoicesControl }) => {
+  const { t } = useTranslation();
+  const singers = useStoreValue(control.singers);
+  if (!singers.length) return <p className="text-xs text-white/45 leading-snug">{t('voices.nobody')}</p>;
+  return (
+    <ul className="space-y-2.5">
+      {singers.map(s => {
+        const pct = Math.min(100, Math.round(Math.sqrt(Math.min(1, s.rms / 0.25)) * 100));
+        const notes = [
+          s.phase === 'connecting' ? t('voices.connecting') : null,
+          s.lagMs != null ? t('voices.lag', { ms: s.lagMs }) : null,
+          s.route === 'relay' ? t('voices.relayed') : null,
+        ].filter(Boolean).join(' · ');
+        const warning = s.ducked ? t('voices.howled')
+          : s.lagMs != null && s.lagMs > LATE_MS ? t('voices.late')
+            : s.capped && s.open ? t('voices.capped') : null;
+        return (
+          <li key={s.name} data-voice={s.name}>
+            <div className="flex items-center justify-between text-xs mb-1 gap-2">
+              <span className="truncate text-white/85 font-medium">{s.name}</span>
+              <span className="text-white/45 tabular-nums shrink-0">{Math.round(s.level * 100)}%</span>
+            </div>
+            <input
+              type="range" min="0" max="100" step="1" value={Math.round(s.level * 100)}
+              onChange={e => control.onSingerLevelChange(s.name, Number(e.target.value) / 100)}
+              aria-label={t('voices.singerLevel', { name: s.name })}
+              className="range"
+              style={{ '--v': `${Math.round(s.level * 100)}%`, '--accent': 'var(--color-neon-green)' }}
+            />
+            <div className="mt-1 h-1 rounded-full bg-white/10 overflow-hidden">
+              <div className={`h-full rounded-full transition-[width] duration-100 ${s.open ? 'bg-neon-green' : 'bg-white/30'}`} style={{ width: `${pct}%` }} />
+            </div>
+            {notes && <p className="mt-1 text-[11px] text-white/45">{notes}</p>}
+            {warning && <p className="mt-0.5 text-[11px] text-amber-300 leading-snug">{warning}</p>}
+          </li>
+        );
+      })}
+    </ul>
   );
 };
 

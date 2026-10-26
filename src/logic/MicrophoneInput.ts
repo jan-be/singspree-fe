@@ -102,6 +102,8 @@ export interface MicInput {
   setActive(value: boolean): void;
   stats: MicStats;
   recorder: UserAudioRecorder;
+  /** the microphone's track, raw (the voices on the speakers send a copy: voiceLink.ts, voiceMixer.ts) */
+  track: MediaStreamTrack;
   stopMicInput(): void;
 }
 
@@ -492,6 +494,7 @@ export const initMicInput = async ({ deviceId, gpu = false, onPhase }: { deviceI
     setActive,
     stats,
     recorder,
+    track,
     stopMicInput: () => {
       processingCallback = null;
       audioCallback = null;

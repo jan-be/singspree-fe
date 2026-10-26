@@ -440,6 +440,28 @@
     "saveRecordingsHint": "Odsłuchaj swoje piosenki w profilu.",
     "saveRecordingsHintGuest": "Odsłuchaj swoje piosenki w profilu po zalogowaniu."
   },
+  "voices": {
+    "partySwitch": "Głosy śpiewających w głośnikach",
+    "partySwitchHint": "Telefon każdego śpiewającego wysyła swój mikrofon do ekranu gospodarza, który odtwarza go przez głośniki. Każdy może wyłączyć swój.",
+    "mine": "Mój głos w głośnikach",
+    "mineHint": "Wyłączone: twój mikrofon liczy się tylko do wyniku.",
+    "mineLocal": "Gra przez głośniki tego urządzenia, gdy śpiewasz.",
+    "onSpeakers": "W głośnikach",
+    "onSpeakersRelayed": "W głośnikach (przez przekaźnik, trochę później)",
+    "connecting": "Łączenie z głośnikami…",
+    "failed": "Nie można połączyć się z głośnikami gospodarza. Ponowna próba… Ta sama sieć Wi-Fi pomaga.",
+    "withMic": "Startuje, gdy twój mikrofon jest włączony.",
+    "withSong": "Startuje, gdy leci piosenka.",
+    "singers": "Głosy",
+    "echo": "Echo",
+    "nobody": "Jeszcze nie ma głosów: pojawią się, gdy śpiewający dołączą z mikrofonami.",
+    "lag": "{{ms}} ms opóźnienia",
+    "relayed": "przez przekaźnik",
+    "howled": "Sprzężenie: ściszono. Odsuń telefon od głośnika albo zmniejsz poziom.",
+    "late": "Dociera z opóźnieniem. Głośnik Bluetooth bardzo opóźnia; kabel jest szybszy.",
+    "capped": "Ograniczone, by uniknąć sprzężenia.",
+    "singerLevel": "Poziom: {{name}}"
+  },
   "auth": {
     "signIn": "Zaloguj się",
     "signOut": "Wyloguj się",
@@ -692,7 +714,9 @@
     "influencerMode": "Tryb influencera",
     "influencerModeHint": "Dodaje na imprezie przycisk kamery obok mikrofonu, żeby wideo, które udostępniasz, mogło pokazywać, jak śpiewasz. Kamera nagrywa tylko wtedy, gdy gra piosenka, a materiał z kamery zostaje na tym urządzeniu, chyba że udostępnisz wideo.",
     "rustPartyPage": "Strona imprezy w Rust",
-    "rustPartyPageHint": "Otwiera imprezy w nowej wersji strony imprezy, napisanej w Rust. To test: wczytuje około 2 MB więcej, nie ma jeszcze najnowszych funkcji (np. kamery z trybu influencera), a czytniki ekranu nie potrafią jej odczytać. Wyłącz ją tutaj, jeśli coś nie działa."
+    "rustPartyPageHint": "Otwiera imprezy w nowej wersji strony imprezy, napisanej w Rust. To test: wczytuje około 2 MB więcej, nie ma jeszcze najnowszych funkcji (np. kamery z trybu influencera), a czytniki ekranu nie potrafią jej odczytać. Wyłącz ją tutaj, jeśli coś nie działa.",
+    "voicesOnSpeakers": "Głosy w głośnikach",
+    "voicesOnSpeakersHint": "Dodaje przełącznik do karty QR imprezy: telefon każdego śpiewającego wysyła wtedy mikrofon do ekranu gospodarza, który odtwarza go przez głośniki. Najlepiej działa w jednej sieci Wi-Fi z głośnikami na kablu (Bluetooth opóźnia)."
   },
   "camera": {
     "title": "Kamera",

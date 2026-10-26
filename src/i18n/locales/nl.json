@@ -436,6 +436,28 @@
     "saveRecordingsHint": "Luister je nummers terug op je profiel.",
     "saveRecordingsHintGuest": "Luister je nummers terug op je profiel zodra je bent ingelogd."
   },
+  "voices": {
+    "partySwitch": "Stemmen van zangers via de speakers",
+    "partySwitchHint": "De telefoon van elke zanger stuurt zijn microfoon naar het scherm van de host, dat hem via de speakers afspeelt. Iedereen kan de eigene uitzetten.",
+    "mine": "Mijn stem via de speakers",
+    "mineHint": "Uit: je microfoon telt alleen voor je score.",
+    "mineLocal": "Speelt via de speakers van dit apparaat terwijl je zingt.",
+    "onSpeakers": "Via de speakers",
+    "onSpeakersRelayed": "Via de speakers (via een omweg, iets later)",
+    "connecting": "Verbinden met de speakers…",
+    "failed": "De speakers van de host zijn niet bereikbaar. Opnieuw proberen… Op hetzelfde wifi helpt.",
+    "withMic": "Start zodra je microfoon aan is.",
+    "withSong": "Start zodra het nummer speelt.",
+    "singers": "Stemmen",
+    "echo": "Echo",
+    "nobody": "Nog geen stemmen: ze komen erbij zodra zangers meedoen met hun microfoon.",
+    "lag": "{{ms}} ms later",
+    "relayed": "via omweg",
+    "howled": "Rondzingen: zachter gezet. Houd de telefoon verder van de speaker of zet het niveau lager.",
+    "late": "Komt te laat. Een bluetoothspeaker vertraagt veel; een kabel is sneller.",
+    "capped": "Begrensd om rondzingen te voorkomen.",
+    "singerLevel": "Niveau van {{name}}"
+  },
   "auth": {
     "signIn": "Inloggen",
     "signOut": "Uitloggen",
@@ -682,7 +704,9 @@
     "influencerMode": "Influencermodus",
     "influencerModeHint": "Voegt op een feest een cameraknop naast de microfoon toe, zodat de video die je deelt kan laten zien hoe je zingt. De camera filmt alleen terwijl er een nummer speelt, en de beelden blijven op dit apparaat, tenzij je een video deelt.",
     "rustPartyPage": "Rust-feestpagina",
-    "rustPartyPageHint": "Opent feesten in een nieuwe versie van de feestpagina, geschreven in Rust. Het is een test: hij laadt zo'n 2 MB meer, heeft de nieuwste functies nog niet (zoals de camera van de influencermodus) en schermlezers kunnen hem niet lezen. Zet hem hier uit als iets niet werkt."
+    "rustPartyPageHint": "Opent feesten in een nieuwe versie van de feestpagina, geschreven in Rust. Het is een test: hij laadt zo'n 2 MB meer, heeft de nieuwste functies nog niet (zoals de camera van de influencermodus) en schermlezers kunnen hem niet lezen. Zet hem hier uit als iets niet werkt.",
+    "voicesOnSpeakers": "Stemmen via de speakers",
+    "voicesOnSpeakersHint": "Voegt een schakelaar toe aan de QR-kaart van de party: elke telefoon stuurt dan zijn microfoon naar het scherm van de host, dat hem via de speakers afspeelt. Werkt het best op hetzelfde wifi met bekabelde speakers (bluetooth vertraagt)."
   },
   "camera": {
     "title": "Camera",

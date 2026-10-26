@@ -440,6 +440,28 @@
     "saveRecordingsHint": "Listen to your songs again on your profile.",
     "saveRecordingsHintGuest": "Listen to your songs again on your profile once you sign in."
   },
+  "voices": {
+    "partySwitch": "Singers' voices on the speakers",
+    "partySwitchHint": "Each singer's phone sends its microphone to the host's screen, which plays it through the speakers. Singers can turn their own off.",
+    "mine": "My voice on the speakers",
+    "mineHint": "Off: your microphone is only used for your score.",
+    "mineLocal": "Plays through this device's speakers while you sing.",
+    "onSpeakers": "On the speakers",
+    "onSpeakersRelayed": "On the speakers (through a relay, a little later)",
+    "connecting": "Connecting to the speakers…",
+    "failed": "Can't reach the host's speakers. Trying again… Being on the same Wi-Fi helps.",
+    "withMic": "Starts when your microphone is on.",
+    "withSong": "Starts when the song plays.",
+    "singers": "Singers",
+    "echo": "Echo",
+    "nobody": "No voices yet: they come in once singers join with their microphones.",
+    "lag": "{{ms}} ms late",
+    "relayed": "relayed",
+    "howled": "Feedback: turned down. Move the phone away from the speaker or lower the level.",
+    "late": "Comes out late. A Bluetooth speaker adds a lot; a cable is quicker.",
+    "capped": "Held down to avoid feedback.",
+    "singerLevel": "{{name}}'s level"
+  },
   "auth": {
     "signIn": "Sign in",
     "signOut": "Sign out",
@@ -1128,7 +1150,9 @@
     "influencerMode": "Influencer mode",
     "influencerModeHint": "Adds a camera button next to the microphone in a party, so your share videos can show you singing. The camera only films while a song plays, and the footage stays on this device unless you share a video.",
     "rustPartyPage": "Rust party page",
-    "rustPartyPageHint": "Opens parties in a new version of the party page, written in Rust. It's a test: it loads about 2 MB more, it doesn't have the newest features yet (like the camera of influencer mode), and screen readers can't read it. Turn it off here if something doesn't work."
+    "rustPartyPageHint": "Opens parties in a new version of the party page, written in Rust. It's a test: it loads about 2 MB more, it doesn't have the newest features yet (like the camera of influencer mode), and screen readers can't read it. Turn it off here if something doesn't work.",
+    "voicesOnSpeakers": "Voices on the speakers",
+    "voicesOnSpeakersHint": "Adds a switch to the party's QR card: every singer's phone then sends its microphone to the host's screen, which plays it through the speakers. Works best on one Wi-Fi with wired speakers (Bluetooth adds a delay)."
   },
   "camera": {
     "title": "Camera",

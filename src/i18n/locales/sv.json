@@ -436,6 +436,28 @@
     "saveRecordingsHint": "Lyssna på dina låtar igen på din profil.",
     "saveRecordingsHintGuest": "Lyssna på dina låtar igen på din profil när du har loggat in."
   },
+  "voices": {
+    "partySwitch": "Sångarnas röster i högtalarna",
+    "partySwitchHint": "Varje sångares telefon skickar sin mikrofon till värdens skärm, som spelar den i högtalarna. Alla kan stänga av sin egen.",
+    "mine": "Min röst i högtalarna",
+    "mineHint": "Av: din mikrofon används bara till dina poäng.",
+    "mineLocal": "Spelas i den här enhetens högtalare medan du sjunger.",
+    "onSpeakers": "I högtalarna",
+    "onSpeakersRelayed": "I högtalarna (via en relä, lite senare)",
+    "connecting": "Ansluter till högtalarna…",
+    "failed": "Når inte värdens högtalare. Försöker igen… Samma wifi hjälper.",
+    "withMic": "Startar när din mikrofon är på.",
+    "withSong": "Startar när låten spelas.",
+    "singers": "Röster",
+    "echo": "Eko",
+    "nobody": "Inga röster än: de kommer när sångare är med med sina mikrofoner.",
+    "lag": "{{ms}} ms sent",
+    "relayed": "via relä",
+    "howled": "Rundgång: sänkt. Flytta telefonen från högtalaren eller sänk nivån.",
+    "late": "Kommer sent. En Bluetooth-högtalare fördröjer mycket; en kabel är snabbare.",
+    "capped": "Begränsad för att undvika rundgång.",
+    "singerLevel": "Nivå för {{name}}"
+  },
   "auth": {
     "signIn": "Logga in",
     "signOut": "Logga ut",
@@ -682,7 +704,9 @@
     "influencerMode": "Influencerläge",
     "influencerModeHint": "Lägger till en kameraknapp bredvid mikrofonen på en fest, så att dina delade videor kan visa dig när du sjunger. Kameran filmar bara medan en låt spelas, och filmen stannar på den här enheten om du inte delar en video.",
     "rustPartyPage": "Festsida i Rust",
-    "rustPartyPageHint": "Öppnar fester i en ny version av festsidan, skriven i Rust. Det är ett test: den laddar ungefär 2 MB mer, har inte de nyaste funktionerna än (som kameran i influencerläget) och skärmläsare kan inte läsa den. Stäng av den här om något inte fungerar."
+    "rustPartyPageHint": "Öppnar fester i en ny version av festsidan, skriven i Rust. Det är ett test: den laddar ungefär 2 MB mer, har inte de nyaste funktionerna än (som kameran i influencerläget) och skärmläsare kan inte läsa den. Stäng av den här om något inte fungerar.",
+    "voicesOnSpeakers": "Röster i högtalarna",
+    "voicesOnSpeakersHint": "Lägger till en brytare på festens QR-kort: varje sångares telefon skickar då sin mikrofon till värdens skärm, som spelar den i högtalarna. Fungerar bäst på samma wifi med trådbundna högtalare (Bluetooth fördröjer)."
   },
   "camera": {
     "title": "Kamera",

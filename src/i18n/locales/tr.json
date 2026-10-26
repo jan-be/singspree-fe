@@ -436,6 +436,28 @@
     "saveRecordingsHint": "Şarkılarını profilinde tekrar dinle.",
     "saveRecordingsHintGuest": "Giriş yaptıktan sonra şarkılarını profilinde tekrar dinle."
   },
+  "voices": {
+    "partySwitch": "Şarkıcıların sesi hoparlörlerde",
+    "partySwitchHint": "Her şarkıcının telefonu mikrofonunu sunucunun ekranına gönderir, o da hoparlörlerden çalar. Herkes kendininkini kapatabilir.",
+    "mine": "Sesim hoparlörlerde",
+    "mineHint": "Kapalı: mikrofonun yalnızca puanın için kullanılır.",
+    "mineLocal": "Sen şarkı söylerken bu cihazın hoparlörlerinden çalar.",
+    "onSpeakers": "Hoparlörlerde",
+    "onSpeakersRelayed": "Hoparlörlerde (bir aktarıcı üzerinden, biraz gecikmeli)",
+    "connecting": "Hoparlörlere bağlanıyor…",
+    "failed": "Sunucunun hoparlörlerine ulaşılamıyor. Yeniden deneniyor… Aynı Wi-Fi'de olmak yardımcı olur.",
+    "withMic": "Mikrofonun açıkken başlar.",
+    "withSong": "Şarkı çalınca başlar.",
+    "singers": "Sesler",
+    "echo": "Yankı",
+    "nobody": "Henüz ses yok: şarkıcılar mikrofonlarıyla katılınca gelirler.",
+    "lag": "{{ms}} ms gecikme",
+    "relayed": "aktarıcı üzerinden",
+    "howled": "Geri besleme: ses kısıldı. Telefonu hoparlörden uzaklaştır ya da seviyeyi düşür.",
+    "late": "Geç geliyor. Bluetooth hoparlör çok geciktirir; kablo daha hızlıdır.",
+    "capped": "Geri beslemeyi önlemek için sınırlandı.",
+    "singerLevel": "{{name}} seviyesi"
+  },
   "auth": {
     "signIn": "Giriş yap",
     "signOut": "Çıkış yap",
@@ -682,7 +704,9 @@
     "influencerMode": "Influencer modu",
     "influencerModeHint": "Partide mikrofonun yanına bir kamera düğmesi ekler; böylece paylaştığın videolarda şarkı söylerken görünebilirsin. Kamera yalnızca şarkı çalarken çeker ve bir video paylaşmadığın sürece görüntüler bu cihazda kalır.",
     "rustPartyPage": "Rust parti sayfası",
-    "rustPartyPageHint": "Partileri, Rust ile yazılmış yeni bir parti sayfası sürümünde açar. Bu bir deneme: yaklaşık 2 MB daha fazla yükler, en yeni özellikler henüz yok (örneğin Influencer modunun kamerası) ve ekran okuyucular onu okuyamaz. Bir şey çalışmazsa buradan kapat."
+    "rustPartyPageHint": "Partileri, Rust ile yazılmış yeni bir parti sayfası sürümünde açar. Bu bir deneme: yaklaşık 2 MB daha fazla yükler, en yeni özellikler henüz yok (örneğin Influencer modunun kamerası) ve ekran okuyucular onu okuyamaz. Bir şey çalışmazsa buradan kapat.",
+    "voicesOnSpeakers": "Sesler hoparlörlerde",
+    "voicesOnSpeakersHint": "Partinin QR kartına bir anahtar ekler: her şarkıcının telefonu mikrofonunu sunucunun ekranına gönderir, o da hoparlörlerden çalar. En iyi aynı Wi-Fi'de ve kablolu hoparlörlerle çalışır (Bluetooth gecikme ekler)."
   },
   "camera": {
     "title": "Kamera",

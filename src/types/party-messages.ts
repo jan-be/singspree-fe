@@ -7,6 +7,7 @@ import type { ChartJob } from '../logic/chartJobs';
 import type { ScriptTitles } from '../logic/lyricsScripts';
 import type { NotesBatchMessage } from '../logic/WebsocketHandling';
 import type { QueueEntry } from '../components/QueuePanel';
+import type { VoiceSignal } from '../logic/voiceLink';
 
 /** A song's names in another script (lyricsScripts.ts): { Hans: { title, artist }, … } */
 export type SongTitles = Record<string, ScriptTitles>;
@@ -53,6 +54,8 @@ export type PartySettingsData = {
   cohosts?: string[];
   joiningOpen?: boolean;
   autoSkip?: boolean | null;
+  /** the singers' microphones on the host page's speakers */
+  voices?: boolean;
 };
 
 /** party:state: the whole party, sent on join */
@@ -138,6 +141,9 @@ export type PartyServerMessage =
   | { type: 'party:host_status'; data: { connected?: boolean; away?: boolean } }
   | { type: 'party:closed'; data: { reason?: string } }
   | { type: 'party:latency_updated'; data: { latencies?: { username: string; latencyMs: number }[] } }
+  // a voice connection's setup, from the host page or a singer's (voiceLink.ts, voiceMixer.ts)
+  | { type: 'rtc:signal'; data: VoiceSignal & { from: string } }
+  | { type: 'rtc:ice'; data: { iceServers?: RTCIceServer[] } }
   | { type: 'error'; data: { code?: string; message?: string } };
 
 /** A stretch of the video SponsorBlock marks (an intro, an outro, a non-music part) */

@@ -436,6 +436,28 @@
     "saveRecordingsHint": "Pakinggan ulit ang mga kanta mo sa profile mo.",
     "saveRecordingsHintGuest": "Pakinggan ulit ang mga kanta mo sa profile mo kapag naka-sign in ka na."
   },
+  "voices": {
+    "partySwitch": "Boses ng mga kumakanta sa speaker",
+    "partySwitchHint": "Ipinapadala ng phone ng bawat kumakanta ang mikropono nito sa screen ng host, na nagpapatugtog nito sa speaker. Puwedeng patayin ng bawat isa ang sa kanya.",
+    "mine": "Boses ko sa speaker",
+    "mineHint": "Naka-off: para lang sa score mo ang mikropono mo.",
+    "mineLocal": "Tumutugtog sa speaker ng device na ito habang kumakanta ka.",
+    "onSpeakers": "Nasa speaker",
+    "onSpeakersRelayed": "Nasa speaker (sa pamamagitan ng relay, medyo mas huli)",
+    "connecting": "Kumokonekta sa speaker…",
+    "failed": "Hindi maabot ang speaker ng host. Sinusubukan ulit… Nakakatulong kung iisang Wi-Fi.",
+    "withMic": "Magsisimula kapag naka-on ang mikropono mo.",
+    "withSong": "Magsisimula kapag tumutugtog ang kanta.",
+    "singers": "Mga boses",
+    "echo": "Echo",
+    "nobody": "Wala pang boses: darating sila kapag sumali ang mga kumakanta gamit ang mikropono nila.",
+    "lag": "{{ms}} ms huli",
+    "relayed": "sa relay",
+    "howled": "Feedback: hininaan. Ilayo ang phone sa speaker o babaan ang level.",
+    "late": "Huling dumarating. Malaki ang delay ng Bluetooth speaker; mas mabilis ang cable.",
+    "capped": "Pinipigilan para iwas-feedback.",
+    "singerLevel": "Level ni {{name}}"
+  },
   "auth": {
     "signIn": "Mag-sign in",
     "signOut": "Mag-sign out",
@@ -682,7 +704,9 @@
     "influencerMode": "Influencer mode",
     "influencerModeHint": "Nagdadagdag ng button ng camera sa tabi ng mikropono sa isang party, para makita ka sa mga share video mo habang kumakanta. Kumukuha lang ng video ang camera habang may tumutugtog na kanta, at nananatili sa device na ito ang footage maliban kung mag-share ka ng video.",
     "rustPartyPage": "Rust party page",
-    "rustPartyPageHint": "Binubuksan ang mga party sa bagong bersyon ng party page na isinulat sa Rust. Pagsubok pa lang ito: mga 2 MB na mas malaki ang nilo-load, wala pa ang pinakabagong features (gaya ng camera ng influencer mode), at hindi ito nababasa ng mga screen reader. I-off ito rito kung may hindi gumagana."
+    "rustPartyPageHint": "Binubuksan ang mga party sa bagong bersyon ng party page na isinulat sa Rust. Pagsubok pa lang ito: mga 2 MB na mas malaki ang nilo-load, wala pa ang pinakabagong features (gaya ng camera ng influencer mode), at hindi ito nababasa ng mga screen reader. I-off ito rito kung may hindi gumagana.",
+    "voicesOnSpeakers": "Mga boses sa speaker",
+    "voicesOnSpeakersHint": "Nagdadagdag ng switch sa QR card ng party: ipapadala ng phone ng bawat kumakanta ang mikropono nito sa screen ng host, na nagpapatugtog nito sa speaker. Pinakamaganda kung iisang Wi-Fi at naka-cable ang speaker (may delay ang Bluetooth)."
   },
   "camera": {
     "title": "Camera",

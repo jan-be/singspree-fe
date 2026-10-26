@@ -15,6 +15,8 @@
     "src/logic/PitchWorkerGpu.ts",
     "src/logic/pitchWorkerCore.ts",
     "src/logic/PitchFinderWorklet.ts",
+    "src/logic/VoiceGuardWorklet.ts",
+    "src/logic/VoiceLoopWorker.ts",
     "src/prerender/render.tsx",
     "src/components/inlineSvg.test.ts",
     "src/logic/pitch-detection.integration.test.ts"

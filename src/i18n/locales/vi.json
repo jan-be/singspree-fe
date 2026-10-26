@@ -434,6 +434,28 @@
     "saveRecordingsHint": "Nghe lại các bài bạn hát trên hồ sơ.",
     "saveRecordingsHintGuest": "Nghe lại các bài bạn hát trên hồ sơ sau khi đăng nhập."
   },
+  "voices": {
+    "partySwitch": "Giọng ca sĩ qua loa",
+    "partySwitchHint": "Điện thoại của mỗi người hát gửi micro tới màn hình của chủ phòng, nơi phát ra loa. Mỗi người có thể tắt của mình.",
+    "mine": "Giọng tôi qua loa",
+    "mineHint": "Tắt: micro của bạn chỉ dùng để chấm điểm.",
+    "mineLocal": "Phát qua loa của thiết bị này khi bạn hát.",
+    "onSpeakers": "Đang phát qua loa",
+    "onSpeakersRelayed": "Đang phát qua loa (qua máy chuyển tiếp, trễ hơn một chút)",
+    "connecting": "Đang kết nối với loa…",
+    "failed": "Không kết nối được loa của chủ phòng. Đang thử lại… Dùng chung Wi-Fi sẽ dễ hơn.",
+    "withMic": "Bắt đầu khi micro của bạn bật.",
+    "withSong": "Bắt đầu khi bài hát phát.",
+    "singers": "Giọng hát",
+    "echo": "Vang",
+    "nobody": "Chưa có giọng nào: giọng sẽ vào khi người hát tham gia bằng micro.",
+    "lag": "trễ {{ms}} ms",
+    "relayed": "qua chuyển tiếp",
+    "howled": "Hú: đã giảm âm lượng. Để điện thoại xa loa hoặc giảm mức.",
+    "late": "Đến trễ. Loa Bluetooth gây trễ nhiều; dây cáp nhanh hơn.",
+    "capped": "Bị giới hạn để tránh hú.",
+    "singerLevel": "Mức của {{name}}"
+  },
   "auth": {
     "signIn": "Đăng nhập",
     "signOut": "Đăng xuất",
@@ -677,7 +699,9 @@
     "influencerMode": "Chế độ influencer",
     "influencerModeHint": "Thêm nút camera cạnh micro trong bữa tiệc, để video chia sẻ của bạn có thể có cảnh bạn hát. Camera chỉ quay khi đang phát bài hát, và đoạn quay được giữ trên thiết bị này trừ khi bạn chia sẻ video.",
     "rustPartyPage": "Trang tiệc bằng Rust",
-    "rustPartyPageHint": "Mở các bữa tiệc trong phiên bản mới của trang tiệc, được viết bằng Rust. Đây là bản thử nghiệm: trang tải thêm khoảng 2 MB, chưa có các tính năng mới nhất (như camera của chế độ influencer) và trình đọc màn hình không đọc được. Hãy tắt ở đây nếu có gì không hoạt động."
+    "rustPartyPageHint": "Mở các bữa tiệc trong phiên bản mới của trang tiệc, được viết bằng Rust. Đây là bản thử nghiệm: trang tải thêm khoảng 2 MB, chưa có các tính năng mới nhất (như camera của chế độ influencer) và trình đọc màn hình không đọc được. Hãy tắt ở đây nếu có gì không hoạt động.",
+    "voicesOnSpeakers": "Giọng hát qua loa",
+    "voicesOnSpeakersHint": "Thêm một công tắc vào thẻ QR của bữa tiệc: điện thoại của mỗi người hát sẽ gửi micro tới màn hình của chủ phòng, nơi phát ra loa. Tốt nhất khi dùng chung Wi-Fi và loa có dây (Bluetooth gây trễ)."
   },
   "camera": {
     "title": "Camera",

@@ -436,6 +436,28 @@
     "saveRecordingsHint": "Riascolta le tue canzoni sul tuo profilo.",
     "saveRecordingsHintGuest": "Riascolta le tue canzoni sul tuo profilo dopo aver effettuato l’accesso."
   },
+  "voices": {
+    "partySwitch": "Voci dei cantanti negli altoparlanti",
+    "partySwitchHint": "Il telefono di ogni cantante invia il suo microfono allo schermo dell'host, che lo riproduce dagli altoparlanti. Ognuno può spegnere il proprio.",
+    "mine": "La mia voce negli altoparlanti",
+    "mineHint": "Spento: il tuo microfono serve solo per il punteggio.",
+    "mineLocal": "Esce dagli altoparlanti di questo dispositivo mentre canti.",
+    "onSpeakers": "Negli altoparlanti",
+    "onSpeakersRelayed": "Negli altoparlanti (tramite un relay, un po' più tardi)",
+    "connecting": "Connessione agli altoparlanti…",
+    "failed": "Impossibile raggiungere gli altoparlanti dell'host. Nuovo tentativo… Essere sulla stessa rete Wi-Fi aiuta.",
+    "withMic": "Parte quando il tuo microfono è acceso.",
+    "withSong": "Parte quando suona la canzone.",
+    "singers": "Voci",
+    "echo": "Eco",
+    "nobody": "Ancora nessuna voce: arrivano appena i cantanti si uniscono con il microfono.",
+    "lag": "{{ms}} ms di ritardo",
+    "relayed": "tramite relay",
+    "howled": "Larsen: volume abbassato. Allontana il telefono dall'altoparlante o abbassa il livello.",
+    "late": "Arriva in ritardo. Un altoparlante Bluetooth aggiunge molto ritardo; un cavo è più veloce.",
+    "capped": "Limitato per evitare il larsen.",
+    "singerLevel": "Livello di {{name}}"
+  },
   "auth": {
     "signIn": "Accedi",
     "signOut": "Esci",
@@ -682,7 +704,9 @@
     "influencerMode": "Modalità influencer",
     "influencerModeHint": "Aggiunge un pulsante fotocamera accanto al microfono durante una festa, così i tuoi video condivisi possono mostrarti mentre canti. La fotocamera riprende solo mentre suona una canzone, e le riprese restano su questo dispositivo a meno che tu non condivida un video.",
     "rustPartyPage": "Pagina della festa in Rust",
-    "rustPartyPageHint": "Apre le feste in una nuova versione della pagina della festa, scritta in Rust. È una prova: carica circa 2 MB in più, non ha ancora le funzioni più recenti (come la fotocamera della modalità influencer) e gli screen reader non riescono a leggerla. Disattivala qui se qualcosa non funziona."
+    "rustPartyPageHint": "Apre le feste in una nuova versione della pagina della festa, scritta in Rust. È una prova: carica circa 2 MB in più, non ha ancora le funzioni più recenti (come la fotocamera della modalità influencer) e gli screen reader non riescono a leggerla. Disattivala qui se qualcosa non funziona.",
+    "voicesOnSpeakers": "Voci negli altoparlanti",
+    "voicesOnSpeakersHint": "Aggiunge un interruttore alla scheda QR della festa: il telefono di ogni cantante invia il suo microfono allo schermo dell'host, che lo riproduce dagli altoparlanti. Funziona meglio sulla stessa rete Wi-Fi e con altoparlanti via cavo (il Bluetooth aggiunge ritardo)."
   },
   "camera": {
     "title": "Fotocamera",

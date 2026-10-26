@@ -19,9 +19,9 @@ import { partyJoinUrl } from "../logic/referrer";
 
 export interface PartyBarProps
   extends Pick<VolumeControlProps, "volume" | "restoreVolume" | "vocalsLevel" | "instrumentalLevel" | "onVolumeChange" | "onVocalsLevelChange"
-    | "onInstrumentalLevelChange" | "hasStems" | "volumeTooltip" | "stemsHint" | "onDismissStemsHint">,
-  Pick<MicPanelProps, "micActive" | "micPhase" | "micError" | "multiMic" | "ownColor" | "onColorChange" | "latency" | "saveRecordings" | "onSaveRecordingsChange">,
-  Pick<PartyQrCardProps, "joiningOpen" | "people" | "playerAvatars" | "playerColors" | "onSetCohost" | "onSetJoiningOpen"> {
+    | "onInstrumentalLevelChange" | "hasStems" | "volumeTooltip" | "stemsHint" | "onDismissStemsHint" | "singerVoices">,
+  Pick<MicPanelProps, "micActive" | "micPhase" | "micError" | "multiMic" | "ownColor" | "onColorChange" | "latency" | "saveRecordings" | "onSaveRecordingsChange" | "voice">,
+  Pick<PartyQrCardProps, "joiningOpen" | "people" | "playerAvatars" | "playerColors" | "onSetCohost" | "onSetJoiningOpen" | "voices" | "onSetVoices"> {
   /** undefined until the party is made */
   partyId?: string;
   /** the song on stage ('none' while a joiner waits for the party's) */
@@ -68,7 +68,8 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
   micActive, micPhase, micError, onJoinSinging, onLeaveSinging, micStatsRef, micDeviceId, onMicDeviceChange, multiMic, onMicPanelOpenChange, ownColor, onColorChange, latency,
   saveRecordings, onSaveRecordingsChange, camera,
   showVideo, onToggleVideo, videoHint, onDismissVideoHint, queueOpen, queuePoppedOut, onToggleQueue, queueCount = 0, onFreeClick,
-  getReportContext, canControl = false, joiningOpen = true, people, playerAvatars, playerColors, onSetCohost, onSetJoiningOpen }: PartyBarProps) => {
+  getReportContext, canControl = false, joiningOpen = true, people, playerAvatars, playerColors, onSetCohost, onSetJoiningOpen,
+  voices, onSetVoices, voice, singerVoices }: PartyBarProps) => {
   const { t } = useTranslation();
   // Fixing a song's timing is the admins' job; everyone else reports what is wrong
   const { user } = useAuth();
@@ -134,6 +135,8 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
       playerColors={playerColors}
       onSetCohost={onSetCohost}
       onSetJoiningOpen={onSetJoiningOpen}
+      voices={voices}
+      onSetVoices={onSetVoices}
     />
   );
 
@@ -178,6 +181,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
             onOpenChange={handleMicPanelOpenChange}
             saveRecordings={saveRecordings}
             onSaveRecordingsChange={onSaveRecordingsChange}
+            voice={voice}
           />
           {camera && <CameraButton {...camera} onOpenChange={setCameraPanelOpen} />}
           <VolumeControl
@@ -192,6 +196,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
             volumeTooltip={volumeTooltip}
             stemsHint={stemsHint && !micPanelOpen && !menuOpen && !queueOpen}
             onDismissStemsHint={onDismissStemsHint}
+            singerVoices={singerVoices}
           />
 
           {/* Joiners: show / hide the video (off saves mobile data while

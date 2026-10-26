@@ -3,9 +3,9 @@ import { NO_SETTINGS, readSettings, renameInSettings, cardPeople } from './party
 
 describe('readSettings', () => {
   it('takes the settings from party:state and party:settings', () => {
-    const s = readSettings(NO_SETTINGS, { cohosts: ['Ann'], joiningOpen: false, autoSkip: true });
-    expect(s).toEqual({ known: true, cohosts: ['Ann'], joiningOpen: false, autoSkip: true });
-    expect(readSettings(s, { cohosts: [], joiningOpen: true, autoSkip: null })).toEqual({ known: true, cohosts: [], joiningOpen: true, autoSkip: null });
+    const s = readSettings(NO_SETTINGS, { cohosts: ['Ann'], joiningOpen: false, autoSkip: true, voices: true });
+    expect(s).toEqual({ known: true, cohosts: ['Ann'], joiningOpen: false, autoSkip: true, voices: true });
+    expect(readSettings(s, { cohosts: [], joiningOpen: true, autoSkip: null })).toEqual({ known: true, cohosts: [], joiningOpen: true, autoSkip: null, voices: false });
   });
 
   it('a server from before co-hosts: nothing to show, the party stays open', () => {
@@ -16,13 +16,13 @@ describe('readSettings', () => {
 
   it('ignores what is not a name or a switch', () => {
     expect(readSettings(NO_SETTINGS, { cohosts: ['Ann', 3, null], joiningOpen: true, autoSkip: 'yes' }))
-      .toEqual({ known: true, cohosts: ['Ann'], joiningOpen: true, autoSkip: null });
+      .toEqual({ known: true, cohosts: ['Ann'], joiningOpen: true, autoSkip: null, voices: false });
   });
 });
 
 describe('renameInSettings', () => {
   it('a renamed co-host stays one under the new name', () => {
-    const s = { known: true, cohosts: ['Ann', 'Bob'], joiningOpen: true, autoSkip: null };
+    const s = { known: true, cohosts: ['Ann', 'Bob'], joiningOpen: true, autoSkip: null, voices: false };
     expect(renameInSettings(s, 'Ann', 'Anna').cohosts).toEqual(['Anna', 'Bob']);
     expect(renameInSettings(s, 'Cat', 'Kat')).toBe(s);
   });

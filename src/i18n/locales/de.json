@@ -440,6 +440,28 @@
     "saveRecordingsHint": "Hör dir deine Songs auf deinem Profil noch einmal an.",
     "saveRecordingsHintGuest": "Hör dir deine Songs auf deinem Profil noch einmal an, sobald du angemeldet bist."
   },
+  "voices": {
+    "partySwitch": "Stimmen über die Lautsprecher",
+    "partySwitchHint": "Jedes Handy schickt sein Mikrofon an den Bildschirm des Hosts, der es über die Lautsprecher abspielt. Wer singt, kann die eigene Stimme abschalten.",
+    "mine": "Meine Stimme über die Lautsprecher",
+    "mineHint": "Aus: Dein Mikrofon zählt nur für deine Punkte.",
+    "mineLocal": "Läuft über die Lautsprecher dieses Geräts, während du singst.",
+    "onSpeakers": "Über die Lautsprecher",
+    "onSpeakersRelayed": "Über die Lautsprecher (über einen Umweg, etwas später)",
+    "connecting": "Verbinde mit den Lautsprechern …",
+    "failed": "Die Lautsprecher des Hosts sind nicht erreichbar. Neuer Versuch … Im selben WLAN klappt es am besten.",
+    "withMic": "Startet, sobald dein Mikrofon an ist.",
+    "withSong": "Startet, sobald der Song läuft.",
+    "singers": "Stimmen",
+    "echo": "Echo",
+    "nobody": "Noch keine Stimmen: Sie kommen dazu, sobald jemand mit Mikrofon mitsingt.",
+    "lag": "{{ms}} ms später",
+    "relayed": "über Umweg",
+    "howled": "Rückkopplung: leiser gestellt. Halte das Handy weiter weg vom Lautsprecher oder stell die Stimme leiser.",
+    "late": "Kommt verspätet. Ein Bluetooth-Lautsprecher verzögert stark, ein Kabel ist schneller.",
+    "capped": "Gegen Rückkopplung begrenzt.",
+    "singerLevel": "Lautstärke von {{name}}"
+  },
   "auth": {
     "signIn": "Anmelden",
     "signOut": "Abmelden",
@@ -1128,7 +1150,9 @@
     "influencerMode": "Influencer-Modus",
     "influencerModeHint": "Fügt in einer Party neben dem Mikrofon einen Kamera-Button hinzu, damit deine Share-Videos dich beim Singen zeigen können. Die Kamera filmt nur, während ein Song läuft, und die Kameraaufnahmen bleiben auf diesem Gerät, außer du teilst ein Video.",
     "rustPartyPage": "Rust-Partyseite",
-    "rustPartyPageHint": "Öffnet Partys in einer neuen Version der Partyseite, geschrieben in Rust. Das ist ein Test: Sie lädt etwa 2 MB mehr, hat die neuesten Funktionen noch nicht (etwa die Kamera des Influencer-Modus), und Screenreader können sie nicht lesen. Schalte sie hier aus, wenn etwas nicht funktioniert."
+    "rustPartyPageHint": "Öffnet Partys in einer neuen Version der Partyseite, geschrieben in Rust. Das ist ein Test: Sie lädt etwa 2 MB mehr, hat die neuesten Funktionen noch nicht (etwa die Kamera des Influencer-Modus), und Screenreader können sie nicht lesen. Schalte sie hier aus, wenn etwas nicht funktioniert.",
+    "voicesOnSpeakers": "Stimmen über die Lautsprecher",
+    "voicesOnSpeakersHint": "Fügt der QR-Karte der Party einen Schalter hinzu: Jedes Handy schickt dann sein Mikrofon an den Bildschirm des Hosts, der es über die Lautsprecher abspielt. Am besten im selben WLAN und mit Lautsprechern per Kabel (Bluetooth verzögert)."
   },
   "camera": {
     "title": "Kamera",

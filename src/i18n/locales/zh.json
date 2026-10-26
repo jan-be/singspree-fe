@@ -434,6 +434,28 @@
     "saveRecordingsHint": "在个人主页重听你唱过的歌。",
     "saveRecordingsHintGuest": "登录后可在个人主页重听你唱过的歌。"
   },
+  "voices": {
+    "partySwitch": "歌手的声音走音箱",
+    "partySwitchHint": "每位歌手的手机把麦克风声音发到主持人的屏幕上，由它通过音箱播放。每个人都可以关掉自己的。",
+    "mine": "我的声音走音箱",
+    "mineHint": "关闭：麦克风只用于计分。",
+    "mineLocal": "你唱歌时通过这台设备的扬声器播放。",
+    "onSpeakers": "正在音箱播放",
+    "onSpeakersRelayed": "正在音箱播放（经中继，稍有延迟）",
+    "connecting": "正在连接音箱…",
+    "failed": "连不上主持人的音箱，正在重试…连同一个 Wi-Fi 会更顺利。",
+    "withMic": "麦克风打开后开始。",
+    "withSong": "歌曲播放后开始。",
+    "singers": "歌手声音",
+    "echo": "回声",
+    "nobody": "还没有声音：歌手用麦克风加入后就会进来。",
+    "lag": "延迟 {{ms}} 毫秒",
+    "relayed": "经中继",
+    "howled": "啸叫：已调低音量。让手机远离音箱，或调低音量。",
+    "late": "声音来得晚。蓝牙音箱延迟很大，用线连接更快。",
+    "capped": "为防止啸叫已被压低。",
+    "singerLevel": "{{name}} 的音量"
+  },
   "auth": {
     "signIn": "登录",
     "signOut": "退出登录",
@@ -677,7 +699,9 @@
     "influencerMode": "网红模式",
     "influencerModeHint": "在派对中的麦克风旁添加一个摄像头按钮，让你的分享视频里能出现你唱歌的画面。摄像头只在歌曲播放时拍摄，除非你分享视频，拍下的画面都只保留在此设备上。",
     "rustPartyPage": "Rust 版派对页面",
-    "rustPartyPageHint": "在用 Rust 编写的新版派对页面中打开派对。这是测试版：多加载约 2 MB，还没有最新的功能（比如网红模式的摄像头），读屏软件也无法读取。如果有什么不正常，可以在这里关闭。"
+    "rustPartyPageHint": "在用 Rust 编写的新版派对页面中打开派对。这是测试版：多加载约 2 MB，还没有最新的功能（比如网红模式的摄像头），读屏软件也无法读取。如果有什么不正常，可以在这里关闭。",
+    "voicesOnSpeakers": "声音走音箱",
+    "voicesOnSpeakersHint": "在派对的二维码卡片上加一个开关：每位歌手的手机会把麦克风声音发到主持人的屏幕上，由它通过音箱播放。同一个 Wi-Fi、用有线音箱效果最好（蓝牙会有延迟）。"
   },
   "camera": {
     "title": "摄像头",

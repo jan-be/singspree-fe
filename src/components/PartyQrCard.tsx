@@ -30,6 +30,9 @@ export interface PartyQrCardProps {
   playerColors?: PlayerColors;
   onSetCohost?: (name: string, cohost: boolean) => void;
   onSetJoiningOpen?: (open: boolean) => void;
+  /** the singers' microphones on the host's speakers (usePartyVoices.ts), and its switch */
+  voices?: boolean;
+  onSetVoices?: (on: boolean) => void;
 }
 
 /**
@@ -40,11 +43,14 @@ export interface PartyQrCardProps {
  * The host and co-hosts get the party's door underneath: the switch for
  * joining by the code or the link, and everyone in the party with a co-host
  * switch (people from cardPeople, logic/partyRoles.ts). The host's own role
- * has no switch: nobody takes it.
+ * has no switch: nobody takes it. And the switch for the singers' voices on
+ * the host's speakers (each phone sends its microphone to the host's page).
  */
-const PartyQrCard = ({ qrUrl, joinUrl, linkUrl, joiningOpen = true, controls = false, people = [], playerAvatars, playerColors, onSetCohost, onSetJoiningOpen }: PartyQrCardProps) => {
+const PartyQrCard = ({ qrUrl, joinUrl, linkUrl, joiningOpen = true, controls = false, people = [], playerAvatars, playerColors, onSetCohost, onSetJoiningOpen,
+  voices = false, onSetVoices }: PartyQrCardProps) => {
   const { t } = useTranslation();
   const labelId = useId(); // the bar renders the card twice (laptop and phone layout), one of them hidden
+  const voicesId = useId();
   const code = (
     <>
       <div className="relative">
@@ -103,6 +109,25 @@ const PartyQrCard = ({ qrUrl, joinUrl, linkUrl, joiningOpen = true, controls = f
             className="switch"
           />
         </div>
+
+        {onSetVoices && (
+          <div className="mt-3">
+            <div className="flex items-center justify-between gap-3">
+              <span id={voicesId} className="text-sm font-medium text-white">{t('voices.partySwitch')}</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={voices}
+                aria-labelledby={voicesId}
+                aria-describedby={`${voicesId}-hint`}
+                data-voices-switch=""
+                onClick={() => onSetVoices(!voices)}
+                className="switch"
+              />
+            </div>
+            <p id={`${voicesId}-hint`} className="mt-1 text-xs text-white/55 leading-snug">{t('voices.partySwitchHint')}</p>
+          </div>
+        )}
 
         <div className="pop-label mt-4">{t('party.cohosts')}</div>
         <p className="mt-1 text-xs text-white/55 leading-snug">{t('party.cohostsHint')}</p>

@@ -434,6 +434,28 @@
     "saveRecordingsHint": "Dengarkan lagi lagumu di profilmu.",
     "saveRecordingsHintGuest": "Dengarkan lagi lagumu di profilmu setelah kamu masuk."
   },
+  "voices": {
+    "partySwitch": "Suara penyanyi di speaker",
+    "partySwitchHint": "Ponsel setiap penyanyi mengirim mikrofonnya ke layar host, yang memutarnya lewat speaker. Setiap orang bisa mematikan miliknya.",
+    "mine": "Suaraku di speaker",
+    "mineHint": "Mati: mikrofonmu hanya dipakai untuk skormu.",
+    "mineLocal": "Diputar lewat speaker perangkat ini saat kamu bernyanyi.",
+    "onSpeakers": "Di speaker",
+    "onSpeakersRelayed": "Di speaker (lewat relay, sedikit lebih lambat)",
+    "connecting": "Menghubungkan ke speaker…",
+    "failed": "Tidak bisa menjangkau speaker host. Mencoba lagi… Berada di Wi-Fi yang sama membantu.",
+    "withMic": "Mulai saat mikrofonmu menyala.",
+    "withSong": "Mulai saat lagu diputar.",
+    "singers": "Suara",
+    "echo": "Gema",
+    "nobody": "Belum ada suara: suara masuk begitu penyanyi bergabung dengan mikrofonnya.",
+    "lag": "terlambat {{ms}} ms",
+    "relayed": "lewat relay",
+    "howled": "Umpan balik: volume diturunkan. Jauhkan ponsel dari speaker atau turunkan levelnya.",
+    "late": "Datang terlambat. Speaker Bluetooth menambah banyak jeda; kabel lebih cepat.",
+    "capped": "Dibatasi agar tidak berdengung.",
+    "singerLevel": "Level {{name}}"
+  },
   "auth": {
     "signIn": "Masuk",
     "signOut": "Keluar",
@@ -677,7 +699,9 @@
     "influencerMode": "Mode influencer",
     "influencerModeHint": "Menambahkan tombol kamera di samping mikrofon saat pesta, agar video yang kamu bagikan bisa menampilkanmu bernyanyi. Kamera hanya merekam video saat lagu diputar, dan videonya tetap di perangkat ini kecuali kamu membagikan video.",
     "rustPartyPage": "Halaman pesta Rust",
-    "rustPartyPageHint": "Membuka pesta di versi baru halaman pesta yang ditulis dengan Rust. Ini masih uji coba: memuat sekitar 2 MB lebih banyak, belum punya fitur terbaru (misalnya kamera dari mode influencer), dan pembaca layar tidak bisa membacanya. Matikan di sini kalau ada yang tidak berfungsi."
+    "rustPartyPageHint": "Membuka pesta di versi baru halaman pesta yang ditulis dengan Rust. Ini masih uji coba: memuat sekitar 2 MB lebih banyak, belum punya fitur terbaru (misalnya kamera dari mode influencer), dan pembaca layar tidak bisa membacanya. Matikan di sini kalau ada yang tidak berfungsi.",
+    "voicesOnSpeakers": "Suara di speaker",
+    "voicesOnSpeakersHint": "Menambahkan sakelar ke kartu QR pesta: ponsel setiap penyanyi mengirim mikrofonnya ke layar host, yang memutarnya lewat speaker. Paling baik di Wi-Fi yang sama dengan speaker berkabel (Bluetooth menambah jeda)."
   },
   "camera": {
     "title": "Kamera",

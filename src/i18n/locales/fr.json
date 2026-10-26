@@ -436,6 +436,28 @@
     "saveRecordingsHint": "Réécoutez vos chansons sur votre profil.",
     "saveRecordingsHintGuest": "Réécoutez vos chansons sur votre profil une fois connecté."
   },
+  "voices": {
+    "partySwitch": "Voix des chanteurs dans les enceintes",
+    "partySwitchHint": "Le téléphone de chaque chanteur envoie son micro à l'écran de l'hôte, qui le diffuse dans les enceintes. Chacun peut couper le sien.",
+    "mine": "Ma voix dans les enceintes",
+    "mineHint": "Désactivé : ton micro ne sert qu'à ton score.",
+    "mineLocal": "Passe par les haut-parleurs de cet appareil pendant que tu chantes.",
+    "onSpeakers": "Dans les enceintes",
+    "onSpeakersRelayed": "Dans les enceintes (via un relais, un peu plus tard)",
+    "connecting": "Connexion aux enceintes…",
+    "failed": "Impossible de joindre les enceintes de l'hôte. Nouvel essai… Être sur le même Wi-Fi aide.",
+    "withMic": "Démarre quand ton micro est allumé.",
+    "withSong": "Démarre quand la chanson joue.",
+    "singers": "Voix",
+    "echo": "Écho",
+    "nobody": "Aucune voix pour l'instant : elles arrivent dès que des chanteurs rejoignent avec leur micro.",
+    "lag": "{{ms}} ms de retard",
+    "relayed": "via relais",
+    "howled": "Larsen : volume baissé. Éloigne le téléphone de l'enceinte ou baisse le niveau.",
+    "late": "Arrive en retard. Une enceinte Bluetooth ajoute beaucoup de délai ; un câble est plus rapide.",
+    "capped": "Limité pour éviter le larsen.",
+    "singerLevel": "Niveau de {{name}}"
+  },
   "auth": {
     "signIn": "Se connecter",
     "signOut": "Se déconnecter",
@@ -682,7 +704,9 @@
     "influencerMode": "Mode influenceur",
     "influencerModeHint": "Ajoute un bouton caméra à côté du micro pendant une fête, pour que vos vidéos partagées puissent vous montrer en train de chanter. La caméra ne filme que pendant qu’une chanson joue, et les images restent sur cet appareil, sauf si vous partagez une vidéo.",
     "rustPartyPage": "Page de fête en Rust",
-    "rustPartyPageHint": "Ouvre les fêtes dans une nouvelle version de la page de fête, écrite en Rust. C'est un essai : elle charge environ 2 Mo de plus, n'a pas encore les dernières fonctions (comme la caméra du mode influenceur) et les lecteurs d'écran ne peuvent pas la lire. Désactivez-la ici si quelque chose ne fonctionne pas."
+    "rustPartyPageHint": "Ouvre les fêtes dans une nouvelle version de la page de fête, écrite en Rust. C'est un essai : elle charge environ 2 Mo de plus, n'a pas encore les dernières fonctions (comme la caméra du mode influenceur) et les lecteurs d'écran ne peuvent pas la lire. Désactivez-la ici si quelque chose ne fonctionne pas.",
+    "voicesOnSpeakers": "Voix dans les enceintes",
+    "voicesOnSpeakersHint": "Ajoute un interrupteur à la carte QR de la soirée : le téléphone de chaque chanteur envoie alors son micro à l'écran de l'hôte, qui le diffuse dans les enceintes. Idéal sur un même Wi-Fi avec des enceintes filaires (le Bluetooth ajoute du retard)."
   },
   "camera": {
     "title": "Caméra",
