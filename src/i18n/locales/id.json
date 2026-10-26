@@ -444,6 +444,8 @@
     "onSpeakersRelayed": "Di speaker (lewat relay, sedikit lebih lambat)",
     "connecting": "Menghubungkan ke speaker…",
     "failed": "Tidak bisa menjangkau speaker host. Mencoba lagi… Berada di Wi-Fi yang sama membantu.",
+    "noAnswer": "Layar host tidak menjawab. Memuat ulang pesta di sana mungkin membantu. Mencoba lagi…",
+    "noPath": "Tidak ditemukan koneksi ke layar host. Berada di Wi-Fi yang sama (bukan jaringan tamu) membantu. Mencoba lagi…",
     "withMic": "Mulai saat mikrofonmu menyala.",
     "withSong": "Mulai saat lagu diputar.",
     "singers": "Suara",

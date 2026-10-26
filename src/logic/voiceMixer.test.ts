@@ -96,6 +96,7 @@ describe('createVoiceMixer: connections', () => {
     mixer.drop('Ann');
     expect(sent.at(-1)).toEqual({ to: 'Ann', signal: { link: 'l1', bye: true } });
     peers[1].state('failed');
+    await flush(); // (removed once its stats are read for the report)
     expect(peers[1].closed).toBe(true);
     expect(mixer.singers().map(s => s.name)).toEqual(['Cy']);
     mixer.setEnabled(false);

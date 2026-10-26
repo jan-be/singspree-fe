@@ -446,6 +446,8 @@
     "onSpeakersRelayed": "Nos alto-falantes (por um relay, um pouco mais tarde)",
     "connecting": "Conectando aos alto-falantes…",
     "failed": "Não foi possível alcançar os alto-falantes do anfitrião. Tentando de novo… Estar no mesmo Wi-Fi ajuda.",
+    "noAnswer": "A tela do anfitrião não responde. Recarregar a festa nela pode ajudar. Tentando de novo…",
+    "noPath": "Nenhuma conexão com a tela do anfitrião encontrada. Estar no mesmo Wi-Fi (não uma rede de convidados) ajuda. Tentando de novo…",
     "withMic": "Começa quando seu microfone está ligado.",
     "withSong": "Começa quando a música toca.",
     "singers": "Vozes",

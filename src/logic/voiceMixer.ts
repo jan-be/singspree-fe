@@ -24,11 +24,11 @@
  * Chrome plays a remote WebRTC stream into Web Audio only while the stream is
  * also attached to a media element: each gets a muted <audio>.
  */
-import { routeOf, tuneOpusAnswer } from './voiceLink';
+import { countKind, newNotes, noteState, pairSummary, routeOf, tuneOpusAnswer } from './voiceLink';
 import { createHowlDetector, dbToGain, feedbackCap, gainToDb, HOWL_MEMORY_S } from './voiceGuard';
 import guardWorkletUrl from './VoiceGuardWorklet.ts?worker&url';
 import VoiceLoopWorker from './VoiceLoopWorker.ts?worker';
-import type { VoiceSignal } from './voiceLink';
+import type { TryNotes, VoiceReport, VoiceSignal } from './voiceLink';
 import type { VoiceGuardMessage, VoiceGuardRequest } from './voiceGuard';
 import type { VoiceLoopRequest, VoiceLoopResponse } from './voiceLoop';
 
@@ -66,9 +66,11 @@ export interface VoiceSingerView {
 
 /** The parts of an RTCPeerConnection the mixer uses (a fake one in tests) */
 export type MixerPeer = Pick<RTCPeerConnection,
-  'setRemoteDescription' | 'createAnswer' | 'setLocalDescription' | 'addIceCandidate' | 'close' | 'getStats' | 'connectionState' | 'remoteDescription'> & {
+  'setRemoteDescription' | 'createAnswer' | 'setLocalDescription' | 'addIceCandidate' | 'close' | 'getStats' | 'connectionState' | 'remoteDescription'>
+  & Partial<Pick<RTCPeerConnection, 'iceConnectionState'>> & {
   onicecandidate: ((e: { candidate: RTCIceCandidate | null }) => void) | null;
   onconnectionstatechange: (() => void) | null;
+  oniceconnectionstatechange?: (() => void) | null;
   ontrack: ((e: { track: MediaStreamTrack; streams: readonly MediaStream[]; receiver: RTCRtpReceiver }) => void) | null;
 };
 
@@ -79,6 +81,8 @@ export interface VoiceMixerOptions {
   /** the singers or their states changed */
   onChange?: () => void;
   log?: (line: string) => void;
+  /** how each singer's connection went (connected, or no way through), for the server's log */
+  report?: (report: VoiceReport & { singer: string }) => void;
   /** for tests */
   peer?: (config: RTCConfiguration) => MixerPeer;
   /** for tests: a media element to keep a remote stream flowing (Chrome) */
@@ -147,6 +151,8 @@ interface Singer {
   lossPct: number | null;
   packetsPerSec: number | null;
   lastInbound: { at: number; emitted: number; delay: number; received: number; lost: number } | null;
+  /** the connection's notes for its report (null: reported, or none) */
+  notes: TryNotes | null;
   measureId: string;
   detector: ReturnType<typeof createHowlDetector>;
 }
@@ -176,7 +182,7 @@ const holdWithElement = (stream: MediaStream) => {
 
 let ids = 0;
 
-export function createVoiceMixer({ send, iceServers, onChange = () => {}, log = () => {}, peer = config => new RTCPeerConnection(config) as MixerPeer, holdStream = holdWithElement }: VoiceMixerOptions): VoiceMixer {
+export function createVoiceMixer({ send, iceServers, onChange = () => {}, log = () => {}, report = () => {}, peer = config => new RTCPeerConnection(config) as MixerPeer, holdStream = holdWithElement }: VoiceMixerOptions): VoiceMixer {
   const singers = new Map<string, Singer>();
   let enabled = false;
   let ctx: AudioContext | null = null;
@@ -411,17 +417,30 @@ export function createVoiceMixer({ send, iceServers, onChange = () => {}, log = 
       s = {
         name, kind, link: null, pc: null, pending: [], stream: null, from: null, copy: null, release: null, chain: null, connected: false,
         level: 1, rms: 0, open: false, gain: 1, cap: 1, lag: null, coupling: null, howlTimes: [], duckUntil: 0,
-        route: kind === 'local' ? 'local' : null, jitterMs: null, lossPct: null, packetsPerSec: null, lastInbound: null,
+        route: kind === 'local' ? 'local' : null, jitterMs: null, lossPct: null, packetsPerSec: null, lastInbound: null, notes: null,
         measureId: `v${++ids}`, detector: createHowlDetector({ stepS: TICK_MS / 1000 }),
       };
       singers.set(name, s);
     }
     return s;
   };
+  // A connection's report: its notes and its candidate pairs now (once per connection)
+  const reportOn = (s: Singer, pc: MixerPeer, result: VoiceReport['result']) => {
+    const notes = s.notes, link = s.link;
+    s.notes = null;
+    if (!notes || !link) return Promise.resolve();
+    const base = { link, singer: s.name, side: 'host' as const, result, ms: Math.round(performance.now() - notes.t0), answered: true,
+      local: notes.local, remote: notes.remote, states: notes.states.join(' ') };
+    return pc.getStats().then(
+      stats => report({ ...base, pairs: pairSummary(stats), ...(result === 'connected' ? routeOf(stats) : {}) }),
+      () => report({ ...base, pairs: null }),
+    );
+  };
   const endConnection = (s: Singer, bye: boolean) => {
     if (s.pc) {
       s.pc.onicecandidate = null;
       s.pc.onconnectionstatechange = null;
+      s.pc.oniceconnectionstatechange = null;
       s.pc.ontrack = null;
       try { s.pc.close(); } catch { /* */ }
     }
@@ -467,7 +486,14 @@ export function createVoiceMixer({ send, iceServers, onChange = () => {}, log = 
       return;
     }
     s.pc = pc;
-    pc.onicecandidate = ({ candidate }) => { if (s.pc === pc) send(from, { link, candidate: candidate ? candidate.toJSON() : null }); };
+    const notes = s.notes = newNotes();
+    noteState(notes, 'new');
+    pc.onicecandidate = ({ candidate }) => {
+      if (s.pc !== pc) return;
+      if (candidate) countKind(notes.local, candidate.candidate);
+      send(from, { link, candidate: candidate ? candidate.toJSON() : null });
+    };
+    pc.oniceconnectionstatechange = () => { if (s.pc === pc && pc.iceConnectionState) noteState(notes, pc.iceConnectionState); };
     pc.ontrack = ({ track, streams, receiver }) => {
       if (s.pc !== pc) return;
       // as little buffering as the network allows: the voice is late enough
@@ -482,10 +508,13 @@ export function createVoiceMixer({ send, iceServers, onChange = () => {}, log = 
       const was = s.connected;
       s.connected = st === 'connected';
       if (st === 'failed' || st === 'closed') {
-        log(`voices: ${s.name}'s connection ${st}`);
-        remove(s, false); // their page tries again
+        log(`voices: ${s.name}'s connection ${st} (${notes.states.join(' ')})`);
+        // their page tries again; the report first, while the connection still has its stats
+        if (st === 'failed') reportOn(s, pc, 'no_path').finally(() => { if (s.pc === pc) remove(s, false); });
+        else remove(s, false);
         return;
       }
+      if (st === 'connected' && !was) reportOn(s, pc, 'connected');
       if (was !== s.connected) changed();
     };
     try {
@@ -590,6 +619,7 @@ export function createVoiceMixer({ send, iceServers, onChange = () => {}, log = 
       if (signal.bye) { remove(s, false); return; }
       if (signal.candidate !== undefined && s.pc) {
         if (signal.candidate === null) { if (s.pc.remoteDescription) s.pc.addIceCandidate().catch(() => {}); return; }
+        if (s.notes) countKind(s.notes.remote, signal.candidate.candidate);
         if (s.pc.remoteDescription) s.pc.addIceCandidate(signal.candidate).catch(() => {});
         else s.pending.push(signal.candidate);
       }

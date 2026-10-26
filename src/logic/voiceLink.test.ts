@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { createVoiceLink, routeOf, tuneOpusAnswer, OPUS_PARAMS } from './voiceLink';
-import type { VoicePeer, VoiceSignal } from './voiceLink';
+import { candidateKind, createVoiceLink, pairSummary, routeOf, tuneOpusAnswer, OPUS_PARAMS } from './voiceLink';
+import type { VoicePeer, VoiceReport, VoiceSignal } from './voiceLink';
 
 const ANSWER = [
   'v=0', 'o=- 1 2 IN IP4 127.0.0.1', 's=-', 't=0 0',
@@ -147,8 +147,9 @@ describe('createVoiceLink', () => {
     link.setWanted(true);
     await flush();
     peers[0].state('failed');
-    expect(peers[0].closed).toBe(true);
     expect(signals.at(-1)?.bye).toBe(true);
+    await flush(); // (closed once its stats are read for the report)
+    expect(peers[0].closed).toBe(true);
     await vi.advanceTimersByTimeAsync(2_100);
     expect(peers).toHaveLength(2);
     peers[1].state('failed');
@@ -166,17 +167,71 @@ describe('createVoiceLink', () => {
     expect(peers).toHaveLength(4);
   });
 
-  test('a connection that never comes up is given up after 20 s; close() stops the copy for good', async () => {
+  test('no answer from the host page in 10 s ends the try; close() stops the copy for good', async () => {
     const link = make();
     const track = fakeTrack();
     link.setTrack(track);
     link.setWanted(true);
     await flush();
-    await vi.advanceTimersByTimeAsync(20_100);
+    await vi.advanceTimersByTimeAsync(10_100);
     expect(peers[0].closed).toBe(true);
+    expect(link.state.reason).toBe('no_answer');
     link.close();
     expect(track.clones.every(c => c.stopped)).toBe(true);
     await vi.advanceTimersByTimeAsync(60_000);
     expect(peers).toHaveLength(1);
+  });
+
+  test('each try is reported: no answer, or answered and no way through after ICE had its time; with the candidate kinds', async () => {
+    const reports: VoiceReport[] = [];
+    const link = createVoiceLink({
+      send: s => { signals.push(s); return true; },
+      iceServers: () => [],
+      report: r => reports.push(r),
+      peer: () => { const p = new FakePeer(); peers.push(p); return p as unknown as VoicePeer; },
+    });
+    const local = (c: string) => ({ candidate: c, toJSON: () => ({ candidate: c, sdpMid: '0', sdpMLineIndex: 0 }) }) as unknown as RTCIceCandidate;
+    link.setTrack(fakeTrack());
+    link.setWanted(true);
+    await flush();
+    peers[0].onicecandidate?.({ candidate: local('candidate:1 1 udp 2122260223 192.168.1.5 50000 typ host generation 0') });
+    peers[0].onicecandidate?.({ candidate: local('candidate:2 1 udp 1686052607 203.0.113.9 50000 typ srflx raddr 192.168.1.5 rport 50000') });
+    await vi.advanceTimersByTimeAsync(10_100);
+    expect(reports).toHaveLength(1);
+    expect(reports[0]).toMatchObject({ side: 'singer', result: 'no_answer', answered: false, local: { 'host/udp/v4': 1, 'srflx/udp/v4': 1 }, remote: {} });
+    expect(link.state).toMatchObject({ phase: 'connecting', reason: 'no_answer' });
+
+    await vi.advanceTimersByTimeAsync(2_100); // the next try
+    expect(peers).toHaveLength(2);
+    const offer = signals.filter(s => s.description).at(-1)!;
+    link.handleSignal({ link: offer.link, description: { type: 'answer', sdp: 'answer' } });
+    link.handleSignal({ link: offer.link, candidate: { candidate: 'candidate:3 1 udp 2122260223 4b1c2d3e-aaaa.local 61000 typ host generation 0', sdpMid: '0' } });
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(reports).toHaveLength(1); // answered: ICE gets longer than the answer did
+    await vi.advanceTimersByTimeAsync(5_100);
+    expect(reports[1]).toMatchObject({ result: 'no_path', answered: true, remote: { 'host/udp/mdns': 1 } });
+    expect(reports[1].states).toMatch(/^new@0 answered@\d+$/);
+    expect(link.state).toMatchObject({ phase: 'failed', reason: 'no_path' });
+    link.close();
+  });
+});
+
+describe('candidateKind and pairSummary', () => {
+  test('a candidate as type/protocol/family, the address only as its family', () => {
+    expect(candidateKind('candidate:1 1 udp 2122260223 192.168.1.5 50000 typ host generation 0')).toBe('host/udp/v4');
+    expect(candidateKind('a=candidate:1 1 TCP 1518280447 2a02:810d::1 9 typ host tcptype active')).toBe('host/tcp/v6');
+    expect(candidateKind('candidate:1 1 udp 2122260223 0d8a1f2e-0000-4c1b.local 50000 typ host')).toBe('host/udp/mdns');
+    expect(candidateKind('candidate:9 1 udp 41885439 198.51.100.4 3478 typ relay raddr 0.0.0.0 rport 0')).toBe('relay/udp/v4');
+    expect(candidateKind('')).toBe(null);
+    expect(candidateKind(undefined)).toBe(null);
+  });
+  test('the pairs by state, and the checks each way', () => {
+    const stats = new Map(Object.entries({
+      a: { type: 'candidate-pair', state: 'failed', requestsSent: 9, responsesReceived: 0, requestsReceived: 0, responsesSent: 0 },
+      b: { type: 'candidate-pair', state: 'in-progress', requestsSent: 3, responsesReceived: 0, requestsReceived: 2, responsesSent: 2 },
+      c: { type: 'candidate-pair', state: 'frozen' },
+      t: { type: 'transport' },
+    })) as unknown as RTCStatsReport;
+    expect(pairSummary(stats)).toEqual({ total: 3, succeeded: 0, failed: 1, inProgress: 1, waiting: 1, requestsSent: 12, responsesReceived: 0, requestsReceived: 2, responsesSent: 2 });
   });
 });

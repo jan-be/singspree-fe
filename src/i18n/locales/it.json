@@ -446,6 +446,8 @@
     "onSpeakersRelayed": "Negli altoparlanti (tramite un relay, un po' più tardi)",
     "connecting": "Connessione agli altoparlanti…",
     "failed": "Impossibile raggiungere gli altoparlanti dell'host. Nuovo tentativo… Essere sulla stessa rete Wi-Fi aiuta.",
+    "noAnswer": "Lo schermo dell'host non risponde. Ricaricare la festa lì può aiutare. Nuovo tentativo…",
+    "noPath": "Nessuna connessione trovata verso lo schermo dell'host. Essere sulla stessa rete Wi-Fi (non una rete ospiti) aiuta. Nuovo tentativo…",
     "withMic": "Parte quando il tuo microfono è acceso.",
     "withSong": "Parte quando suona la canzone.",
     "singers": "Voci",

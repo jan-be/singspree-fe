@@ -446,6 +446,8 @@
     "onSpeakersRelayed": "Via de speakers (via een omweg, iets later)",
     "connecting": "Verbinden met de speakers…",
     "failed": "De speakers van de host zijn niet bereikbaar. Opnieuw proberen… Op hetzelfde wifi helpt.",
+    "noAnswer": "Het scherm van de host antwoordt niet. De party daar herladen kan helpen. Opnieuw proberen…",
+    "noPath": "Geen verbinding met het scherm van de host gevonden. Hetzelfde wifi (geen gastnetwerk) helpt. Opnieuw proberen…",
     "withMic": "Start zodra je microfoon aan is.",
     "withSong": "Start zodra het nummer speelt.",
     "singers": "Stemmen",

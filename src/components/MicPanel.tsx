@@ -98,7 +98,7 @@ const VoiceStatus = ({ voice, micActive, t }: { voice: NonNullable<MicPanelProps
   const [text, tone] = !voice.on ? [t('voices.mineHint'), 'text-white/45']
     : !st ? [t('voices.mineLocal'), 'text-white/45']           // the host's page: straight in
       : st.phase === 'on' ? [st.route === 'relay' ? t('voices.onSpeakersRelayed') : t('voices.onSpeakers'), 'text-neon-green']
-        : st.phase === 'failed' ? [t('voices.failed'), 'text-red-400']
+        : st.phase === 'failed' ? [st.reason === 'no_answer' ? t('voices.noAnswer') : t('voices.noPath'), 'text-red-400']
           : st.phase === 'connecting' ? [t('voices.connecting'), 'text-neon-cyan']
             : [micActive ? t('voices.withSong') : t('voices.withMic'), 'text-white/45'];
   return <p id="mic-voice-out-state" role={st?.phase === 'failed' ? 'alert' : undefined} data-voice-state={st?.phase ?? 'local'} className={`mt-1 text-xs leading-snug ${tone}`}>{text}</p>;

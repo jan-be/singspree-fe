@@ -444,6 +444,8 @@
     "onSpeakersRelayed": "Đang phát qua loa (qua máy chuyển tiếp, trễ hơn một chút)",
     "connecting": "Đang kết nối với loa…",
     "failed": "Không kết nối được loa của chủ phòng. Đang thử lại… Dùng chung Wi-Fi sẽ dễ hơn.",
+    "noAnswer": "Màn hình của chủ phòng không phản hồi. Tải lại bữa tiệc trên đó có thể giúp. Đang thử lại…",
+    "noPath": "Không tìm thấy kết nối tới màn hình của chủ phòng. Dùng chung Wi-Fi (không phải mạng khách) sẽ giúp. Đang thử lại…",
     "withMic": "Bắt đầu khi micro của bạn bật.",
     "withSong": "Bắt đầu khi bài hát phát.",
     "singers": "Giọng hát",

@@ -1,5 +1,5 @@
 import { getGuestId } from './sessionId';
-import type { VoiceSignal } from './voiceLink';
+import type { VoiceReport, VoiceSignal } from './voiceLink';
 
 // Same origin as the page (ws for http, wss for https), so the dev server,
 // `vite preview` and production all reach the backend through /api/ws.
@@ -335,6 +335,15 @@ export const sendRtcSignal = (ws: Pick<PartySocket, 'sendObj' | 'readyState'>, s
   if (ws.readyState !== 1) return false; // WebSocket.OPEN
   ws.sendObj({ type: "rtc:signal", data: signal });
   return true;
+};
+
+/**
+ * How a voice connection's try went (voiceLink.ts VoiceReport), for the
+ * server's event log; `mic`: the extra microphone it was for, `singer`: on the
+ * host's page, whose connection.
+ */
+export const sendRtcReport = (ws: Pick<PartySocket, 'sendObj' | 'readyState'>, report: VoiceReport & { mic?: string; singer?: string }) => {
+  if (ws.readyState === 1) ws.sendObj({ type: "rtc:report", data: report });
 };
 
 /** Which STUN/TURN servers this page's voice connections may use: the server answers with rtc:ice. */

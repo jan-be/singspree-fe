@@ -34,6 +34,9 @@ export interface VoiceSignal {
 /** off: not wanted (or no microphone yet); connecting; on: the host page hears this microphone; failed: it could not be reached (tries again) */
 export type VoiceLinkPhase = 'off' | 'connecting' | 'on' | 'failed';
 
+/** Why the last try failed: the host's page never answered, or it did and no network path was found */
+export type VoiceFailure = 'no_answer' | 'no_path';
+
 /** What the mic panel shows of the connection */
 export interface VoiceLinkState {
   phase: VoiceLinkPhase;
@@ -41,14 +44,54 @@ export interface VoiceLinkState {
   route: string | null;
   /** the network's round trip, ms */
   rttMs: number | null;
+  /** why the last try failed (null: it did not) */
+  reason: VoiceFailure | null;
+}
+
+/**
+ * How one try went, for the server's event log (rtc:report → `voice_link`
+ * events): no addresses, only what kinds of candidates each side had, how
+ * ICE went and whether its checks got through. `side`: who reports it.
+ */
+export interface VoiceReport {
+  link: string;
+  side: 'singer' | 'host';
+  result: 'connected' | VoiceFailure;
+  /** ms from the start of the try */
+  ms: number;
+  /** the singer's page got the host page's answer */
+  answered: boolean;
+  /** candidate kinds, `type/protocol/family` (family v4, v6 or mdns) → how many */
+  local: Record<string, number>;
+  remote: Record<string, number>;
+  /** ICE's states with the ms they began, `checking@812 connected@1030` */
+  states: string;
+  /** the candidate pairs at the end: how many in each state, and the connectivity checks each way */
+  pairs: PairSummary | null;
+  route?: string | null;
+  rttMs?: number | null;
+}
+
+/** The candidate pairs of a connection's stats (pairSummary) */
+export interface PairSummary {
+  total: number;
+  succeeded: number;
+  failed: number;
+  inProgress: number;
+  waiting: number;
+  requestsSent: number;
+  responsesReceived: number;
+  requestsReceived: number;
+  responsesSent: number;
 }
 
 /** The parts of an RTCPeerConnection the link uses (a fake one in tests) */
 export type VoicePeer = Pick<RTCPeerConnection,
   'addTransceiver' | 'createOffer' | 'setLocalDescription' | 'setRemoteDescription' | 'addIceCandidate' | 'close' | 'getStats'
-  | 'connectionState' | 'remoteDescription'> & {
+  | 'connectionState' | 'remoteDescription'> & Partial<Pick<RTCPeerConnection, 'iceConnectionState'>> & {
   onicecandidate: ((e: { candidate: RTCIceCandidate | null }) => void) | null;
   onconnectionstatechange: (() => void) | null;
+  oniceconnectionstatechange?: (() => void) | null;
 };
 
 export interface VoiceLinkOptions {
@@ -58,6 +101,8 @@ export interface VoiceLinkOptions {
   iceServers: () => RTCIceServer[];
   onState?: (state: VoiceLinkState) => void;
   log?: (line: string) => void;
+  /** how each try went (connected, or why not), for the server's log */
+  report?: (report: VoiceReport) => void;
   /** for tests */
   peer?: (config: RTCConfiguration) => VoicePeer;
 }
@@ -133,6 +178,55 @@ export function tuneOpusAnswer(sdp: string): string {
   return out.join(eol);
 }
 
+/**
+ * A candidate's kind, `type/protocol/family`: host, srflx, prflx or relay;
+ * udp or tcp; v4, v6, or mdns for an address hidden behind a .local name.
+ * Null for an end-of-candidates or anything unreadable.
+ */
+export function candidateKind(candidate: string | undefined): string | null {
+  const f = (candidate ?? '').replace(/^a=/, '').trim().split(/\s+/);
+  const typ = f.indexOf('typ');
+  if (f.length < 8 || typ < 0 || !f[typ + 1]) return null;
+  const address = f[4];
+  const family = address.endsWith('.local') ? 'mdns' : address.includes(':') ? 'v6' : 'v4';
+  return `${f[typ + 1]}/${f[2].toLowerCase()}/${family}`;
+}
+
+/** Counts a candidate's kind into `into` */
+export const countKind = (into: Record<string, number>, candidate: string | undefined) => {
+  const kind = candidateKind(candidate);
+  if (kind) into[kind] = (into[kind] ?? 0) + 1;
+};
+
+/** The candidate pairs in a connection's stats: their states and the checks each way */
+export function pairSummary(stats: RTCStatsReport): PairSummary {
+  const p: PairSummary = { total: 0, succeeded: 0, failed: 0, inProgress: 0, waiting: 0, requestsSent: 0, responsesReceived: 0, requestsReceived: 0, responsesSent: 0 };
+  stats.forEach((s: Record<string, unknown>) => {
+    if (s.type !== 'candidate-pair') return;
+    p.total++;
+    if (s.state === 'succeeded') p.succeeded++;
+    else if (s.state === 'failed') p.failed++;
+    else if (s.state === 'in-progress') p.inProgress++;
+    else p.waiting++;
+    p.requestsSent += Number(s.requestsSent ?? 0);
+    p.responsesReceived += Number(s.responsesReceived ?? 0);
+    p.requestsReceived += Number(s.requestsReceived ?? 0);
+    p.responsesSent += Number(s.responsesSent ?? 0);
+  });
+  return p;
+}
+
+/** One try's notes for its report (VoiceReport) */
+export interface TryNotes {
+  t0: number;
+  answered: boolean;
+  local: Record<string, number>;
+  remote: Record<string, number>;
+  states: string[];
+}
+export const newNotes = (): TryNotes => ({ t0: performance.now(), answered: false, local: {}, remote: {}, states: [] });
+export const noteState = (notes: TryNotes, state: string) => { notes.states.push(`${state}@${Math.round(performance.now() - notes.t0)}`); };
+
 /** How a connection's audio goes, and its round trip, from its stats: the selected candidate pair */
 export function routeOf(stats: RTCStatsReport): { route: string | null; rttMs: number | null } {
   let pair: Record<string, unknown> | undefined;
@@ -149,8 +243,10 @@ export function routeOf(stats: RTCStatsReport): { route: string | null; rttMs: n
   return { route, rttMs: rtt };
 }
 
-// How long a connection may take, and the waits before trying again after it failed (then the last one each time)
-const CONNECT_TIMEOUT_MS = 20_000;
+// How long the host's page may take to answer, and then ICE to find a way (Chrome gives up after ~30 s of
+// unanswered checks itself), and the waits before trying again after it failed (then the last one each time)
+const ANSWER_TIMEOUT_MS = 10_000;
+const CONNECT_TIMEOUT_MS = 35_000;
 const DISCONNECTED_MS = 6_000;     // 'disconnected' often comes back by itself (a Wi-Fi hiccup)
 const RETRY_MS = [2_000, 5_000, 15_000, 30_000, 60_000];
 const BYE_RETRY_MS = 30_000;       // the host's page said no (it was busy, reloading): try again after this
@@ -158,7 +254,7 @@ const BYE_RETRY_MS = 30_000;       // the host's page said no (it was busy, relo
 /**
  * The singer's side of one microphone's voice connection to the host's page.
  */
-export function createVoiceLink({ send, iceServers, onState = () => {}, log = () => {}, peer = config => new RTCPeerConnection(config) as VoicePeer }: VoiceLinkOptions): VoiceLink {
+export function createVoiceLink({ send, iceServers, onState = () => {}, log = () => {}, report = () => {}, peer = config => new RTCPeerConnection(config) as VoicePeer }: VoiceLinkOptions): VoiceLink {
   let wanted = false;
   let active = false;
   let track: MediaStreamTrack | null = null;   // the page's microphone
@@ -171,11 +267,12 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let watchTimer: ReturnType<typeof setTimeout> | null = null;
   let closed = false;
-  let state: VoiceLinkState = { phase: 'off', route: null, rttMs: null };
+  let notes = newNotes();
+  let state: VoiceLinkState = { phase: 'off', route: null, rttMs: null, reason: null };
 
   const set = (patch: Partial<VoiceLinkState>) => {
     const next = { ...state, ...patch };
-    if (next.phase === state.phase && next.route === state.route && next.rttMs === state.rttMs) return;
+    if (next.phase === state.phase && next.route === state.route && next.rttMs === state.rttMs && next.reason === state.reason) return;
     state = next;
     onState(state);
   };
@@ -185,13 +282,15 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
     retryTimer = watchTimer = null;
   };
 
-  const teardown = (bye: boolean) => {
+  // (`close` false: the caller still reads its stats, and closes it after)
+  const teardown = (bye: boolean, close = true) => {
     clearTimers();
     if (link && bye) send({ link, bye: true });
     if (pc) {
       pc.onicecandidate = null;
       pc.onconnectionstatechange = null;
-      try { pc.close(); } catch { /* already */ }
+      pc.oniceconnectionstatechange = null;
+      if (close) { try { pc.close(); } catch { /* already */ } }
     }
     pc = null;
     sender = null;
@@ -203,21 +302,38 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
     if (retryTimer) clearTimeout(retryTimer);
     retryTimer = setTimeout(() => { retryTimer = null; update(); }, ms);
   };
-  const fail = (why: string) => {
+  // The try's report: its notes and, where the connection is still there, its candidate pairs
+  const sendReport = (conn: VoicePeer | null, id: string, result: VoiceReport['result'], tried: TryNotes) => {
+    const base = { link: id, side: 'singer' as const, result, ms: Math.round(performance.now() - tried.t0), answered: tried.answered, local: tried.local, remote: tried.remote, states: tried.states.join(' ') };
+    if (!conn) { report({ ...base, pairs: null }); return Promise.resolve(); }
+    return conn.getStats().then(stats => report({ ...base, pairs: pairSummary(stats) }), () => report({ ...base, pairs: null }));
+  };
+  const fail = (why: string, reason: VoiceFailure) => {
     log(`voice: ${why}`);
-    teardown(true);
+    const conn = pc, id = link, tried = notes;
+    teardown(true, false);
+    const close = () => { try { conn?.close(); } catch { /* already */ } };
+    if (id) sendReport(conn, id, reason, tried).finally(close);
+    else close();
     failures++;
-    set({ phase: failures >= 2 ? 'failed' : 'connecting', route: null, rttMs: null });
+    set({ phase: failures >= 2 ? 'failed' : 'connecting', route: null, rttMs: null, reason });
     retryLater(RETRY_MS[Math.min(failures, RETRY_MS.length) - 1]);
   };
 
-  const readRoute = () => {
-    pc?.getStats().then(stats => { if (pc && state.phase === 'on') set(routeOf(stats)); }).catch(() => {});
+  const readRoute = (id: string, tried: TryNotes) => {
+    const conn = pc;
+    conn?.getStats().then(stats => {
+      const route = routeOf(stats);
+      if (pc === conn && state.phase === 'on') set(route);
+      report({ link: id, side: 'singer', result: 'connected', ms: Math.round(performance.now() - tried.t0), answered: tried.answered,
+        local: tried.local, remote: tried.remote, states: tried.states.join(' '), pairs: pairSummary(stats), ...route });
+    }).catch(() => {});
   };
 
   const start = async () => {
     const id = randomId();
     link = id;
+    const tried = notes = newNotes();
     let conn: VoicePeer;
     try {
       conn = peer({ iceServers: iceServers(), bundlePolicy: 'max-bundle' });
@@ -225,11 +341,12 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
       // no WebRTC on this browser at all: nothing to try again
       log(`voice: no RTCPeerConnection (${e instanceof Error ? e.message : e})`);
       link = null;
-      set({ phase: 'failed' });
+      set({ phase: 'failed', reason: 'no_path' });
       return;
     }
     pc = conn;
     set({ phase: 'connecting', route: null, rttMs: null });
+    noteState(tried, 'new');
     const tx = conn.addTransceiver('audio', { direction: 'sendonly', sendEncodings: [{ maxBitrate: 64_000, priority: 'high', networkPriority: 'high' }] });
     sender = tx.sender;
     // Opus only: anything else on offer would only be a worse choice for the host to make
@@ -239,33 +356,37 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
     } catch { /* older browsers: their default is Opus anyway */ }
     if (copy) await sender.replaceTrack(copy).catch(() => {});
     conn.onicecandidate = ({ candidate }) => {
-      if (link === id) send({ link: id, candidate: candidate ? candidate.toJSON() : null });
+      if (link !== id) return;
+      if (candidate) countKind(tried.local, candidate.candidate);
+      send({ link: id, candidate: candidate ? candidate.toJSON() : null });
     };
+    conn.oniceconnectionstatechange = () => { if (pc === conn && conn.iceConnectionState) noteState(tried, conn.iceConnectionState); };
     conn.onconnectionstatechange = () => {
       if (pc !== conn) return;
       const s = conn.connectionState;
       if (s === 'connected') {
         failures = 0;
         if (watchTimer) { clearTimeout(watchTimer); watchTimer = null; }
-        set({ phase: 'on' });
-        readRoute();
+        set({ phase: 'on', reason: null });
+        readRoute(id, tried);
         log('voice: on the speakers');
       } else if (s === 'failed') {
-        fail('connection failed');
+        fail(`no way through to the host page (${tried.states.join(' ')})`, 'no_path');
       } else if (s === 'disconnected') {
         if (watchTimer) clearTimeout(watchTimer);
-        watchTimer = setTimeout(() => { if (pc === conn && conn.connectionState !== 'connected') fail('connection lost'); }, DISCONNECTED_MS);
+        watchTimer = setTimeout(() => { if (pc === conn && conn.connectionState !== 'connected') fail('connection lost', 'no_path'); }, DISCONNECTED_MS);
       }
     };
-    watchTimer = setTimeout(() => { if (pc === conn && conn.connectionState !== 'connected') fail('no connection in time'); }, CONNECT_TIMEOUT_MS);
+    // no answer at all: the host's page does not take it (gone, or a page without voices)
+    watchTimer = setTimeout(() => { if (pc === conn && !tried.answered) fail('the host page does not answer', 'no_answer'); }, ANSWER_TIMEOUT_MS);
     try {
       const offer = await conn.createOffer();
       if (pc !== conn) return;
       await conn.setLocalDescription(offer);
       if (pc !== conn) return;
-      if (!send({ link: id, description: { type: 'offer', sdp: offer.sdp ?? '' } })) fail('the party connection is down');
+      if (!send({ link: id, description: { type: 'offer', sdp: offer.sdp ?? '' } })) fail('the party connection is down', 'no_answer');
     } catch (e) {
-      if (pc === conn) fail(`offer failed (${e instanceof Error ? e.message : e})`);
+      if (pc === conn) fail(`offer failed (${e instanceof Error ? e.message : e})`, 'no_path');
     }
   };
 
@@ -276,7 +397,7 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
       if (pc) teardown(true);
       clearTimers();
       failures = 0;
-      set({ phase: 'off', route: null, rttMs: null });
+      set({ phase: 'off', route: null, rttMs: null, reason: null });
       return;
     }
     if (pc || retryTimer) return;
@@ -316,20 +437,28 @@ export function createVoiceLink({ send, iceServers, onState = () => {}, log = ()
       if (signal.bye) {
         log('voice: the host page ended it');
         teardown(false);
-        set({ phase: 'connecting', route: null, rttMs: null });
+        set({ phase: 'connecting', route: null, rttMs: null, reason: null });
         retryLater(BYE_RETRY_MS);
         return;
       }
       if (signal.description?.type === 'answer') {
+        notes.answered = true;
+        noteState(notes, 'answered');
+        log('voice: the host page answered');
+        // now ICE has its time to find a way (it says 'failed' itself when there is none)
+        if (watchTimer) clearTimeout(watchTimer);
+        const tried = notes;
+        watchTimer = setTimeout(() => { if (pc === conn && conn.connectionState !== 'connected') fail(`no way through in time (${tried.states.join(' ')})`, 'no_path'); }, CONNECT_TIMEOUT_MS);
         conn.setRemoteDescription(signal.description)
           .then(() => {
             const queued = pending;
             pending = [];
             for (const c of queued) conn.addIceCandidate(c).catch(() => {});
           })
-          .catch(e => { if (pc === conn) fail(`answer refused (${e instanceof Error ? e.message : e})`); });
+          .catch(e => { if (pc === conn) fail(`answer refused (${e instanceof Error ? e.message : e})`, 'no_path'); });
       } else if (signal.candidate !== undefined) {
         if (signal.candidate === null) { if (conn.remoteDescription) conn.addIceCandidate().catch(() => {}); return; }
+        countKind(notes.remote, signal.candidate.candidate);
         if (conn.remoteDescription) conn.addIceCandidate(signal.candidate).catch(() => {});
         else pending.push(signal.candidate);
       }

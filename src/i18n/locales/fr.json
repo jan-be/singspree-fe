@@ -446,6 +446,8 @@
     "onSpeakersRelayed": "Dans les enceintes (via un relais, un peu plus tard)",
     "connecting": "Connexion aux enceintes…",
     "failed": "Impossible de joindre les enceintes de l'hôte. Nouvel essai… Être sur le même Wi-Fi aide.",
+    "noAnswer": "L'écran de l'hôte ne répond pas. Recharger la soirée sur cet écran peut aider. Nouvel essai…",
+    "noPath": "Aucune connexion trouvée vers l'écran de l'hôte. Être sur le même Wi-Fi (pas un réseau invité) aide. Nouvel essai…",
     "withMic": "Démarre quand ton micro est allumé.",
     "withSong": "Démarre quand la chanson joue.",
     "singers": "Voix",

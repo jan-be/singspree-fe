@@ -450,6 +450,8 @@
     "onSpeakersRelayed": "On the speakers (through a relay, a little later)",
     "connecting": "Connecting to the speakers…",
     "failed": "Can't reach the host's speakers. Trying again… Being on the same Wi-Fi helps.",
+    "noAnswer": "The host's screen doesn't answer. Reloading the party there may help. Trying again…",
+    "noPath": "No connection to the host's screen found. Being on the same Wi-Fi (not a guest network) helps. Trying again…",
     "withMic": "Starts when your microphone is on.",
     "withSong": "Starts when the song plays.",
     "singers": "Singers",

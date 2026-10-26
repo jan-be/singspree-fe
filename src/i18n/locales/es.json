@@ -446,6 +446,8 @@
     "onSpeakersRelayed": "En los altavoces (por un relé, un poco más tarde)",
     "connecting": "Conectando con los altavoces…",
     "failed": "No se puede llegar a los altavoces del anfitrión. Reintentando… Estar en el mismo wifi ayuda.",
+    "noAnswer": "La pantalla del anfitrión no responde. Recargar la fiesta allí puede ayudar. Reintentando…",
+    "noPath": "No se encontró conexión con la pantalla del anfitrión. Estar en el mismo wifi (no una red de invitados) ayuda. Reintentando…",
     "withMic": "Empieza cuando tu micrófono está encendido.",
     "withSong": "Empieza cuando suena la canción.",
     "singers": "Voces",

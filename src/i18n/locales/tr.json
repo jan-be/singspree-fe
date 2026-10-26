@@ -446,6 +446,8 @@
     "onSpeakersRelayed": "Hoparlörlerde (bir aktarıcı üzerinden, biraz gecikmeli)",
     "connecting": "Hoparlörlere bağlanıyor…",
     "failed": "Sunucunun hoparlörlerine ulaşılamıyor. Yeniden deneniyor… Aynı Wi-Fi'de olmak yardımcı olur.",
+    "noAnswer": "Sunucunun ekranı yanıt vermiyor. Partiyi orada yeniden yüklemek işe yarayabilir. Yeniden deneniyor…",
+    "noPath": "Sunucunun ekranına bağlantı bulunamadı. Aynı Wi-Fi'de (misafir ağı değil) olmak yardımcı olur. Yeniden deneniyor…",
     "withMic": "Mikrofonun açıkken başlar.",
     "withSong": "Şarkı çalınca başlar.",
     "singers": "Sesler",

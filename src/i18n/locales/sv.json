@@ -446,6 +446,8 @@
     "onSpeakersRelayed": "I högtalarna (via en relä, lite senare)",
     "connecting": "Ansluter till högtalarna…",
     "failed": "Når inte värdens högtalare. Försöker igen… Samma wifi hjälper.",
+    "noAnswer": "Värdens skärm svarar inte. Att ladda om festen där kan hjälpa. Försöker igen…",
+    "noPath": "Ingen anslutning till värdens skärm hittades. Samma wifi (inte ett gästnätverk) hjälper. Försöker igen…",
     "withMic": "Startar när din mikrofon är på.",
     "withSong": "Startar när låten spelas.",
     "singers": "Röster",

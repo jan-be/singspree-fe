@@ -21,9 +21,9 @@ import { createVoiceLink } from './voiceLink';
 import { createVoiceMixer } from './voiceMixer';
 import { createValueStore } from './valueStore';
 import { isAppleMobile } from './youtubeSilence';
-import { sendRtcIce, sendRtcSignal } from './WebsocketHandling';
+import { sendRtcIce, sendRtcReport, sendRtcSignal } from './WebsocketHandling';
 import { debugLog } from './debugLog';
-import type { VoiceLink, VoiceLinkState } from './voiceLink';
+import type { VoiceLink, VoiceLinkState, VoiceReport } from './voiceLink';
 import type { VoiceMixer, VoiceSingerView } from './voiceMixer';
 import type { ValueStore } from './valueStore';
 import type { ExtraVoice } from './extraSingers';
@@ -119,11 +119,17 @@ export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio,
     return ws ? sendRtcSignal(ws, signal) : false;
   }, []);
   const log = useCallback((line: string) => debugLog('voice', line), []);
+  // how each try went, to the server's event log (voice_link events)
+  const report = useCallback((r: VoiceReport & { mic?: string; singer?: string }) => {
+    const ws = socketRef.current();
+    if (ws) sendRtcReport(ws, r);
+    debugLog('voice', `${r.side} ${r.singer ?? r.mic ?? ''} ${r.result} after ${r.ms} ms: answered=${r.answered} local=${JSON.stringify(r.local)} remote=${JSON.stringify(r.remote)} ${r.states}${r.pairs ? ` pairs=${JSON.stringify(r.pairs)}` : ''}${r.route ? ` route=${r.route}` : ''}`);
+  }, []);
 
   // A phone: its own microphone's connection to the host's page
   const link = useMemo<VoiceLink | null>(() => (isHost ? null : createVoiceLink({
-    send, iceServers: () => iceRef.current, onState: setLinkState, log,
-  })), [isHost, send, log]);
+    send, iceServers: () => iceRef.current, onState: setLinkState, log, report,
+  })), [isHost, send, log, report]);
   useEffect(() => () => link?.close(), [link]);
 
   // The host's page: the mixer, and what it shows
@@ -133,7 +139,8 @@ export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio,
     iceServers: () => iceRef.current,
     onChange: () => { if (singers && mixerRef.current) singers.set(mixerRef.current.singers()); },
     log,
-  }) : null), [isHost, send, log, singers]);
+    report,
+  }) : null), [isHost, send, log, report, singers]);
   const mixerRef = useRef(mixer);
   mixerRef.current = mixer;
   useEffect(() => () => mixer?.close(), [mixer]);
@@ -193,8 +200,8 @@ export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio,
 
   const extraVoice = useCallback((name: string): ExtraVoice => (isHost
     ? { onTrack: track => { if (localDirect) mixerRef.current?.setLocal(name, track); } }
-    : { link: (sendSignal, onState) => createVoiceLink({ send: sendSignal, iceServers: () => iceRef.current, onState, log: line => log(`${name}: ${line}`) }) }
-  ), [isHost, localDirect, log]);
+    : { link: (sendSignal, onState) => createVoiceLink({ send: sendSignal, iceServers: () => iceRef.current, onState, log: line => log(`${name}: ${line}`), report: r => report({ ...r, mic: name }) }) }
+  ), [isHost, localDirect, log, report]);
 
   return {
     voiceOut,
@@ -222,7 +229,7 @@ export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio,
         return list.map(s => `voice ${s.name}: ${s.kind} ${s.phase}${s.route ? ` ${s.route}` : ''} lag=${s.lagMs ?? '?'}ms back=${s.couplingDb ?? '?'}dB gain=${s.gainDb.toFixed(1)}dB${s.capped ? ' capped' : ''} jitter=${s.jitterMs ?? '?'}ms loss=${s.lossPct ?? '?'}% pkt=${s.packetsPerSec ?? '?'}/s${s.howls ? ` howls=${s.howls}` : ''}${s.ducked ? ' ducked' : ''} rms=${s.rms.toFixed(4)}${s.open ? ' open' : ''}`);
       }
       const st = link?.state;
-      return [`voice: ${wantedRef.current ? st?.phase ?? 'off' : 'not wanted'}${st?.route ? ` ${st.route}` : ''}${st?.rttMs != null ? ` rtt=${st.rttMs}ms` : ''}`];
+      return [`voice: ${wantedRef.current ? st?.phase ?? 'off' : 'not wanted'}${st?.route ? ` ${st.route}` : ''}${st?.rttMs != null ? ` rtt=${st.rttMs}ms` : ''}${st?.reason ? ` last failure: ${st.reason}` : ''}`];
     }, [link]),
   };
 }

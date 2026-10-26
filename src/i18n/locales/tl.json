@@ -446,6 +446,8 @@
     "onSpeakersRelayed": "Nasa speaker (sa pamamagitan ng relay, medyo mas huli)",
     "connecting": "Kumokonekta sa speaker…",
     "failed": "Hindi maabot ang speaker ng host. Sinusubukan ulit… Nakakatulong kung iisang Wi-Fi.",
+    "noAnswer": "Hindi sumasagot ang screen ng host. Baka makatulong ang pag-reload ng party doon. Sinusubukan ulit…",
+    "noPath": "Walang nakitang koneksyon sa screen ng host. Nakakatulong kung iisang Wi-Fi (hindi guest network). Sinusubukan ulit…",
     "withMic": "Magsisimula kapag naka-on ang mikropono mo.",
     "withSong": "Magsisimula kapag tumutugtog ang kanta.",
     "singers": "Mga boses",

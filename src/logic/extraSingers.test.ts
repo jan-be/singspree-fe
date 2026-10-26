@@ -205,9 +205,9 @@ describe("an extra microphone's voice on the host's speakers", () => {
     const keep = vi.fn(({ onOpen }: SingerSocketOptions) => { onOpen(sock, { reconnect: false }); return { close: vi.fn() }; });
     const track = { id: 'mic-track' } as MediaStreamTrack;
     const mic = { ...fakeMic(), track };
-    const link = { setWanted: vi.fn(), setTrack: vi.fn(), setActive: vi.fn(), hostBack: vi.fn(), handleSignal: vi.fn(), close: vi.fn(), state: { phase: 'off' as const, route: null, rttMs: null } };
+    const link = { setWanted: vi.fn(), setTrack: vi.fn(), setActive: vi.fn(), hostBack: vi.fn(), handleSignal: vi.fn(), close: vi.fn(), state: { phase: 'off' as const, route: null, rttMs: null, reason: null } };
     let linkSend: ((s: { link: string; bye?: true }) => boolean) | null = null;
-    let linkState: ((s: { phase: 'on'; route: null; rttMs: null }) => void) | null = null;
+    let linkState: ((s: { phase: 'on'; route: null; rttMs: null; reason: null }) => void) | null = null;
     const onTrack = vi.fn();
     const states: ExtraSingerState[] = [];
     const singer = createExtraSinger({
@@ -232,7 +232,7 @@ describe("an extra microphone's voice on the host's speakers", () => {
     receive(sock, { type: 'party:host_status', data: { connected: false } });
     receive(sock, { type: 'party:host_status', data: { connected: true } });
     expect(link.hostBack).toHaveBeenCalledTimes(1);
-    report()?.({ phase: 'on', route: null, rttMs: null });
+    report()?.({ phase: 'on', route: null, rttMs: null, reason: null });
     expect(states.at(-1)?.voice).toBe('on');
     singer.closeMic();
     expect(link.setTrack).toHaveBeenLastCalledWith(null);

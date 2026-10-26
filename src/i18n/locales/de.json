@@ -450,6 +450,8 @@
     "onSpeakersRelayed": "Über die Lautsprecher (über einen Umweg, etwas später)",
     "connecting": "Verbinde mit den Lautsprechern …",
     "failed": "Die Lautsprecher des Hosts sind nicht erreichbar. Neuer Versuch … Im selben WLAN klappt es am besten.",
+    "noAnswer": "Der Bildschirm des Hosts antwortet nicht. Die Party dort neu zu laden kann helfen. Neuer Versuch …",
+    "noPath": "Keine Verbindung zum Bildschirm des Hosts gefunden. Dasselbe WLAN (kein Gastnetz) hilft. Neuer Versuch …",
     "withMic": "Startet, sobald dein Mikrofon an ist.",
     "withSong": "Startet, sobald der Song läuft.",
     "singers": "Stimmen",

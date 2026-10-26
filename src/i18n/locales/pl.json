@@ -450,6 +450,8 @@
     "onSpeakersRelayed": "W głośnikach (przez przekaźnik, trochę później)",
     "connecting": "Łączenie z głośnikami…",
     "failed": "Nie można połączyć się z głośnikami gospodarza. Ponowna próba… Ta sama sieć Wi-Fi pomaga.",
+    "noAnswer": "Ekran gospodarza nie odpowiada. Ponowne wczytanie imprezy na nim może pomóc. Ponowna próba…",
+    "noPath": "Nie znaleziono połączenia z ekranem gospodarza. Pomaga ta sama sieć Wi-Fi (nie sieć dla gości). Ponowna próba…",
     "withMic": "Startuje, gdy twój mikrofon jest włączony.",
     "withSong": "Startuje, gdy leci piosenka.",
     "singers": "Głosy",
