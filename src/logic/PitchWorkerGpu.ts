@@ -34,7 +34,7 @@ async function init(modelUrl: string) {
     executionProviders: ['webgpu'],
     preferredOutputLocation: 'gpu-buffer',
   });
-  // (ORT 1.29 sets the device itself here once a session exists, where its
+  // (ORT 1.30, like 1.29, sets the device itself here once a session exists, where its
   // types say a Promise of it: awaited, it is the device either way)
   const device = await ort.env.webgpu.device;
   if (!device) throw new Error('ONNX Runtime has no WebGPU device');

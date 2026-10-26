@@ -1,7 +1,7 @@
 # Minimal ONNX Runtime for the pitch worker
 
-The pitch worker (`src/logic/PitchWorkerMinimal.js`) runs swift-f0 on our own
-build of ONNX Runtime 1.29.0 for WebAssembly instead of onnxruntime-web's:
+The pitch worker (`src/logic/PitchWorkerMinimal.ts`) runs swift-f0 on our own
+build of ONNX Runtime 1.30.0 for WebAssembly instead of onnxruntime-web's:
 
 - **single-threaded, ordinary memory.** Since 1.19 onnxruntime-web ships only
   its threaded build, whose memory is a shared `WebAssembly.Memory` of up to
@@ -18,14 +18,17 @@ build of ONNX Runtime 1.29.0 for WebAssembly instead of onnxruntime-web's:
 
 The results are bit-identical to the stock runtime's (see Verifying).
 
-| | stock 1.29 (the former `PitchWorker.js`) | minimal |
+Measured 2026-10-26 with 1.30.0 (the 1.29 numbers of 2026-10-04 are under
+Choices, measured):
+
+| | stock 1.30 (what the former `PitchWorker.js` loaded) | minimal |
 |---|---|---|
-| `.wasm` | 13,961,845 B (gzip 3,570,014, brotli 2,296,916) | 1,152,163 B (gzip 431,329, brotli 328,633) |
-| worker JS | 75,300 B (ORT JS + its 24 kB glue; gzip 24,718) | 16,513 B (`ortMinimal.js` + 10 kB glue; gzip 6,681) |
-| model | `model.onnx` 397,987 B (gzip 363,028) | `model.ort` 414,960 B (gzip 368,957) |
-| all of it, gzip | 3.96 MB | 0.81 MB |
-| worker start, desktop Chrome (no cache) | 130–185 ms | 24 ms |
-| one inference, desktop Chrome | 2.8 ms | 1.35 ms (2.7 ms before the patches) |
+| `.wasm` | 14,239,897 B (gzip 3,652,765, brotli 2,355,011) | 1,184,458 B (gzip 450,221, brotli 345,378) |
+| worker JS | ~75 kB (ORT JS with its glue 73,054 B, gzip 24,579, + the worker) | 17,394 B (`ortMinimal.ts` + 11 kB glue; gzip 7,040) |
+| model | `model.onnx` 397,987 B (gzip 363,028) | `model.ort` 414,960 B (gzip 368,975) |
+| all of it, gzip | 4.04 MB | 0.83 MB |
+| worker start, desktop Chrome (no cache) | 155 ms | 28–31 ms |
+| one inference, desktop Chrome | 3.1 ms | 1.36–1.40 ms (2.7 ms before the patches) |
 
 ## Files
 
@@ -39,12 +42,13 @@ The results are bit-identical to the stock runtime's (see Verifying).
   the runtime contains. A diff here after a model change means new kernels.
 - Output: `src/vendor/ort-minimal/ort-wasm-simd.{mjs,wasm}` (Emscripten's JS
   module and the runtime) and `public/model.ort`.
-- `src/logic/ortMinimal.js`: the JS around the runtime. onnxruntime-web's own
+- `src/logic/ortMinimal.ts`: the JS around the runtime. onnxruntime-web's own
   JS can only load a runtime other than its threaded one through a dynamic
   `import()` of a URL, which the classic workers Vite builds cannot rely on;
   so the worker bundles the Emscripten module and calls the C functions of
   `onnxruntime/wasm/api.h` itself, with onnxruntime-web's default session
-  options. It belongs to the pinned version: update both together.
+  options. It belongs to the pinned version: update both together (and the
+  hand-written types next to the runtime, `ort-wasm-simd.d.mts`).
 
 ## Building
 
@@ -56,11 +60,12 @@ D:/ort-build/venv/Scripts/python tools/ort-minimal/build.py --work D:/ort-build/
 
 `--work` gets the ONNX Runtime clone, Emscripten and the build tree (~3 GB;
 keep it off a full C:). The first run takes ~10 minutes on a 12-thread PC
-(downloads, CMake's configure checks, ~450 compiles); later runs ~1 minute.
+(downloads, CMake's configure checks, ~700 compiles since 1.30, whose
+protobuf 33 brings abseil along); later runs ~1 minute.
 Built natively on Windows (no WSL); nothing in it is Windows-only, but Linux
 is untested. Steps:
 
-1. clone ONNX Runtime v1.29.0 (shallow) and its Emscripten submodule,
+1. clone ONNX Runtime v1.30.0 (shallow) and its Emscripten submodule,
 2. remove ORT's `SharedArrayBuffer` stand-in from `onnxruntime/wasm/pre.js`
    (it creates a shared memory for code a single-threaded build does not
    have; `build.py` refuses output that still mentions shared memory),
@@ -83,10 +88,13 @@ The runtime comes out byte-identical on every run (and from a fresh clone);
 time, so expect a binary diff there whenever the script runs.
 
 Rebuild when `public/model.onnx` changes (a new operator is missing from the
-runtime otherwise: session creation fails and the worker falls back to the
-stock runtime), and to move to another ONNX Runtime version (update
-`ORT_VERSION`, `ORT_COMMIT` and `EMSDK_VERSION` in `build.py`, `onnxruntime`
-in `requirements.txt`, and check `api.h` against `ortMinimal.js`).
+runtime otherwise: session creation fails, and with it the pitch worker; the
+stock fallbacks are gone since October 2026), and to move to another ONNX
+Runtime version (update `ORT_VERSION`, `ORT_COMMIT` and `EMSDK_VERSION` in `build.py`, `onnxruntime`
+in `requirements.txt` and onnxruntime-web/-node in `package.json`, check
+`api.h` and `pre.js` against `ortMinimal.ts` and `patch_pre_js`, and before
+the build overwrites them keep a copy of the old runtime and `model.ort` for
+Verifying).
 
 ## Choices, measured
 
@@ -101,7 +109,23 @@ in `requirements.txt`, and check `api.h` against `ortMinimal.js`).
 | minimal build, MinSizeRel (`-Os`), shipped 2026-10-04 | 1,149,264 | 429,665 | 327,328 | 2.8 ms |
 | the same + `mlas-im2col.patch` (2026-10-05) | 1,150,212 | 430,178 | 327,855 | 1.9 ms |
 | the same + `stft-multiply.patch` (2026-10-05) | 1,150,743 | 430,421 | 328,449 | 1.8 ms |
-| **the same + `mlas-narrow-conv.patch`** (2026-10-05) | 1,152,163 | 431,329 | 328,633 | 1.35 ms |
+| the same + `mlas-narrow-conv.patch` (2026-10-05) | 1,152,163 | 431,329 | 328,633 | 1.35 ms |
+| stock onnxruntime-web 1.30 (2026-10-26, Chrome 155, all 7,216 windows) | 14,239,897 | 3,652,765 | 2,355,011 | 3.1 ms |
+| **the same build on ONNX Runtime 1.30.0** (2026-10-26, as above) | 1,184,458 | 450,221 | 345,378 | 1.36–1.40 ms |
+
+- 1.29 → 1.30 (2026-10-26): same Emscripten (4.0.23), flags and patches;
+  the files the patches and `patch_pre_js` touch (`convolve.cpp`, `dft.cc`,
+  `pre.js`) are byte for byte those of 1.29, and `api.h` only gained a
+  WebGPU function, so `ortMinimal.ts` stayed as it was. The converted model
+  has the same 46 nodes and initializers. Outputs: bit for bit those of stock
+  1.30 and of the 1.29 build, on every window of `iris.mp3`, in Chrome,
+  Firefox and WebKit. Size: +32 kB (+19 kB gzip), mostly ORT's move from
+  protobuf 21.12 to 33.6, which links parts of abseil (logging, `Mutex`,
+  `Cord`) into the runtime and Emscripten's stack-walking helpers into the
+  glue (10,163 → 11,038 B); the rest is new checks in ORT itself (the new
+  strings in the binary say so). Speed: unchanged; over 20 interleaved rounds
+  per browser on a busy PC, 1.30/1.29 = 1.005 in Chrome, 0.993 in Firefox,
+  1.014 in WebKit (95 % intervals within ±4 %).
 
 - Minimal over full: a third of the size; the price is the `.ort` model,
   which the build produces anyway.
@@ -117,7 +141,9 @@ in `requirements.txt`, and check `api.h` against `ortMinimal.js`).
   dlmalloc, a 5 MB stack, memory growth up to 4 GB. That memory is ordinary
   (not shared), as in the 1.18 build that works on iPadOS 16.
 - No SIMD-less variant: every browser with SIMD (Safari 16.4+) also gets
-  this runtime; older ones fall back to 1.18's plain build.
+  this runtime; older ones used to fall back to 1.18's plain build, and since
+  that fallback was removed (October 2026) they get no pitch detection
+  (`ortMinimal.ts` says WebAssembly SIMD is not supported).
 - Tried 2026-10-05, not taken:
   - ORT's memory arena and memory pattern (session options): no
     measurable change (2.8 ms either way); onnxruntime-web leaves them off.
@@ -180,12 +206,17 @@ inferences in Chrome.
 
 ## Verifying
 
-- `bun bench/ort-minimal/serve.mjs` and `bun bench/ort-minimal/run.mjs`
-  (`PLAYWRIGHT_BROWSERS_PATH` for Firefox/WebKit): every 960-sample window
-  of `../iris.mp3` through the stock runtime and the minimal one in Chrome,
+- `bun bench/ort-minimal/serve.ts` and `bun bench/ort-minimal/run.ts`
+  (Chrome is the installed one; Firefox and WebKit are Playwright's,
+  `bunx playwright install firefox webkit`): every 960-sample window of
+  `../iris.mp3` through the stock runtime and the minimal one in Chrome,
   Firefox and WebKit, in a worker each; prints worker init time, inference
-  times and the differences of the raw outputs. `VARIANTS=name=dir,...`
-  compares other builds (each dir holding `ort-wasm-simd.{mjs,wasm}`).
+  times and, for every pair of runtimes, the differences of the raw outputs
+  and of the app's decisions (`pickPitch`, and the voicing tracker the worker
+  runs: windows voiced by one only, the largest pitch difference in cents).
+  `VARIANTS=name=dir,...` compares other builds (each dir holding
+  `ort-wasm-simd.{mjs,wasm}`, and its own `model.ort` when another version
+  converted it); `SAVE=dir` keeps the raw outputs.
 - In the app, `?debug=1` shows the pitch provider in the mic line:
   `wasm-min` is this runtime (`webgpu` the opt-in GPU worker; older
   recordings also show `wasm` / `wasm-1.18`, the stock runtimes it replaced).

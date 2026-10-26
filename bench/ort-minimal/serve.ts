@@ -2,6 +2,8 @@
 // worker, the stock onnxruntime-web dist under /ort/, every runtime variant
 // under /v/<name>/, the models from public/, and the test audio (iris.mp3
 // next to the checkout, decoded once to 16 kHz float32 with ffmpeg).
+// A variant's directory may hold its own model.ort (the one its version's
+// converter wrote); without one it gets public/model.ort.
 //   VARIANTS="min=src/vendor/ort-minimal,release=D:/ort-build/out/release" bun bench/ort-minimal/serve.ts
 // Everything is served no-store, so each worker downloads and compiles its
 // runtime from scratch, like a first visit.
@@ -52,8 +54,10 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'text/javascript', 'cache-control': 'no-store' });
     res.end(transpiler.transformSync(src));
     return;
-  } else if (v && variants[v[1]]) file = path.join(variants[v[1]], v[2]);
-  else if (/^\/model[\w-]*\.(onnx|ort)$/.test(pathname)) file = path.join(PUBLIC, pathname.slice(1));
+  } else if (v && variants[v[1]]) {
+    file = path.join(variants[v[1]], v[2]);
+    if (v[2] === 'model.ort' && !fs.existsSync(file)) file = path.join(PUBLIC, 'model.ort');
+  } else if (/^\/model[\w-]*\.(onnx|ort)$/.test(pathname)) file = path.join(PUBLIC, pathname.slice(1));
   else file = path.join(here, pathname.slice(1));
   // The pages' own scripts are TypeScript, asked for by their .js names: served as JavaScript
   const ts = file.replace(/\.js$/, '.ts');

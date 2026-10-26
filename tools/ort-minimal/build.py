@@ -20,10 +20,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-ORT_VERSION = '1.29.0'
-ORT_COMMIT = '2e2543fbe9fae542f921d47a72d21d5a4ef0b710'  # tag v1.29.0
+ORT_VERSION = '1.30.0'
+ORT_COMMIT = 'f2c39fe2f838cf35ce7da92824f5a5e3ee6e88a7'  # tag v1.30.0
 ORT_REPO = 'https://github.com/microsoft/onnxruntime.git'
-EMSDK_VERSION = '4.0.23'  # the Emscripten ONNX Runtime 1.29.0 pins (build.py --emsdk_version)
+EMSDK_VERSION = '4.0.23'  # the Emscripten ONNX Runtime 1.30.0 pins (build.py --emsdk_version)
 
 HERE = Path(__file__).resolve().parent
 FE = HERE.parent.parent

@@ -2,17 +2,18 @@
 // prints, per browser and runtime: worker init time (new Worker() until the
 // session is ready, downloads included), the first inference, the mean,
 // median and p90 inference over the windows, and how far each runtime's raw
-// outputs are from the stock runtime's in the same browser (and from the
-// first browser's, for the same runtime).
+// outputs are from the stock runtime's and the other variants' in the same
+// browser (and from the first browser's, for the same runtime).
 //   bun bench/ort-minimal/serve.ts &   then   bun bench/ort-minimal/run.ts
 // env: BASE (http://localhost:3006), BROWSERS (chrome,firefox,webkit),
 //      WINDOWS (all of the audio), ROUNDS (2), OUT (results.json),
+//      SAVE (a directory for each runtime's raw outputs: <browser>-<runtime>.{pitch,conf}.f32),
 //      PLAYWRIGHT_BROWSERS_PATH for Playwright's Firefox/WebKit builds
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium, firefox, webkit, type Browser } from '@playwright/test';
-import { pickPitch } from '../../src/logic/pitchModel.js';
+import { createVoicingTracker, pickPitch } from '../../src/logic/pitchModel.js';
 
 /** A runtime's raw outputs over all windows */
 interface Outputs {
@@ -32,8 +33,12 @@ interface DiffStats {
 interface Diff {
   pitch?: DiffStats;
   conf?: DiffStats;
-  /** windows where the app would pick another pitch */
+  /** windows where pickPitch (last frame, confidence and range) gives another value */
   pickedPitchDiffers?: number;
+  /** windows where the app's voicing tracker says pitch in one and none in the other */
+  voicingDiffers?: number;
+  /** the largest pitch difference, in cents, of windows the tracker voices in both */
+  maxCents?: number;
 }
 
 /** __run's numbers without the outputs */
@@ -53,6 +58,8 @@ const BROWSERS = (process.env.BROWSERS || 'chrome,firefox,webkit').split(',');
 const WINDOWS = process.env.WINDOWS ? Number(process.env.WINDOWS) : undefined;
 const ROUNDS = Number(process.env.ROUNDS || 2);
 const OUT = process.env.OUT || path.join(here, 'results.json');
+const SAVE = process.env.SAVE;
+const HOP_S = 480 / 16000; // index.html's hop: the windows' clock for the voicing tracker
 const launchers: Record<string, () => Promise<Browser>> = {
   chrome: () => chromium.launch({ channel: 'chrome' }),
   firefox: () => firefox.launch(),
@@ -80,6 +87,18 @@ function diff(a: Outputs, b: Outputs, frames: number): Diff {
     if (pickPitch(a.pitch.subarray(s, e), a.conf.subarray(s, e)) !== pickPitch(b.pitch.subarray(s, e), b.conf.subarray(s, e))) picks++;
   }
   out.pickedPitchDiffers = picks;
+  // the voicing tracker the pitch worker runs, over the windows as a stream
+  const ta = createVoicingTracker(), tb = createVoicingTracker();
+  let voicing = 0, cents = 0;
+  for (let w = 0; w < a.pitch.length / frames; w++) {
+    const s = w * frames, e = s + frames;
+    const pa = ta.pick(a.pitch.subarray(s, e), a.conf.subarray(s, e), w * HOP_S);
+    const pb = tb.pick(b.pitch.subarray(s, e), b.conf.subarray(s, e), w * HOP_S);
+    if ((pa > 0) !== (pb > 0)) voicing++;
+    else if (pa > 0) cents = Math.max(cents, Math.abs(1200 * Math.log2(pa / pb)));
+  }
+  out.voicingDiffers = voicing;
+  out.maxCents = cents;
   return out;
 }
 
@@ -106,16 +125,24 @@ for (const name of BROWSERS) {
       if (res.error !== undefined) { console.log(`  ${rt.padEnd(10)} ERROR ${res.error}`); (r.runs[rt] ??= []).push({ error: res.error }); continue; }
       const { pitch, conf, ...t } = res;
       (r.runs[rt] ??= []).push(t);
-      out[rt] ??= { pitch: f32(pitch), conf: f32(conf), frames: res.frames };
+      if (!out[rt]) {
+        out[rt] = { pitch: f32(pitch), conf: f32(conf), frames: res.frames };
+        if (SAVE) {
+          fs.mkdirSync(SAVE, { recursive: true });
+          fs.writeFileSync(path.join(SAVE, `${name}-${rt}.pitch.f32`), out[rt].pitch);
+          fs.writeFileSync(path.join(SAVE, `${name}-${rt}.conf.f32`), out[rt].conf);
+        }
+      }
       console.log(`  ${rt.padEnd(10)} init ${t.initMs.toFixed(0).padStart(5)} ms (import ${t.importMs.toFixed(0)}, session ${t.sessionMs.toFixed(0)})`
         + ` | first run ${t.firstRunMs.toFixed(1)} ms | mean ${t.meanMs.toFixed(3)} median ${t.medianMs.toFixed(2)} p90 ${t.p90Ms.toFixed(2)} ms`);
     }
   }
-  for (const rt of info.variants) {
-    if (!out.stock || !out[rt]) continue;
-    r.diffs[`${rt} vs stock`] = diff(out[rt], out.stock, out[rt].frames);
-    console.log(`  ${rt} vs stock: ${JSON.stringify(r.diffs[`${rt} vs stock`])}`);
-  }
+  // each variant against stock and against the variants before it
+  runtimes.forEach((rt, i) => runtimes.slice(0, i).forEach((other) => {
+    if (!out[rt] || !out[other]) return;
+    r.diffs[`${rt} vs ${other}`] = diff(out[rt], out[other], out[rt].frames);
+    console.log(`  ${rt} vs ${other}: ${JSON.stringify(r.diffs[`${rt} vs ${other}`])}`);
+  }));
   for (const rt of runtimes) {
     if (!out[rt]) continue;
     if (!outputs[rt]) { outputs[rt] = { browser: name, ...out[rt] }; continue; }

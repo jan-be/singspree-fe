@@ -1,8 +1,8 @@
 // One runtime in a dedicated worker, where the pitch worker runs: `stock` is
-// what PitchWorker.js loads (onnxruntime-web/wasm: the threaded 1.29 build
-// with its glue embedded, /model.onnx); a variant name is a custom build under
+// what the former PitchWorker.js loaded (onnxruntime-web/wasm: the installed
+// version's threaded build with its glue embedded, /model.onnx); a variant name is a custom build under
 // /v/<name>/ driven by the app's own wrapper, src/logic/ortMinimal.ts
-// (/model.ort), as PitchWorkerMinimal.ts runs it.
+// (/v/<name>/model.ort: its own, or public/model.ort), as PitchWorkerMinimal.ts runs it.
 const rt = new URL(self.location.href).searchParams.get('rt') || 'stock';
 const t0 = performance.now();
 
@@ -17,7 +17,7 @@ const ready = (async () => {
     model = '/model.onnx';
   } else {
     ort = await import(`/v/${rt}/ortMinimal.js`);
-    model = '/model.ort';
+    model = `/v/${rt}/model.ort`;
   }
   const tImport = performance.now();
   const session = await ort.InferenceSession.create(model, { executionProviders: ['wasm'] });

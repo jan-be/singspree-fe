@@ -1,6 +1,6 @@
 // Types for ort-wasm-simd.mjs, the Emscripten glue of our minimal ONNX Runtime build
 // (tools/ort-minimal): the module's runtime helpers and the C functions of
-// onnxruntime/wasm/api.h that ortMinimal.js calls. Pointers and handles are numbers
+// onnxruntime/wasm/api.h that ortMinimal.ts calls. Pointers and handles are numbers
 // (wasm32); the functions return 0 for success unless they hand back a handle.
 
 /** What the module factory takes (Emscripten's Module object) */
