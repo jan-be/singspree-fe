@@ -34,7 +34,9 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
     try { setBest(await getMyBest()); } catch { /* keep what we have */ }
   }, []);
 
+  const askingRef = useRef(0); // /auth/me requests under way
   const refresh = useCallback(async () => {
+    askingRef.current++;
     try {
       const me = await getMe();
       setUser(me);
@@ -43,14 +45,19 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
         if (me) await refreshBest(); else setBest({});
       }
     } catch { /* offline: keep the last known state */ }
-    finally { setLoading(false); }
+    finally { askingRef.current--; setLoading(false); }
   }, [refreshBest]);
 
   useEffect(() => { refresh(); }, [refresh]);
   // the Rust party page's switch, for the song pages of this browser (logic/rustPartyPage.ts)
   useEffect(() => { if (!loading) rememberRustPartyPage(Boolean(user?.rustPartyPage)); }, [user, loading]);
+  // Not while one is under way: a first visit's browser id comes with the
+  // answer (backend contentGate.ts), and the focus a new page gets as it
+  // loads sent more requests without one, each handed an id of its own.
+  // The party was made under one and the chart asked for with another
+  // (two refusals on 2026-10-21/22, both visitors moving over from singpro.app).
   useEffect(() => {
-    const onFocus = () => { if (document.visibilityState === 'visible') refresh(); };
+    const onFocus = () => { if (document.visibilityState === 'visible' && !askingRef.current) refresh(); };
     document.addEventListener('visibilitychange', onFocus);
     window.addEventListener('focus', onFocus);
     return () => { document.removeEventListener('visibilitychange', onFocus); window.removeEventListener('focus', onFocus); };

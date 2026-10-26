@@ -96,7 +96,7 @@ import { createStruggleWatch, forcedVideoScale, initialVideoScale, rememberReduc
 import DebugOverlay from "../components/DebugOverlay";
 import AiBadge from "../components/AiBadge";
 import { browserCoversVideos } from "../logic/videoTakeover";
-import { createPartyAccess, fetchInParty } from "../logic/partyAccess";
+import { createPartyAccess, fetchInParty, makeParty } from "../logic/partyAccess";
 import { notePartySong, notePartySingers, notePartyQueue, takePendingQueue } from "../logic/partyHistory";
 import type { LyricData } from "../logic/LyricsParser";
 import type { ScriptChoice } from "../logic/lyricsScripts";
@@ -354,12 +354,14 @@ const PartyPage = () => {
   const partyAccess = useLazyRef(createPartyAccess).current;
 
   // Auto-create a party on mount if we don't already have one AND we are the host
-  // (once we know whether a signed-in user is the host, so the party gets their name)
+  // (once we know whether a signed-in user is the host, so the party gets their name).
+  // Tried again on a poor connection (makeParty); a page left without one says
+  // so, and its chart is not kept waiting for a party that will not come
   useEffect(() => {
     if (partyId || !isHost || authLoading) return;
     let cancelled = false;
     (async () => {
-      try {
+      const id = await makeParty(async () => {
         const resp = await fetch(`${apiUrl}/parties`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -367,13 +369,14 @@ const PartyPage = () => {
           body: JSON.stringify({ owner: currentUserName, guestId: getGuestId() }),
         });
         const json = await resp.json();
-        const id = json.data?.partyId ?? json.partyId;
-        if (!cancelled && id) {
-          setPartyId(id);
-          partyAccess.open();
-        }
-      } catch (e) {
-        console.error("Failed to auto-create party", e);
+        return json.data?.partyId ?? json.partyId ?? null;
+      }, { stopped: () => cancelled });
+      if (cancelled) return;
+      if (id) {
+        setPartyId(id);
+        partyAccess.open();
+      } else {
+        partyAccess.fail();
       }
     })();
     return () => { cancelled = true; };
@@ -1735,8 +1738,8 @@ const PartyPage = () => {
     setVideoDuration(!isHostRef.current && hostDurationRef.current?.songId === activeSongId ? hostDurationRef.current.duration : 0);
     (async () => {
       try {
-        // In the party first (a joiner's socket has joined, the host's page made it); a few seconds at most
-        await partyAccess.wait(5000);
+        // In the party first (a joiner's socket has joined, the host's page made it), however slow the connection
+        await partyAccess.wait();
         if (cancelled) return;
         const resp = await fetchInParty(`${apiUrl}/songs/${activeSongId}`);
         if (!resp.ok && resp.status !== 404) throw new Error(`songs/${activeSongId}: HTTP ${resp.status}`);
