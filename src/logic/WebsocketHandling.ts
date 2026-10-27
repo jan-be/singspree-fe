@@ -467,6 +467,11 @@ export const sendSongSkip = (ws: ObjSocket, from?: string | null) => {
   ws.sendObj({ type: "song:skip", data: from ? { from } : {} });
 };
 
+/** Host or co-host: the song `from` once more from the top, a new play (the score screen's Play again). */
+export const sendSongAgain = (ws: ObjSocket, from?: string | null) => {
+  ws.sendObj({ type: "song:again", data: from ? { from } : {} });
+};
+
 export const sendCountdownCancel = (ws: ObjSocket) => {
   ws.sendObj({ type: "song:countdown_cancel" });
 };

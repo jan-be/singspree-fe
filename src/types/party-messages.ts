@@ -130,7 +130,8 @@ export type PartyServerMessage =
   | { type: 'party:player_left'; data: { username: string } }
   | { type: 'party:scores_updated'; data: { players?: ScoreBoardEntry[]; scores?: ScoreBoardEntry[]; removed?: string[]; partial?: boolean } }
   // { currentSong }; a server from before sent the song itself
-  | { type: 'party:song_started'; data: { currentSong?: PartySong | null } & Partial<PartySong> }
+  /** again: the same song started over (Play again): every page starts it from the top */
+  | { type: 'party:song_started'; data: { currentSong?: PartySong | null; again?: boolean } & Partial<PartySong> }
   | { type: 'party:song_ended'; data: { scores?: EndScore[]; nextSong?: NextSong | null } }
   | { type: 'party:achievements'; data: { players?: { username: string; keys?: string[] }[] } }
   | { type: 'party:countdown_cancelled'; data: Record<string, never> }

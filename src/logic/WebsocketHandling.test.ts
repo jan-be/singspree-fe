@@ -1,6 +1,6 @@
 import { assert, describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BIN_PLAYER_NOTE, BIN_NOTES_BATCH, sendPlayerNote, sendPartyJoin, sendQueueReorder, sendVideoTime, parseBinaryBatch, parseStanding, reconnectDelay, keepSocket,
-  sendSongAdvance, sendSongSkip, sendPlaybackControl, sendCohost, sendPartySettings, type KeptWebSocket, type ObjSocket } from './WebsocketHandling';
+  sendSongAdvance, sendSongSkip, sendSongAgain, sendPlaybackControl, sendCohost, sendPartySettings, type KeptWebSocket, type ObjSocket } from './WebsocketHandling';
 import { getGuestId } from './sessionId';
 
 /** A message as a test reads it back */
@@ -234,10 +234,11 @@ describe('sendPartyJoin', () => {
 describe('host and co-host messages', () => {
   const capture = (fn: (ws: ObjSocket) => void) => { const sent: Sent[] = []; fn({ sendObj: (obj: Sent) => sent.push(obj) }); return sent; };
 
-  it('advance and skip name the song they leave; without one, as before', () => {
+  it('advance, skip and play again name the song they leave; without one, as before', () => {
     expect(capture(ws => sendSongAdvance(ws, 'abc'))).toEqual([{ type: 'song:advance', data: { from: 'abc' } }]);
     expect(capture(ws => sendSongSkip(ws, 'abc'))).toEqual([{ type: 'song:skip', data: { from: 'abc' } }]);
     expect(capture(ws => sendSongSkip(ws))).toEqual([{ type: 'song:skip', data: {} }]);
+    expect(capture(ws => sendSongAgain(ws, 'abc'))).toEqual([{ type: 'song:again', data: { from: 'abc' } }]);
   });
 
   it("a co-host's playback control carries only what its action needs", () => {

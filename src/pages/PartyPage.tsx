@@ -39,6 +39,7 @@ import {
   sendSongEnd,
   sendSongAdvance,
   sendSongSkip,
+  sendSongAgain,
   sendCountdownCancel,
   sendSongLyrics, sendSongGap, sendPartyLeave, sendHostAway, sendPartyClose,
   sendQueueAdd,
@@ -2194,6 +2195,28 @@ const PartyPage = () => {
     }
   }, [startRecordingIfActive]);
 
+  // The song once more from the top (Play again on the score screen; the
+  // server's party:song_started with `again`, or this page alone without a
+  // party socket): a new play with its own scores and take. The chart stays,
+  // so nothing loads again: the host's page takes its video back to the
+  // start, a joiner's copy follows the host's time.
+  const replaySong = useCallback(() => {
+    setSongEnded(false);
+    live.resetNotes();
+    live.resetScores();
+    live.resetLanes();
+    setServerScores(null);
+    setEndScores([]);
+    setEndTake(null);
+    if (isHostRef.current) {
+      seekVideo(0);
+      try { iframePlayerRef.current?.playVideo?.(); } catch { /* a player being replaced */ }
+    }
+    if (!micRecorderRef.current?.isRecording) {
+      startRecordingIfActive(activeSongIdRef.current, songInfoRef.current, lyricDataRef.current);
+    }
+  }, [seekVideo, startRecordingIfActive]);
+
   // Going to the menu: a host keeps the party (joiners wait; the server is
   // told so it does not take this for a lost host), a joiner leaves it for
   // good (a closed socket alone reads as a reload and keeps the seat).
@@ -2988,6 +3011,7 @@ const PartyPage = () => {
         notePartySong(partyId, s, { host: isHost, me: currentUserNameRef.current });
         setEndTake(null); // a new play: the last one's take is not its
         if (s?.songId && s.songId !== activeSongIdRef.current) followSong(s.songId);
+        else if (s?.songId && jsonObj.data?.again) replaySong(); // Play again: the same song from the top
       }
 
       if (jsonObj.type === "party:song_ended") {
@@ -3141,7 +3165,7 @@ const PartyPage = () => {
     // party:state answer to our join, usually) is handled now
     for (const e of wss.backlog?.splice(0) ?? []) handler(e);
     return () => { wss.onmessage = null; };
-  }, [wss, partyId, isHost, syncStemsToTime, announceSong]);
+  }, [wss, partyId, isHost, syncStemsToTime, announceSong, replaySong]);
 
   // Queue handlers
   // `source` (queue-search | queue-similar) and the search session go along for the admin statistics
@@ -3189,9 +3213,16 @@ const PartyPage = () => {
     const sid = activeSongIdRef.current;
     if (wss) sendWhenOpen(w => sendSongAdvance(w, sid), sid);
   }, [wss, sendWhenOpen]);
+  // Host or co-host: the song once more from the score screen (`from`: as for
+  // a skip). Every page starts it over when the server says so (replaySong).
+  const playAgain = useCallback(() => {
+    const sid = activeSongIdRef.current;
+    if (wss) sendWhenOpen(w => sendSongAgain(w, sid), sid);
+    else replaySong();
+  }, [wss, sendWhenOpen, replaySong]);
 
   // Smooth countdown — runs on animation frames (a timer in a background tab, frameLoop.ts).
-  // Host: mouse/touch cancels countdown, sends WS cancel to joiners, shows Next/Stay buttons.
+  // Host: mouse/touch cancels countdown, sends WS cancel to joiners, shows the Next song button.
   // Joiners: countdown runs in sync, but only the host can advance or cancel.
   //          When host cancels, joiners receive party:countdown_cancelled and show "Waiting for host."
   const COUNTDOWN_DURATION = 6000; // ms
@@ -4079,19 +4110,20 @@ const PartyPage = () => {
   
                 {canControl ? (
                   <>
-                    {/* Stay here — host and co-hosts. The host's mouse already
+                    {/* Play again — host and co-hosts. The host's mouse already
                         stopped the countdown for everyone; a co-host's phone
-                        does it with this button (a touch to scroll must not) */}
+                        does it with this button (a touch to scroll must not),
+                        so the host's page does not go on meanwhile */}
                     <button
                       onClick={() => {
-                        setSongEnded(false);
                         countdownCancelledRef.current = true;
                         countdownStartRef.current = null;
                         if (!isHost && wss) sendCountdownCancel(wss);
+                        playAgain();
                       }}
                       className="btn btn-ghost"
                     >
-                      {t('party.stayHere')}
+                      {t('party.playAgain')}
                     </button>
   
                     {/* Next Song — the host's appears when the countdown is cancelled, a co-host's at once */}
