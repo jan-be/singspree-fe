@@ -234,7 +234,7 @@ const ReportRow = ({ report: r, busy, onReview }: { report: AdminSongReport; bus
       {r.comment && <p className="text-sm text-white/85 whitespace-pre-line break-words">{r.comment}</p>}
       <div className="text-xs text-white/45">
         {r.username
-          ? <span className="font-medium text-neon-cyan">{r.username}</span>
+          ? <Link to={`/u/${encodeURIComponent(r.username)}`} className="font-medium text-neon-cyan hover:text-neon-cyan hover:underline underline-offset-4">{r.username}</Link>
           : <span>{r.nickname ? name(r.nickname) : t('admin.plays.guest')}</span>}
         {r.partyId ? ` · ${t('admin.plays.inParty', { partyId: r.partyId })}` : ''} · {ago(r.updatedAt ?? r.createdAt)}
         {facts.length ? ` · ${facts.join(' · ')}` : ''}
