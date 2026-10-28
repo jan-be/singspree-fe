@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { MicIcon, MicOffIcon } from './Icons';
 import PingIndicator from './PingIndicator';
+import Dropdown, { type DropdownOption } from './Dropdown';
 import { PLAYER_COLOR_PALETTE, hueToCss } from '../logic/playerColor';
 import { markPopoverClosed } from '../logic/popoverGuard';
 import { useStoreValue } from '../logic/valueStore';
@@ -117,6 +118,13 @@ interface ExtraMicRowProps {
   onRemove: () => void;
   t: TFunction;
 }
+/** A microphone choice's options: the system default when offered, then the devices by name */
+const deviceOptions = (devices: readonly MediaDeviceInfo[], withDefault: boolean, t: TFunction): DropdownOption<string>[] => [
+  ...(withDefault ? [{ value: '', label: t('mic.defaultDevice') }] : []),
+  // (before the microphone is allowed the browser names no device and gives none an id)
+  ...devices.filter(d => d.deviceId).map(d => ({ value: d.deviceId, label: d.label || t('mic.unnamedDevice') })),
+];
+
 const ExtraMicRow = ({ slot, state, level, devices, defaultFree, slots, taken, onChange, onRemove, t }: ExtraMicRowProps) => {
   const [name, setName] = useState(slot.name);
   useEffect(() => { setName(slot.name); }, [slot.name]);
@@ -144,16 +152,14 @@ const ExtraMicRow = ({ slot, state, level, devices, defaultFree, slots, taken, o
         </button>
       </div>
       {problem && <p role="alert" className="text-xs text-red-400">{problem === 'taken' ? t('mic.nameTaken') : t('mic.nameEmpty')}</p>}
-      <select
+      <Dropdown
         value={slot.deviceId ?? ''}
-        onChange={e => onChange({ ...slot, deviceId: e.target.value || null })}
-        style={{ colorScheme: 'dark' }}
-        className="field h-9 px-2 text-sm cursor-pointer"
-        aria-label={t('mic.device')}
-      >
-        {defaultFree && <option value="">{t('mic.defaultDevice')}</option>}
-        {devices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label || t('mic.unnamedDevice')}</option>)}
-      </select>
+        options={deviceOptions(devices, defaultFree, t)}
+        onChange={v => onChange({ ...slot, deviceId: v || null })}
+        label={t('mic.device')}
+        matchWidth
+        className="field h-9 px-2.5 text-sm cursor-pointer flex items-center justify-between gap-2 text-start"
+      />
       <Meter pct={state?.phase === 'on' ? levelPct(level) : 0} />
       {state?.phase === 'starting' && <p className="text-xs text-neon-cyan">{t('mic.starting')}</p>}
       {state?.phase === 'on' && state.voice === 'on' && <p className="text-xs text-neon-green">{t('voices.onSpeakers')}</p>}
@@ -269,20 +275,17 @@ const MicPanel = ({
           {micPhase === 'loading' && <p className="text-xs text-white/50 -mt-2">{t('mic.firstTime')}</p>}
           {micError && !starting && <p role="alert" className="text-xs text-red-400 -mt-2">{t(`mic.error.${micError}`)}</p>}
 
-          <label className="block">
-            <span className="text-xs text-white/55">{t('mic.device')}</span>
-            <select
+          <div>
+            <span className="text-xs text-white/55" aria-hidden="true">{t('mic.device')}</span>
+            <Dropdown
               value={deviceId ?? ''}
-              onChange={e => onDeviceChange(e.target.value || null)}
-              style={{ colorScheme: 'dark' }}
-              className="field mt-1.5 h-10 px-3 text-sm cursor-pointer"
-            >
-              {(mainChoice.defaultFree || !deviceId) && <option value="">{t('mic.defaultDevice')}</option>}
-              {(multiMic ? mainChoice.free : devices).map(d => (
-                <option key={d.deviceId} value={d.deviceId}>{d.label || t('mic.unnamedDevice')}</option>
-              ))}
-            </select>
-          </label>
+              options={deviceOptions(multiMic ? mainChoice.free : devices, mainChoice.defaultFree || !deviceId, t)}
+              onChange={v => onDeviceChange(v || null)}
+              label={t('mic.device')}
+              matchWidth
+              className="field mt-1.5 h-10 px-3 text-sm cursor-pointer flex items-center justify-between gap-2 text-start"
+            />
+          </div>
 
           <div>
             <div className="flex items-center justify-between text-xs text-white/55">

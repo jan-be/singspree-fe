@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSongNames } from "../logic/useSongNames";
 import JoinGameBox from "../components/JoinGameBox";
 import SearchBar from "../components/SearchBar";
+import Dropdown, { DropdownChevron, type DropdownOption } from "../components/Dropdown";
 import PartyRecap from "../components/PartyRecap";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import SocialLinks from "../components/SocialLinks";
@@ -40,10 +41,15 @@ interface CatalogueLanguage {
   count: number;
 }
 
+/** The browse list's orders (backend songBrowser), 'recommended' when the URL names none */
+type Sort = 'recommended' | 'popular' | 'new';
+const SORTS: Sort[] = ['recommended', 'popular', 'new'];
+const readSort = (v: string | null): Sort => SORTS.find(s => s === v) ?? 'recommended';
+
 /** What the grid shows, as the URL keeps it */
 interface Filters {
   q: string | null;
-  sort: 'popular' | 'recommended';
+  sort: Sort;
   duet: boolean;
   language: string | null;
 }
@@ -51,7 +57,7 @@ interface Filters {
 /** What the grid is showing, for the pick events */
 interface GridContext {
   q: string | null;
-  sort: 'popular' | 'recommended';
+  sort: Sort;
   tags: string[];
   language: string | null;
 }
@@ -74,7 +80,7 @@ const PAGE_SIZE = 30;
 // reloads and can be shared.
 const readFilters = (params: URLSearchParams): Filters => ({
   q: (params.get('q') || '').trim() || null,
-  sort: params.get('sort') === 'popular' ? 'popular' : 'recommended',
+  sort: readSort(params.get('sort')),
   duet: params.get('duet') === '1',
   language: params.get('language') || null,
 });
@@ -84,7 +90,7 @@ const writeFilters = (params: URLSearchParams, filters: Filters) => {
   // 'stems': the Instrumental filter, gone since nearly every song has stems; old links lose it here
   for (const key of ['q', 'sort', 'duet', 'stems', 'language']) next.delete(key);
   if (filters.q) next.set('q', filters.q);
-  if (filters.sort === 'popular') next.set('sort', 'popular');
+  if (filters.sort !== 'recommended') next.set('sort', filters.sort);
   if (filters.duet) next.set('duet', '1');
   if (filters.language) next.set('language', filters.language);
   return next;
@@ -318,7 +324,7 @@ const InfiniteScrollGrid = ({ query, emptyMessage, hint = null }: { query: strin
     const p = new URLSearchParams(query);
     return {
       q: p.get('q') || null,
-      sort: p.get('sort') === 'popular' ? 'popular' : 'recommended',
+      sort: readSort(p.get('sort')),
       tags: [p.get('duet') === '1' && 'duet', p.get('language') && 'language'].filter((tag): tag is string => Boolean(tag)),
       language: p.get('language') || null,
     };
@@ -471,6 +477,11 @@ const EntryPage = () => {
   const filters = readFilters(searchParams);
   const query = filtersToQuery(filters);
   const hasFilters = filters.duet || Boolean(filters.language);
+  const sortOptions: DropdownOption<Sort>[] = [
+    { value: 'recommended', label: t('sections.recommended') },
+    { value: 'popular', label: t('sections.popularAtParties') },
+    { value: 'new', label: t('sections.newest') },
+  ];
   const updateFilters = (patch: Partial<Filters>) =>
     setSearchParams(writeFilters(searchParams, { ...filters, ...patch }), { replace: true });
 
@@ -648,33 +659,32 @@ const EntryPage = () => {
           </button>
         )}
 
-        {/* Sort — relevance takes over while searching, so it is disabled then */}
-        <label
+        {/* Sort — relevance takes over while searching, so it is disabled then.
+            Phones: a round sort button, so the pinned band keeps to two rows in every language */}
+        <div
           className={`ml-auto flex items-center gap-2 text-sm text-white/45 ${filters.q ? 'opacity-40' : ''}`}
           title={filters.q ? t('sections.sortedByRelevance') : undefined}
         >
-          <span className="hidden sm:inline">{t('sections.sortBy')}</span>
-          {/* Phones: a round sort button (the native picker still opens on tap), so
-              the pinned band keeps to two rows in every language */}
-          <span className="relative">
-            <select
-              value={filters.sort}
-              disabled={Boolean(filters.q)}
-              onChange={(e) => updateFilters({ sort: e.target.value === 'popular' ? 'popular' : 'recommended' })}
-              style={{ colorScheme: 'dark' }}
-              aria-label={t('sections.sortBy')}
-              title={filters.sort === 'popular' ? t('sections.popularAtParties') : t('sections.recommended')}
-              className={`chip ${CHIP_SIZE} appearance-none pr-8! disabled:cursor-not-allowed max-sm:w-8 max-sm:p-0! max-sm:text-transparent`}
-            >
-              <option value="recommended">{t('sections.recommended')}</option>
-              <option value="popular">{t('sections.popularAtParties')}</option>
-            </select>
-            <svg className="hidden sm:block absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/50 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
-            <svg className="sm:hidden absolute inset-0 m-auto w-4 h-4 text-white/80 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3" />
-            </svg>
-          </span>
-        </label>
+          <span className="hidden sm:inline" aria-hidden="true">{t('sections.sortBy')}</span>
+          <Dropdown
+            value={filters.sort}
+            options={sortOptions}
+            onChange={(sort) => updateFilters({ sort })}
+            disabled={Boolean(filters.q)}
+            label={t('sections.sortBy')}
+            title={filters.q ? undefined : sortOptions.find(o => o.value === filters.sort)?.label}
+            align="end"
+            className={`chip ${CHIP_SIZE} disabled:cursor-not-allowed max-sm:w-8 max-sm:px-0! max-sm:justify-center`}
+          >
+            {(open) => <>
+              <span className="max-sm:hidden">{sortOptions.find(o => o.value === filters.sort)?.label}</span>
+              <DropdownChevron open={open} className="max-sm:hidden -mr-0.5" />
+              <svg className="sm:hidden w-4 h-4 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3" />
+              </svg>
+            </>}
+          </Dropdown>
+        </div>
       </div>
       </div>
 

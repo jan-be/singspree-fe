@@ -104,6 +104,7 @@
   "sections": {
     "recommended": "추천",
     "popularAtParties": "파티에서 인기",
+    "newest": "최신곡",
     "duets": "듀엣",
     "loadingSongs": "노래 불러오는 중...",
     "loading": "로딩 중...",
