@@ -3,10 +3,14 @@ import { Email } from "react-obfuscate-email";
 
 /**
  * The page body on its own, without the navigation and footer, so the build
- * can prerender it for crawlers (see scripts/prerender-static.mjs). The page
- * component below wraps this in the app chrome for people.
+ * can prerender it for crawlers (see src/prerender). The page component wraps
+ * this in the app chrome for people.
+ *
+ * `email`: the crawler copy leaves the address out (`email={false}`), so it is
+ * neither indexed nor harvested from the static HTML; people see it, and the
+ * link only becomes a mailto: once they hover or focus it.
  */
-const ContactContent = () => (
+const ContactContent = ({ email = true }: { email?: boolean }) => (
   <>
     <div className="max-w-[65ch] text-[15px] sm:text-base leading-[1.7] text-white/75 space-y-9">
       <h1 className="text-3xl sm:text-4xl font-semibold tracking-[-0.025em] leading-tight text-white">Contact</h1>
@@ -18,12 +22,14 @@ const ContactContent = () => (
         </p>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg sm:text-xl font-semibold tracking-[-0.015em] text-white">Email</h2>
-        <p>
-          <Email email="info@singspree.com" className="text-[#ff8ae6] hover:text-white underline underline-offset-4 decoration-white/25 hover:decoration-white/60 transition-colors">hello@singspree.com</Email>
-        </p>
-      </section>
+      {email && (
+        <section className="space-y-3">
+          <h2 className="text-lg sm:text-xl font-semibold tracking-[-0.015em] text-white">Email</h2>
+          <p>
+            <Email email="info@singspree.com" className="text-[#ff8ae6] hover:text-white underline underline-offset-4 decoration-white/25 hover:decoration-white/60 transition-colors">info@singspree.com</Email>
+          </p>
+        </section>
+      )}
 
       <section className="space-y-3">
         <h2 className="text-lg sm:text-xl font-semibold tracking-[-0.015em] text-white">Links</h2>

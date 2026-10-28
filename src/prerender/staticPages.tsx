@@ -22,7 +22,7 @@ export const STATIC_PAGES = [
     path: '/contact',
     title: 'Contact | SingSpree',
     description: 'How to reach SingSpree about the free online karaoke app, its song catalogue or your account.',
-    Content: ContactContent,
+    Content: () => <ContactContent email={false} />,
     noindex: true,
   },
   {
