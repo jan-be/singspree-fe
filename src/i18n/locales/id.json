@@ -343,6 +343,18 @@
     "failed": "Laporan tidak dapat dikirim. Coba lagi.",
     "limited": "Terlalu banyak laporan dari sini saat ini. Coba lagi nanti."
   },
+  "feedback": {
+    "title": "Bagaimana pendapatmu tentang SingSpree?",
+    "stars": "{{n}} dari 5 bintang",
+    "rated": "Terima kasih! Ada yang ingin kamu sampaikan?",
+    "placeholderLow": "Apa yang harus kami perbaiki?",
+    "placeholderHigh": "Apa yang kamu suka? Apa yang kurang?",
+    "send": "Kirim",
+    "sending": "Mengirim…",
+    "thanks": "Terima kasih atas masukanmu!",
+    "close": "Tutup",
+    "failed": "Tidak dapat mengirim. Coba lagi."
+  },
   "share": {
     "shareScore": "Bagikan Skor",
     "iJustSang": "Aku baru saja menyanyikan",

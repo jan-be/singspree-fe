@@ -21,6 +21,7 @@ import { probeYouTube, inMainlandChinaTimeZone } from "../logic/youtubeReachable
 import { useChartOffer } from "../logic/useChartOffer";
 import { ChartHint } from "../components/ChartOfferCard";
 import SingAgainCard from "../components/SingAgainCard";
+import FeedbackPrompt from "../components/FeedbackPrompt";
 import ForYouRow from "../components/ForYouRow";
 import type { SongNamesSource } from "../logic/lyricsScripts";
 import type { SearchBarHandle } from "../components/SearchBar";
@@ -700,6 +701,9 @@ const EntryPage = () => {
       </section>
 
     </WrapperPage>
+
+    {/* "How do you like SingSpree?" for someone who has sung a few songs (logic/feedbackPrompt.ts) */}
+    <FeedbackPrompt where="home" />
 
     {/* Fixed footer: compliance links, SingSpree elsewhere, the language switcher.
         One line where it fits; on narrow phones the links take a line of their own */}

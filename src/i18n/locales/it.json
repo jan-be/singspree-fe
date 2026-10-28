@@ -345,6 +345,18 @@
     "failed": "Impossibile inviare la segnalazione. Riprova.",
     "limited": "Troppe segnalazioni da qui in questo momento. Riprova più tardi."
   },
+  "feedback": {
+    "title": "Ti piace SingSpree?",
+    "stars": "{{n}} stelle su 5",
+    "rated": "Grazie! Vuoi dirci qualcos'altro?",
+    "placeholderLow": "Cosa dovremmo migliorare?",
+    "placeholderHigh": "Cosa ti piace? Cosa manca?",
+    "send": "Invia",
+    "sending": "Invio…",
+    "thanks": "Grazie per il tuo feedback!",
+    "close": "Chiudi",
+    "failed": "Impossibile inviare. Riprova."
+  },
   "share": {
     "shareScore": "Condividi punteggio",
     "iJustSang": "Ho appena cantato",

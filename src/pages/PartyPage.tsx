@@ -100,6 +100,8 @@ import AiBadge from "../components/AiBadge";
 import { browserCoversVideos } from "../logic/videoTakeover";
 import { createPartyAccess, fetchInParty, makeParty } from "../logic/partyAccess";
 import { notePartySong, notePartySingers, notePartyQueue, takePendingQueue } from "../logic/partyHistory";
+import { noteSongFinished } from "../logic/feedbackPrompt";
+import FeedbackPrompt from "../components/FeedbackPrompt";
 import type { LyricData } from "../logic/LyricsParser";
 import type { ScriptChoice } from "../logic/lyricsScripts";
 import type { StemName, StemUrls } from "../logic/stemPlayer";
@@ -3019,6 +3021,8 @@ const PartyPage = () => {
 
         const scores = jsonObj.data?.scores ?? [];
         notePartySingers(partyId, scores.map(p => p.username));
+        // a song through to its end, run or sung on this browser: "How do you like SingSpree?" after a few (logic/feedbackPrompt.ts)
+        if (isHost || scores.some(p => p.username === currentUserNameRef.current)) noteSongFinished(partyId);
         learnPlayerAvatars(scores);
         setEndScores(scores.sort((a, b) => (b.cumulativeScore ?? b.score) - (a.cumulativeScore ?? a.score)));
         setNextSongInfo(jsonObj.data?.nextSong ?? null);
@@ -4158,6 +4162,8 @@ const PartyPage = () => {
       {debugEnabled && <DebugOverlay snapshot={debugSnapshot} />}
       {/* The score screen's share video: stays open while the next song starts */}
       <ShareDialog share={shareVideo} onClose={() => setShareVideo(null)} />
+      {/* "How do you like SingSpree?" after a few songs, on the score screen (stays while someone types) */}
+      <FeedbackPrompt where="party" between={songEnded} getContext={() => ({ host: isHost, nickname: currentUserNameRef.current, partyId })} />
     </div>
   );
 };

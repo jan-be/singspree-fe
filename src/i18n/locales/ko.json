@@ -343,6 +343,18 @@
     "failed": "신고를 보내지 못했습니다. 다시 시도해 주세요.",
     "limited": "지금 이곳에서 신고가 너무 많습니다. 나중에 다시 시도해 주세요."
   },
+  "feedback": {
+    "title": "SingSpree 어떠세요?",
+    "stars": "별 5개 중 {{n}}개",
+    "rated": "감사합니다! 더 하고 싶은 말씀이 있나요?",
+    "placeholderLow": "무엇을 개선하면 좋을까요?",
+    "placeholderHigh": "어떤 점이 좋으세요? 무엇이 아쉬운가요?",
+    "send": "보내기",
+    "sending": "보내는 중…",
+    "thanks": "의견을 보내 주셔서 감사합니다!",
+    "close": "닫기",
+    "failed": "보내지 못했습니다. 다시 시도해 주세요."
+  },
   "share": {
     "shareScore": "점수 공유",
     "iJustSang": "방금 부른 노래",

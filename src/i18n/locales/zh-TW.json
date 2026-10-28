@@ -343,6 +343,18 @@
     "failed": "無法送出回報，請再試一次。",
     "limited": "此處的回報太多，請稍後再試。"
   },
+  "feedback": {
+    "title": "你覺得 SingSpree 怎麼樣？",
+    "stars": "{{n}} 星（滿分 5 星）",
+    "rated": "謝謝！還有什麼想告訴我們的嗎？",
+    "placeholderLow": "我們應該改進什麼？",
+    "placeholderHigh": "你喜歡什麼？還缺什麼？",
+    "send": "送出",
+    "sending": "正在送出…",
+    "thanks": "感謝你的意見！",
+    "close": "關閉",
+    "failed": "無法送出，請再試一次。"
+  },
   "share": {
     "shareScore": "分享得分",
     "iJustSang": "我剛剛唱了",

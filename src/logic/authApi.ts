@@ -244,6 +244,17 @@ export interface SongReportRequest {
   sessionId?: string | null;
 }
 
+/** How someone likes SingSpree (backend feedback.ts parseFeedback); `id` and `token` of the first answer change it */
+export interface FeedbackRequest {
+  rating: number;
+  comment?: string;
+  context?: object;
+  nickname?: string | null;
+  partyId?: string | null;
+  id?: number;
+  token?: string;
+}
+
 /** A page of a list: its rows, and whether there are more */
 export interface Paged<T> {
   data: T[];
@@ -405,6 +416,52 @@ export interface AdminSongReport {
   openForSong: number;
 }
 
+/** What the browser knew when it was asked for feedback (backend feedback.ts FeedbackContext) */
+export interface FeedbackContext {
+  songs: number | null;
+  parties: number | null;
+  host: boolean | null;
+  page: 'party' | 'home' | null;
+  lang: string | null;
+  shown: number | null;
+}
+
+/** One answer to "How do you like SingSpree?" (backend feedback.ts) */
+export interface AdminFeedback {
+  id: number;
+  rating: number;
+  comment: string | null;
+  context: Partial<FeedbackContext> | null;
+  userId: number | null;
+  username: string | null;
+  nickname: string | null;
+  partyId: string | null;
+  country: string | null;
+  userAgent: string | null;
+  os: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Count and average stars of a group of answers (a role, a device, a language, a band of songs sung) */
+export interface FeedbackGroup { key: string; count: number; average: number }
+
+/** The evaluation of the answers in a window (backend feedback.ts summarize) */
+export interface FeedbackSummary {
+  days: number | null;
+  count: number;
+  average: number | null;
+  distribution: [number, number, number, number, number];
+  withComment: number;
+  byRole: FeedbackGroup[];
+  byDevice: FeedbackGroup[];
+  byLanguage: FeedbackGroup[];
+  bySongs: FeedbackGroup[];
+}
+
+/** The admin list's filter: all, the answers with words, or one number of stars */
+export type FeedbackFilter = 'all' | 'comments' | '1' | '2' | '3' | '4' | '5';
+
 export type AvatarReportStatus = 'open' | 'removed' | 'dismissed';
 
 /** A reported picture (backend avatarReports.ts), with the picture now and whether it is still the one reported */
@@ -560,6 +617,8 @@ export const submitGapCorrection = (songId: string, gap: number) => call<{ gap: 
 
 /** What is wrong with a song: { kinds, comment?, context?, nickname?, partyId?, sessionId? } (anyone, guests too). */
 export const reportSong = (songId: string, report: SongReportRequest) => post<{ id: number; merged: boolean }>(`/songs/${encodeURIComponent(songId)}/reports`, report);
+/** Stars (and later a comment) for SingSpree: { id, token } to change the answer with */
+export const sendFeedback = (feedback: FeedbackRequest) => post<{ id: number; token: string }>('/feedback', { ...feedback, guestId: getGuestId() });
 
 export const passkeysSupported = () => browserSupportsWebAuthn();
 export const passkeyAutofillSupported = () => browserSupportsWebAuthnAutofill();
@@ -655,6 +714,9 @@ export const getAdminDiscovery = (days = 30) => get<{ data: AdminDiscovery }>(`/
 export const getAdminReports = (status: SongReportStatus | 'all' = 'open', offset = 0, limit = 20) =>
   get<ReportsPage<AdminSongReport, SongReportStatus>>(`/admin/reports?status=${status}&offset=${offset}&limit=${limit}`);
 export const adminReviewReport = (id: number, status: SongReportStatus, note?: string) => call<{ data: { id: number; songId: string; status: SongReportStatus } }>('PATCH', `/admin/reports/${id}`, { status, ...(note ? { note } : {}) }).then(j => j.data);
+/** How people like SingSpree in the last `days` (0: all): { data: answers, hasMore, summary } */
+export const getAdminFeedback = (days = 0, filter: FeedbackFilter = 'all', offset = 0, limit = 20) =>
+  get<Paged<AdminFeedback> & { summary: FeedbackSummary }>(`/admin/feedback?days=${days}&filter=${filter}&offset=${offset}&limit=${limit}`);
 /** Reported profile pictures: open (default) | removed | dismissed | all. */
 export const getAdminAvatarReports = (status: AvatarReportStatus | 'all' = 'open', offset = 0, limit = 20) =>
   get<ReportsPage<AdminAvatarReport, AvatarReportStatus>>(`/admin/avatar-reports?status=${status}&offset=${offset}&limit=${limit}`);

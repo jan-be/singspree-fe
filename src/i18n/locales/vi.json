@@ -343,6 +343,18 @@
     "failed": "Không gửi được báo cáo. Vui lòng thử lại.",
     "limited": "Hiện có quá nhiều báo cáo từ đây. Vui lòng thử lại sau."
   },
+  "feedback": {
+    "title": "Bạn thấy SingSpree thế nào?",
+    "stars": "{{n}} trên 5 sao",
+    "rated": "Cảm ơn bạn! Bạn có muốn nói thêm gì không?",
+    "placeholderLow": "Chúng tôi nên cải thiện điều gì?",
+    "placeholderHigh": "Bạn thích điều gì? Còn thiếu gì?",
+    "send": "Gửi",
+    "sending": "Đang gửi…",
+    "thanks": "Cảm ơn góp ý của bạn!",
+    "close": "Đóng",
+    "failed": "Không gửi được. Vui lòng thử lại."
+  },
   "share": {
     "shareScore": "Chia sẻ điểm",
     "iJustSang": "Tôi vừa hát",

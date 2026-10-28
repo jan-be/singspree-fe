@@ -349,6 +349,18 @@
     "failed": "Die Meldung konnte nicht gesendet werden. Bitte versuch es noch einmal.",
     "limited": "Gerade zu viele Meldungen von hier. Bitte versuch es später noch einmal."
   },
+  "feedback": {
+    "title": "Wie gefällt dir SingSpree?",
+    "stars": "{{n}} von 5 Sternen",
+    "rated": "Danke! Möchtest du uns noch etwas sagen?",
+    "placeholderLow": "Was sollen wir besser machen?",
+    "placeholderHigh": "Was gefällt dir? Was fehlt dir?",
+    "send": "Senden",
+    "sending": "Wird gesendet …",
+    "thanks": "Danke für dein Feedback!",
+    "close": "Schließen",
+    "failed": "Senden fehlgeschlagen. Bitte versuch es noch einmal."
+  },
   "share": {
     "shareScore": "Score teilen",
     "iJustSang": "Ich habe gerade gesungen",
@@ -1085,6 +1097,37 @@
         "dismissed": "„{{title}}“ verworfen.",
         "open": "„{{title}}“ wieder geöffnet."
       }
+    },
+    "feedback": {
+      "title": "Feedback",
+      "hint": "Wie SingSpree ankommt. Eine kleine Karte in der Ecke fragt, sobald ein Browser drei Songs bis zum Ende mitgemacht hat, als Host oder Sänger: auf dem Punktebildschirm oder der Startseite, höchstens dreimal, nie während eines Songs. Die Sterne werden beim Antippen gespeichert, der Kommentar kommt danach.",
+      "allTime": "Insgesamt",
+      "answers": "Antworten",
+      "average": "Durchschnitt",
+      "positive": "4–5 Sterne",
+      "withComment": "Mit Kommentar",
+      "spread": "Sterne",
+      "byRole": "Host oder beigetreten",
+      "byDevice": "Gerät",
+      "byLanguage": "Sprache",
+      "bySongs": "Vorher gesungene Songs",
+      "role": {
+        "host": "Hat die Party geleitet",
+        "joiner": "Beigetreten"
+      },
+      "band": "{{band}} Songs",
+      "groupLine": "{{count}} · ⌀ {{average}}",
+      "filter": {
+        "all": "Alle",
+        "comments": "Mit Kommentar",
+        "stars": "{{n}} ★"
+      },
+      "none": "Noch kein Feedback.",
+      "noComment": "Kein Kommentar",
+      "songs_one": "{{count}} Song gesungen",
+      "songs_other": "{{count}} Songs gesungen",
+      "home": "auf der Startseite gefragt",
+      "askedTimes": "{{count}}× gefragt"
     },
     "avatarReports": {
       "title": "Gemeldete Bilder",

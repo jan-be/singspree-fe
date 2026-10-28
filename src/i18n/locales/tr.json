@@ -345,6 +345,18 @@
     "failed": "Bildirim gönderilemedi. Lütfen tekrar dene.",
     "limited": "Şu anda buradan çok fazla bildirim var. Lütfen daha sonra tekrar dene."
   },
+  "feedback": {
+    "title": "SingSpree'yi nasıl buldun?",
+    "stars": "5 üzerinden {{n}} yıldız",
+    "rated": "Teşekkürler! Bize söylemek istediğin başka bir şey var mı?",
+    "placeholderLow": "Neyi daha iyi yapmalıyız?",
+    "placeholderHigh": "Neyi seviyorsun? Eksik olan ne?",
+    "send": "Gönder",
+    "sending": "Gönderiliyor…",
+    "thanks": "Geri bildirimin için teşekkürler!",
+    "close": "Kapat",
+    "failed": "Gönderilemedi. Lütfen tekrar dene."
+  },
   "share": {
     "shareScore": "Puanı Paylaş",
     "iJustSang": "Az önce söyledim",

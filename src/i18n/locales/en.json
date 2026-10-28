@@ -349,6 +349,18 @@
     "failed": "Could not send the report. Please try again.",
     "limited": "Too many reports from here right now. Please try again later."
   },
+  "feedback": {
+    "title": "How do you like SingSpree?",
+    "stars": "{{n}} of 5 stars",
+    "rated": "Thanks! Anything you'd like to tell us?",
+    "placeholderLow": "What should we do better?",
+    "placeholderHigh": "What do you like? What's missing?",
+    "send": "Send",
+    "sending": "Sending…",
+    "thanks": "Thank you for your feedback!",
+    "close": "Close",
+    "failed": "Could not send. Please try again."
+  },
   "share": {
     "shareScore": "Share Score",
     "iJustSang": "I just sang",
@@ -1085,6 +1097,37 @@
         "dismissed": "“{{title}}” dismissed.",
         "open": "“{{title}}” reopened."
       }
+    },
+    "feedback": {
+      "title": "Feedback",
+      "hint": "How people like SingSpree. A small card in the corner asks once a browser has been through three songs to the end, as host or singer: on the score screen or on the home page, at most three times, never during a song. The stars are kept as soon as they are tapped; the comment comes after.",
+      "allTime": "All time",
+      "answers": "Answers",
+      "average": "Average",
+      "positive": "4–5 stars",
+      "withComment": "With comment",
+      "spread": "Stars",
+      "byRole": "Host or joined",
+      "byDevice": "Device",
+      "byLanguage": "Language",
+      "bySongs": "Songs sung before",
+      "role": {
+        "host": "Ran the party",
+        "joiner": "Joined"
+      },
+      "band": "{{band}} songs",
+      "groupLine": "{{count}} · ⌀ {{average}}",
+      "filter": {
+        "all": "All",
+        "comments": "With comment",
+        "stars": "{{n}} ★"
+      },
+      "none": "No feedback yet.",
+      "noComment": "No comment",
+      "songs_one": "{{count}} song sung",
+      "songs_other": "{{count}} songs sung",
+      "home": "asked on the home page",
+      "askedTimes": "asked {{count}}×"
     },
     "avatarReports": {
       "title": "Reported pictures",

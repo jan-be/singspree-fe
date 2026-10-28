@@ -7,7 +7,8 @@ import Avatar from '../components/Avatar';
 import AdminChartJobs from '../components/AdminChartJobs';
 import AdminTrends from '../components/AdminTrends';
 import AdminShares from '../components/AdminShares';
-import { btn, StatTile, Section, Badge, Thumb, Hint, Loading, Notice, FilterButtons, panel, list } from '../components/AdminParts';
+import AdminFeedback from '../components/AdminFeedback';
+import { btn, StatTile, Section, Badge, Thumb, Hint, Loading, Notice, FilterButtons, panel, list, countryLabel } from '../components/AdminParts';
 import { useAuth } from '../logic/AuthContext';
 import i18n from '../i18n/i18n';
 import { timeAgo } from '../logic/timeAgo';
@@ -62,15 +63,6 @@ const useName = () => {
 };
 
 // ── Pieces ─────────────────────────────────────────────────────────────
-
-/** Flag and name for a two-letter country code; Cloudflare's XX (unknown) and T1 (Tor) stay as they are. */
-const countryLabel = (code: string, lang: string) => {
-  if (!/^[A-Z]{2}$/.test(code) || code === 'XX' || code === 'T1') return code;
-  const flag = String.fromCodePoint(...[...code].map(c => 127397 + c.charCodeAt(0)));
-  let name = code;
-  try { name = new Intl.DisplayNames([lang], { type: 'region' }).of(code) ?? code; } catch { /* not a region the browser knows */ }
-  return `${flag} ${name}`;
-};
 
 /**
  * A ranked list with a bar per row, the bar being the share of the first
@@ -604,6 +596,8 @@ const AdminConsole = ({ myId }: { myId: number }) => {
           )}
         {avatarReports?.hasMore && <button type="button" disabled={busy} onClick={() => moreAvatarReports(avatarReports)} className={`${btn.quiet} mt-3`}>{t('admin.showMore')}</button>}
       </Section>
+
+      <AdminFeedback onError={e => setErr(errorMessage(t, e))} />
 
       <AdminChartJobs active={overview?.chartJobsActive} />
 

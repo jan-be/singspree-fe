@@ -345,6 +345,18 @@
     "failed": "Impossible d'envoyer le signalement. Réessaie.",
     "limited": "Trop de signalements depuis ici pour le moment. Réessaie plus tard."
   },
+  "feedback": {
+    "title": "Comment trouves-tu SingSpree ?",
+    "stars": "{{n}} étoiles sur 5",
+    "rated": "Merci ! Tu veux nous dire autre chose ?",
+    "placeholderLow": "Qu'est-ce qu'on devrait améliorer ?",
+    "placeholderHigh": "Qu'est-ce qui te plaît ? Qu'est-ce qui manque ?",
+    "send": "Envoyer",
+    "sending": "Envoi…",
+    "thanks": "Merci pour ton avis !",
+    "close": "Fermer",
+    "failed": "Envoi impossible. Réessaie."
+  },
   "share": {
     "shareScore": "Partager le score",
     "iJustSang": "Je viens de chanter",

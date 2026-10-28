@@ -100,3 +100,12 @@ export const FilterButtons = <T extends string | number>({ options, value, onCha
     ))}
   </div>
 );
+
+/** Flag and name for a two-letter country code; Cloudflare's XX (unknown) and T1 (Tor) stay as they are. */
+export const countryLabel = (code: string, lang: string) => {
+  if (!/^[A-Z]{2}$/.test(code) || code === 'XX' || code === 'T1') return code;
+  const flag = String.fromCodePoint(...[...code].map(c => 127397 + c.charCodeAt(0)));
+  let name = code;
+  try { name = new Intl.DisplayNames([lang], { type: 'region' }).of(code) ?? code; } catch { /* not a region the browser knows */ }
+  return `${flag} ${name}`;
+};

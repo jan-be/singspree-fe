@@ -345,6 +345,18 @@
     "failed": "De melding kon niet worden verstuurd. Probeer het opnieuw.",
     "limited": "Te veel meldingen vanaf hier. Probeer het later opnieuw."
   },
+  "feedback": {
+    "title": "Hoe vind je SingSpree?",
+    "stars": "{{n}} van 5 sterren",
+    "rated": "Bedankt! Wil je ons nog iets vertellen?",
+    "placeholderLow": "Wat kunnen we beter doen?",
+    "placeholderHigh": "Wat vind je leuk? Wat mis je?",
+    "send": "Versturen",
+    "sending": "Versturen…",
+    "thanks": "Bedankt voor je feedback!",
+    "close": "Sluiten",
+    "failed": "Versturen mislukt. Probeer het opnieuw."
+  },
   "share": {
     "shareScore": "Score delen",
     "iJustSang": "Ik zong net",

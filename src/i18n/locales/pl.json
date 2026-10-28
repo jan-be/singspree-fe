@@ -349,6 +349,18 @@
     "failed": "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
     "limited": "Za dużo zgłoszeń stąd w tej chwili. Spróbuj później."
   },
+  "feedback": {
+    "title": "Jak ci się podoba SingSpree?",
+    "stars": "{{n}} na 5 gwiazdek",
+    "rated": "Dzięki! Chcesz nam coś jeszcze powiedzieć?",
+    "placeholderLow": "Co powinniśmy poprawić?",
+    "placeholderHigh": "Co ci się podoba? Czego brakuje?",
+    "send": "Wyślij",
+    "sending": "Wysyłanie…",
+    "thanks": "Dziękujemy za opinię!",
+    "close": "Zamknij",
+    "failed": "Nie udało się wysłać. Spróbuj ponownie."
+  },
   "share": {
     "shareScore": "Udostępnij wynik",
     "iJustSang": "Właśnie zaśpiewałem/am",

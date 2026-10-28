@@ -345,6 +345,18 @@
     "failed": "Hindi maipadala ang ulat. Pakisubukang muli.",
     "limited": "Masyadong maraming ulat mula rito ngayon. Subukan ulit mamaya."
   },
+  "feedback": {
+    "title": "Gusto mo ba ang SingSpree?",
+    "stars": "{{n}} sa 5 bituin",
+    "rated": "Salamat! May gusto ka pa bang sabihin sa amin?",
+    "placeholderLow": "Ano ang dapat naming pagbutihin?",
+    "placeholderHigh": "Ano ang gusto mo? Ano ang kulang?",
+    "send": "Ipadala",
+    "sending": "Ipinapadala…",
+    "thanks": "Salamat sa iyong feedback!",
+    "close": "Isara",
+    "failed": "Hindi maipadala. Pakisubukang muli."
+  },
   "share": {
     "shareScore": "Ibahagi ang Puntos",
     "iJustSang": "Kakakanta ko lang ng",

@@ -345,6 +345,18 @@
     "failed": "Não foi possível enviar o relatório. Tente novamente.",
     "limited": "Muitos relatórios daqui agora. Tente mais tarde."
   },
+  "feedback": {
+    "title": "O que você acha do SingSpree?",
+    "stars": "{{n}} de 5 estrelas",
+    "rated": "Obrigado! Quer nos contar mais alguma coisa?",
+    "placeholderLow": "O que deveríamos melhorar?",
+    "placeholderHigh": "Do que você gosta? O que está faltando?",
+    "send": "Enviar",
+    "sending": "Enviando…",
+    "thanks": "Obrigado pelo seu feedback!",
+    "close": "Fechar",
+    "failed": "Não foi possível enviar. Tente novamente."
+  },
   "share": {
     "shareScore": "Compartilhar pontuação",
     "iJustSang": "Acabei de cantar",

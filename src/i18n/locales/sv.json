@@ -345,6 +345,18 @@
     "failed": "Det gick inte att skicka rapporten. Försök igen.",
     "limited": "För många rapporter härifrån just nu. Försök igen senare."
   },
+  "feedback": {
+    "title": "Vad tycker du om SingSpree?",
+    "stars": "{{n}} av 5 stjärnor",
+    "rated": "Tack! Vill du berätta något mer?",
+    "placeholderLow": "Vad borde vi göra bättre?",
+    "placeholderHigh": "Vad gillar du? Vad saknar du?",
+    "send": "Skicka",
+    "sending": "Skickar…",
+    "thanks": "Tack för din feedback!",
+    "close": "Stäng",
+    "failed": "Det gick inte att skicka. Försök igen."
+  },
   "share": {
     "shareScore": "Dela poäng",
     "iJustSang": "Jag sjöng just",
