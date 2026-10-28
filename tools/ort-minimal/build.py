@@ -1,6 +1,6 @@
 """Build the pitch worker's minimal ONNX Runtime for WebAssembly (see README.md).
 
-    python tools/ort-minimal/build.py --work D:/ort-build
+    python tools/ort-minimal/build.py --work ../claude-generated/ort-build
 
 Clones ONNX Runtime at the pinned tag into --work (it needs ~3 GB there: the
 sources, Emscripten, the build tree), converts public/model.onnx to the ORT

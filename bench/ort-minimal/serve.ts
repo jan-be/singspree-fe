@@ -4,7 +4,7 @@
 // next to the checkout, decoded once to 16 kHz float32 with ffmpeg).
 // A variant's directory may hold its own model.ort (the one its version's
 // converter wrote); without one it gets public/model.ort.
-//   VARIANTS="min=src/vendor/ort-minimal,release=D:/ort-build/out/release" bun bench/ort-minimal/serve.ts
+//   VARIANTS="min=src/vendor/ort-minimal,release=../claude-generated/ort-build/out/release" bun bench/ort-minimal/serve.ts
 // Everything is served no-store, so each worker downloads and compiles its
 // runtime from scratch, like a first visit.
 import http from 'node:http';

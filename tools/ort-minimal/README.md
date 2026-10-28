@@ -53,9 +53,9 @@ Choices, measured):
 ## Building
 
 ```
-python -m venv D:/ort-build/venv
-D:/ort-build/venv/Scripts/pip install -r tools/ort-minimal/requirements.txt
-D:/ort-build/venv/Scripts/python tools/ort-minimal/build.py --work D:/ort-build/work
+python -m venv ../claude-generated/ort-build/venv
+../claude-generated/ort-build/venv/Scripts/pip install -r tools/ort-minimal/requirements.txt
+../claude-generated/ort-build/venv/Scripts/python tools/ort-minimal/build.py --work ../claude-generated/ort-build/work
 ```
 
 `--work` gets the ONNX Runtime clone, Emscripten and the build tree (~3 GB;
