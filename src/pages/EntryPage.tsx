@@ -181,12 +181,12 @@ const SongCard = ({ song, position, context }: { song: BrowseSong; position: num
       onClick={picked}
       className="group block rounded-2xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
     >
-      <div className="relative aspect-video overflow-hidden rounded-2xl bg-white/[0.04] ring-1 ring-inset ring-white/[0.1] transition-[box-shadow,transform] duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_18px_40px_-16px_rgba(255,79,216,0.5)] group-hover:ring-white/20">
+      <div className="relative aspect-video overflow-hidden rounded-2xl bg-white/[0.04] ring-1 ring-inset ring-white/[0.1] transition-[box-shadow,transform] duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_18px_40px_-16px_rgba(255,79,216,0.5)] group-hover:ring-white/20 group-focus-visible:-translate-y-0.5 group-focus-visible:shadow-[0_18px_40px_-16px_rgba(255,79,216,0.5)]">
         {song.videoId ? (
           <img
             src={`https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg`}
             alt={`${names.artist} - ${names.title}`}
-            className="w-full h-full object-cover scale-[1.01] group-hover:scale-[1.05] transition-transform duration-500 ease-out"
+            className="w-full h-full object-cover scale-[1.01] group-hover:scale-[1.05] group-focus-visible:scale-[1.05] transition-transform duration-500 ease-out"
             loading="lazy"
           />
         ) : (

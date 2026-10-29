@@ -62,7 +62,7 @@ const ForYouCard = ({ song, position }: ForYouCardProps) => {
       onClick={() => trackPick('for-you', { songId: song.songId, position })}
       className={`group block w-[180px] sm:w-auto flex-shrink-0 snap-start rounded-xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70 ${wideClass(position)}`}
     >
-      <div className="relative aspect-video overflow-hidden rounded-xl bg-white/[0.04] ring-1 ring-inset ring-white/[0.1] transition-transform duration-300 group-hover:-translate-y-0.5">
+      <div className="relative aspect-video overflow-hidden rounded-xl bg-white/[0.04] ring-1 ring-inset ring-white/[0.1] transition-transform duration-300 group-hover:-translate-y-0.5 group-focus-visible:-translate-y-0.5">
         <img
           src={`https://i.ytimg.com/vi/${song.videoId}/mqdefault.jpg`}
           alt={`${own.artist} - ${own.title}`}

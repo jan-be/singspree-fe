@@ -377,3 +377,22 @@
   background-size: 300% 300%;
   animation: gradient-shift 4s ease infinite;
 }
+
+/* Arrow-key navigation (logic/spatialNav.ts), a TV remote's D-pad above all:
+   the focused control has to read from across the room, so once the arrows
+   are in use it wears a thick white ring, whatever ring it has for Tab.
+   Outside the layers, so it wins over the components' and utilities' own. */
+html[data-keynav] :focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+/* The sing page's free stage shows a play/pause sign in its middle instead */
+html[data-keynav] [data-stage]:focus-visible {
+  outline: none;
+}
+/* A hidden radio's ring goes on its pill (a rule of its own: an engine
+   without :has drops only this one) */
+html[data-keynav] label:has(> input:focus-visible) {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}

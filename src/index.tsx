@@ -17,6 +17,7 @@ import { syncDebugFlagFromUrl, isDebugEnabled, installDebugHooks } from "./logic
 import { syncAudioLatencyFromUrl } from "./logic/audioLatencyFlag";
 import { captureReferrer } from "./logic/referrer";
 import { watchInstallPrompt } from "./logic/installPrompt";
+import { installSpatialNav } from "./logic/spatialNav";
 
 // ?gpu=1 / ?gpu=0 on any URL switches the opt-in GPU pitch detection for this browser
 syncPitchGpuFlagFromUrl();
@@ -31,6 +32,8 @@ syncAudioLatencyFromUrl();
 captureReferrer();
 // The browser offers adding SingSpree to the home screen once, early: kept for the entry page (after a long party)
 watchInstallPrompt();
+// The arrow keys (a TV remote's D-pad) move the focus from control to control, as on youtube.com/tv
+installSpatialNav();
 
 const container = document.getElementById('root');
 if (!container) throw new Error('The page has no #root to render into'); // (index.html has it)

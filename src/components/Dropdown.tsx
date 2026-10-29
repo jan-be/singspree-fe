@@ -8,9 +8,11 @@ import { markPopoverClosed } from '../logic/popoverGuard';
  * opens a small list (.pop + .menu-item) anchored to it. The entry page's
  * sort and the microphone panel's input device use it.
  *
- * Keyboard as a select's: Enter, Space or an arrow key opens it on the current
- * choice; the arrows, Home, End and typing a name move, Enter or Space picks,
- * Escape and Tab close. A press anywhere outside closes it.
+ * Keyboard as a select's: Enter or Space opens it on the current choice; the
+ * arrows, Home, End and typing a name move, Enter or Space picks, Escape and
+ * Tab close. A press anywhere outside closes it. On the closed button the
+ * arrows go on to the next control (logic/spatialNav.ts): a TV remote has no
+ * Tab, and down from the entry page's sort must reach the songs.
  *
  * The list goes to <body> with fixed coordinates, so a scrolling panel (the
  * microphone panel) cannot clip it and a blurred band (the entry page's pinned
@@ -150,12 +152,6 @@ export default function Dropdown<T extends string>({
     };
   }, [open, place]);
 
-  const onButtonKey = (e: KeyboardEvent) => {
-    if (open || !['ArrowDown', 'ArrowUp'].includes(e.key)) return;
-    e.preventDefault();
-    show();
-  };
-
   const onListKey = (e: KeyboardEvent) => {
     const last = options.length - 1;
     const move = (i: number) => setActive(Math.min(Math.max(i, 0), last));
@@ -194,7 +190,6 @@ export default function Dropdown<T extends string>({
         type="button"
         disabled={disabled}
         onClick={() => (open ? close(false) : show())}
-        onKeyDown={onButtonKey}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? id : undefined}

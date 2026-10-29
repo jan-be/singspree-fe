@@ -1439,8 +1439,18 @@ const PartyPage = () => {
   // On a joiner the free stage is no pause button: no pointer, no focus (a
   // double click there still goes fullscreen). On a co-host it is.
   const stageButtonProps = canControl
-    ? { 'aria-label': videoState === 1 ? 'Pause' : 'Play', className: 'flex-1 min-h-4 cursor-pointer bg-transparent' }
+    ? { 'aria-label': videoState === 1 ? 'Pause' : 'Play', 'data-stage': '', className: 'group relative flex-1 min-h-4 cursor-pointer bg-transparent' }
     : { 'aria-hidden': true, tabIndex: -1, className: 'flex-1 min-h-4 cursor-default bg-transparent' };
+  // A TV remote's arrows reach the free stage too (logic/spatialNav.ts):
+  // focused, it shows what OK does there in its middle, where a ring around
+  // the empty space would say nothing (index.css takes the ring off)
+  const stageSign = canControl && (
+    <span aria-hidden="true" className="hidden group-focus-visible:grid absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 place-items-center rounded-full bg-black/60 text-white ring-[3px] ring-white pointer-events-none">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+        {videoState === 1 ? <path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /> : <path d="M8.5 5.5v13l10-6.5z" />}
+      </svg>
+    </span>
+  );
 
   // The streamed stems are media elements, so a phone offers pause for them
   // in its media notification and on the lock screen, and a headset's button
@@ -3226,7 +3236,7 @@ const PartyPage = () => {
   }, [wss, sendWhenOpen, replaySong]);
 
   // Smooth countdown — runs on animation frames (a timer in a background tab, frameLoop.ts).
-  // Host: mouse/touch cancels countdown, sends WS cancel to joiners, shows the Next song button.
+  // Host: mouse/touch/a key cancels countdown, sends WS cancel to joiners, shows the Next song button.
   // Joiners: countdown runs in sync, but only the host can advance or cancel.
   //          When host cancels, joiners receive party:countdown_cancelled and show "Waiting for host."
   const COUNTDOWN_DURATION = 6000; // ms
@@ -3258,7 +3268,8 @@ const PartyPage = () => {
     };
     stopTick = frameLoop(tick);
 
-    // Only the host can cancel the countdown via mouse/touch
+    // Only the host can cancel the countdown via mouse/touch, or a key: a TV
+    // remote's arrows on their way to Play again must not run into the next song
     let cancelCountdown: (() => void) | undefined;
     if (isHost) {
       cancelCountdown = () => {
@@ -3272,6 +3283,7 @@ const PartyPage = () => {
       window.addEventListener('mousemove', cancelCountdown);
       window.addEventListener('mousedown', cancelCountdown);
       window.addEventListener('touchstart', cancelCountdown);
+      window.addEventListener('keydown', cancelCountdown);
     }
 
     return () => {
@@ -3281,6 +3293,7 @@ const PartyPage = () => {
         window.removeEventListener('mousemove', cancelCountdown);
         window.removeEventListener('mousedown', cancelCountdown);
         window.removeEventListener('touchstart', cancelCountdown);
+        window.removeEventListener('keydown', cancelCountdown);
       }
     };
   }, [songEnded, wss, isHost, advanceSong]);
@@ -3677,7 +3690,9 @@ const PartyPage = () => {
             type="button"
             onClick={handleStageClick}
             {...stageButtonProps}
-          />
+          >
+            {stageSign}
+          </button>
 
           {/* The scores, always in view: everyone who sang, best first */}
           <LiveScoreStrip
@@ -3783,7 +3798,9 @@ const PartyPage = () => {
             type="button"
             onClick={handleStageClick}
             {...stageButtonProps}
-          />
+          >
+            {stageSign}
+          </button>
 
           {/* Skip Intro / Outro / Interruption — Netflix-style button above the lyrics.
               Label depends on SponsorBlock segment category. */}
