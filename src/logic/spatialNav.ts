@@ -300,7 +300,19 @@ function first(root: ParentNode): Spot | null {
   return near.find(s => look(s).ok) ?? null;
 }
 
+// When the arrows last moved the focus (and scrolled to it). For a while
+// after, the page may still be gliding there: the focus being off the screen
+// then does not mean the page was scrolled away from it.
+let movedAt = -Infinity;
+const GLIDE_MS = 1500;
+// Presses closer than this follow each other at once: a smooth scroll that
+// starts over on every press of a held key falls further and further behind
+const QUICK_MS = 300;
+
 function go(s: Spot, pinned: boolean) {
+  const now = performance.now();
+  const quick = now - movedAt < QUICK_MS;
+  movedAt = now;
   s.el.focus({ preventScroll: true });
   // On a pinned band it is in sight already (only a row or list inside it may need to move)
   if (pinned) {
@@ -308,7 +320,7 @@ function go(s: Spot, pinned: boolean) {
     return;
   }
   // Clear of the screen's edges, and of the pinned search band
-  const smooth = !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const smooth = !quick && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const before = s.el.style.scrollMargin;
   s.el.style.scrollMargin = `${Math.round(window.innerHeight * 0.2)}px 24px`;
   s.el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
@@ -346,13 +358,16 @@ function onKey(e: KeyboardEvent) {
     return;
   }
 
-  // Focus out of sight (the page was scrolled away from it): on from the screen's edge behind the way
+  // Focus out of sight because the page was scrolled away from it (not
+  // because the page is still on its way there): on from the screen's edge behind the way
   const v = viewport();
-  if (empty(cut(onScreen, v))) {
+  let inSight = !empty(cut(onScreen, v));
+  if (!inSight && performance.now() - movedAt >= GLIDE_MS) {
     if (dir === 'down') from = { ...v, top: -1, bottom: -1 };
     else if (dir === 'up') from = { ...v, top: v.bottom + 1, bottom: v.bottom + 1 };
     else if (dir === 'right') from = { ...v, left: -1, right: -1 };
     else from = { ...v, left: v.right + 1, right: v.right + 1 };
+    inSight = true;
   }
 
   let pinned = false;
@@ -374,10 +389,15 @@ function onKey(e: KeyboardEvent) {
     if (s && isCandidate(from, s.box, dir) && ok(s)) next = s;
   }
   next ??= pick(from, dir, spots(root, active, stuck), near) ?? pick(from, dir, later, ok);
-  if (!next) return; // nothing that way: up/down scroll the page
+  // Nothing that way: up/down scroll the page (which then is no glide of ours)
+  if (!next) { movedAt = -Infinity; return; }
 
-  // Far below or above the screen (a link further down a long text): scroll there first
-  if (!across(dir) && !pinned && (next.rect.top > v.bottom * 1.5 || next.rect.bottom < -v.bottom * 0.5)) return;
+  // Far below or above the screen (a link further down a long text): scroll
+  // there first. Not while the focus is ahead of a page still gliding to it.
+  if (!across(dir) && !pinned && inSight && (next.rect.top > v.bottom * 1.5 || next.rect.bottom < -v.bottom * 0.5)) {
+    movedAt = -Infinity;
+    return;
+  }
 
   mark();
   if (active) cameFrom.set(next.el, { dir: OPPOSITE[dir], el: active });
