@@ -1100,7 +1100,7 @@
     },
     "feedback": {
       "title": "Feedback",
-      "hint": "Wie SingSpree ankommt. Eine kleine Karte in der Ecke fragt, sobald ein Browser drei Songs bis zum Ende mitgemacht hat, als Host oder Sänger: auf dem Punktebildschirm oder der Startseite, höchstens dreimal, nie während eines Songs. Die Sterne werden beim Antippen gespeichert, der Kommentar kommt danach.",
+      "hint": "Wie SingSpree ankommt. Eine kleine Karte in der Ecke fragt, sobald ein Browser drei Songs bis zum Ende mitgemacht hat, als Host oder Sänger: auf dem Punktebildschirm oder der Startseite, höchstens dreimal, nie während eines Songs. Die Sterne werden beim Antippen gespeichert, der Kommentar kommt danach. Gezeigt zählt Browser; Mit ✕ geschlossen ist ein ✕ vor jedem Stern, Ignoriert der Rest (die Karte ging unberührt wieder weg). Beides wird seit dem 29. Oktober 2026 gezählt, Antworten von davor haben also keine Anzeige dahinter.",
       "allTime": "Insgesamt",
       "answers": "Antworten",
       "average": "Durchschnitt",
@@ -1127,7 +1127,13 @@
       "songs_one": "{{count}} Song gesungen",
       "songs_other": "{{count}} Songs gesungen",
       "home": "auf der Startseite gefragt",
-      "askedTimes": "{{count}}× gefragt"
+      "askedTimes": "{{count}}× gefragt",
+      "shownTo": "Gezeigt",
+      "shownTimes_one": "{{count}}× insgesamt",
+      "shownTimes_other": "{{count}}× insgesamt",
+      "answered": "Beantwortet",
+      "dismissed": "Mit ✕ geschlossen",
+      "passed": "Ignoriert"
     },
     "avatarReports": {
       "title": "Gemeldete Bilder",

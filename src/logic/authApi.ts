@@ -457,6 +457,10 @@ export interface FeedbackSummary {
   byDevice: FeedbackGroup[];
   byLanguage: FeedbackGroup[];
   bySongs: FeedbackGroup[];
+  /** browsers the card was shown to, times it was shown, and ✕ before any star (counted since 2026-10-29) */
+  shown: number;
+  shownTimes: number;
+  dismissed: number;
 }
 
 /** The admin list's filter: all, the answers with words, or one number of stars */

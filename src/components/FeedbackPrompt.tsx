@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { sendFeedback } from "../logic/authApi";
 import { platformHints } from "../logic/platformHints";
+import { trackEvent } from "../logic/track";
 import { ask, closePrompt, engage, feedbackCounts, markAnswered, moveOn, useFeedbackPrompt, type FeedbackPlace } from "../logic/feedbackPrompt";
 
 const MAX_COMMENT = 1000;
@@ -32,7 +33,9 @@ type Phase = 'ask' | 'rated' | 'sending' | 'thanks';
  * page); the answers go to the admins (backend feedback.ts, /admin).
  *
  * The stars are sent at once and the words with Send, as a change to the
- * same answer. On the party page the card sits at the top on phones (the
+ * same answer. Each showing and a ✕ before any star are usage events
+ * (feedback_shown, feedback_dismissed), so the admins see how many saw the
+ * card and how many waved it away. On the party page the card sits at the top on phones (the
  * score screen's buttons are at the bottom) and in the bottom right corner
  * on wide screens; on the home page above its footer bar. Solid tint, no
  * backdrop blur: it may float over the playing video while someone types.
@@ -65,12 +68,14 @@ const FeedbackPrompt = ({ where, between = false, getContext }: FeedbackPromptPr
   // Leaving the page takes the card along, touched or not (the stars are sent already)
   useEffect(() => () => moveOn(true), []);
 
-  // A new card starts empty
+  // A new card starts empty, and counts as shown
   useEffect(() => {
     if (!open) return;
     setRating(0); setHover(0); setComment(''); setPhase('ask'); setFailed(false);
     saved.current = null;
-  }, [open]);
+    const { shown, songs } = feedbackCounts();
+    trackEvent('feedback_shown', { page: where, shown, songs });
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (phase !== 'thanks') return undefined;
@@ -115,6 +120,15 @@ const FeedbackPrompt = ({ where, between = false, getContext }: FeedbackPromptPr
     }
   };
 
+  // Its ✕: before any star a dismissal, after them just closing the comment box
+  const close = () => {
+    if (phase === 'ask') {
+      const { shown, songs } = feedbackCounts();
+      trackEvent('feedback_dismissed', { page: where, shown, songs });
+    }
+    closePrompt();
+  };
+
   const shown = hover || rating;
   const place = where === 'party'
     ? 'z-[60] top-2 inset-x-2 mx-auto max-w-sm lg:top-auto lg:bottom-4 lg:inset-x-auto lg:right-4 lg:mx-0 lg:w-80'
@@ -132,7 +146,7 @@ const FeedbackPrompt = ({ where, between = false, getContext }: FeedbackPromptPr
         </div>
         <button
           type="button"
-          onClick={closePrompt}
+          onClick={close}
           title={t('feedback.close')}
           aria-label={t('feedback.close')}
           className="btn-icon w-7 h-7 -mr-1.5 -mt-1 text-white/50 text-xs flex-shrink-0"

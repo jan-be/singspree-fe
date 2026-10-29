@@ -13,7 +13,9 @@ import { FilterButtons, Hint, Loading, Section, StatTile, btn, countryLabel, lis
  * people answered "How do you like SingSpree?" (FeedbackPrompt.tsx) in a
  * window — the average, how the stars spread, the average per role, device,
  * language and songs sung before — and the answers themselves, newest first,
- * filtered by stars or to those with a comment.
+ * filtered by stars or to those with a comment. How many browsers saw the
+ * card, and how many closed it with its ✕ before any star, come from the
+ * feedback_shown / feedback_dismissed events (since 2026-10-29).
  */
 const DAYS = [30, 365, 0];
 const FILTERS: FeedbackFilter[] = ['all', 'comments', '5', '4', '3', '2', '1'];
@@ -118,6 +120,8 @@ const AdminFeedback = ({ onError = () => {} }: { onError?: (e: unknown) => void 
     ? { all: s.count, comments: s.withComment, ...Object.fromEntries(s.distribution.map((n, i) => [String(i + 1), n])) }
     : null;
   const maxStars = Math.max(1, ...(s?.distribution ?? []));
+  /** A number with its share of the browsers the card was shown to */
+  const share = (n: number) => (<>{fmt(n)}{s?.shown ? <span className="ml-1.5 text-sm font-normal text-white/45">{fmt(Math.min(100, (100 * n) / s.shown))} %</span> : null}</>);
   const device = (key: string) => (DEVICE_KINDS.includes(key) ? t(`admin.devices.kind.${key}`) : key === 'unknown' ? t('admin.devices.notRecorded') : t('admin.devices.other'));
 
   return (
@@ -133,6 +137,13 @@ const AdminFeedback = ({ onError = () => {} }: { onError?: (e: unknown) => void 
             <StatTile label={t('admin.feedback.average')} value={s.average == null ? '–' : `${fmt(s.average, 2)} ★`} accent="text-amber-300" />
             <StatTile label={t('admin.feedback.positive')} value={s.count ? `${fmt((100 * (s.distribution[3] + s.distribution[4])) / s.count)} %` : '–'} />
             <StatTile label={t('admin.feedback.withComment')} value={fmt(s.withComment)} />
+          </div>
+          {/* Who saw the card, and what they did with it (events, counted since the day these were added) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-2 sm:mt-3" data-feedback-reach="">
+            <StatTile label={t('admin.feedback.shownTo')} value={<>{fmt(s.shown)}{s.shownTimes > s.shown && <span className="ml-1.5 text-sm font-normal text-white/45">{t('admin.feedback.shownTimes', { count: s.shownTimes })}</span>}</>} accent="text-neon-cyan" />
+            <StatTile label={t('admin.feedback.answered')} value={share(s.count)} />
+            <StatTile label={t('admin.feedback.dismissed')} value={share(s.dismissed)} />
+            <StatTile label={t('admin.feedback.passed')} value={share(Math.max(0, s.shown - s.count - s.dismissed))} />
           </div>
 
           {s.count > 0 && (

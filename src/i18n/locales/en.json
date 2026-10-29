@@ -1100,7 +1100,7 @@
     },
     "feedback": {
       "title": "Feedback",
-      "hint": "How people like SingSpree. A small card in the corner asks once a browser has been through three songs to the end, as host or singer: on the score screen or on the home page, at most three times, never during a song. The stars are kept as soon as they are tapped; the comment comes after.",
+      "hint": "How people like SingSpree. A small card in the corner asks once a browser has been through three songs to the end, as host or singer: on the score screen or on the home page, at most three times, never during a song. The stars are kept as soon as they are tapped; the comment comes after. Shown to counts browsers; Closed with ✕ is a ✕ before any star, Let it pass the rest (the card went away untouched). These two are counted since October 29, 2026, so answers from before that have no showing behind them.",
       "allTime": "All time",
       "answers": "Answers",
       "average": "Average",
@@ -1127,7 +1127,13 @@
       "songs_one": "{{count}} song sung",
       "songs_other": "{{count}} songs sung",
       "home": "asked on the home page",
-      "askedTimes": "asked {{count}}×"
+      "askedTimes": "asked {{count}}×",
+      "shownTo": "Shown to",
+      "shownTimes_one": "{{count}}× in all",
+      "shownTimes_other": "{{count}}× in all",
+      "answered": "Answered",
+      "dismissed": "Closed with ✕",
+      "passed": "Let it pass"
     },
     "avatarReports": {
       "title": "Reported pictures",
