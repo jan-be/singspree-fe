@@ -1,0 +1,15 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.singspree.app",
+      "sha256_cert_fingerprints": [
+        "E2:97:DD:59:E8:B4:C5:47:DB:2C:53:34:6E:AB:FB:AB:BA:B0:32:AF:B2:89:36:C4:37:E7:0C:A8:F1:5D:61:94",
+        "1C:78:83:EC:9A:7A:30:70:C2:B3:13:5E:C3:EC:E7:89:F0:89:7A:42:C5:D9:BB:24:9C:FC:57:AB:7D:8A:16:A0",
+        "3A:5C:5C:30:3D:0B:F2:96:37:6C:19:94:24:86:0B:56:DD:69:65:6A:DF:F8:BB:6B:CC:C0:2A:35:C9:B4:04:D6",
+        "8C:DC:83:01:E3:1F:34:F1:A0:4E:14:F7:DD:2C:EA:61:FB:39:3F:56:ED:C2:8C:3F:5D:2A:4C:2C:43:45:08:25"
+      ]
+    }
+  }
+]
