@@ -83,6 +83,14 @@
     "hidden": "‘Voor jou’ is verborgen.",
     "show": "Weer tonen"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 Halloween",
+      "explain": "Griezelige nummers voor de engste nacht van het jaar"
+    },
+    "more": "Alles tonen",
+    "less": "Minder tonen"
+  },
   "listen": {
     "button": "Luisteren: vind het nummer dat nu speelt",
     "starting": "Wachten op de microfoon…",

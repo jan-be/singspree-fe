@@ -87,6 +87,14 @@
     "hidden": "„Dla ciebie” jest ukryte.",
     "show": "Pokaż ponownie"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 Halloween",
+      "explain": "Upiorne piosenki na najstraszniejszą noc w roku"
+    },
+    "more": "Pokaż wszystkie",
+    "less": "Pokaż mniej"
+  },
   "listen": {
     "button": "Słuchaj: znajdź piosenkę, która teraz leci",
     "starting": "Czekam na mikrofon…",

@@ -83,6 +83,14 @@
     "hidden": "«Para ti» está oculto.",
     "show": "Mostrar de nuevo"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 Halloween",
+      "explain": "Canciones escalofriantes para la noche más terrorífica del año"
+    },
+    "more": "Ver todas",
+    "less": "Ver menos"
+  },
   "listen": {
     "button": "Escuchar: encuentra la canción que suena",
     "starting": "Esperando el micrófono…",

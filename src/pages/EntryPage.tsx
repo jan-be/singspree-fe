@@ -23,6 +23,8 @@ import { ChartHint } from "../components/ChartOfferCard";
 import SingAgainCard from "../components/SingAgainCard";
 import FeedbackPrompt from "../components/FeedbackPrompt";
 import ForYouRow from "../components/ForYouRow";
+import SeasonRow from "../components/SeasonRow";
+import { useSeason } from "../seasons/seasons";
 import type { SongNamesSource } from "../logic/lyricsScripts";
 import type { SearchBarHandle } from "../components/SearchBar";
 import type { PartyRecapInfo } from "../components/PartyRecap";
@@ -116,8 +118,9 @@ const fetchPage = async (query: string, offset: number): Promise<{ songs: Browse
 // The wall the neon sign hangs on, as in the app icon: brick courses across
 // the whole width, lit by the sign itself (pink from the S, cyan from "Spree")
 // and fading into the page at the edges. Static SVG, painted once (no blur,
-// no animation, no CSS mask).
-const HeroWall = () => (
+// no animation, no CSS mask). The light's colours are index.css's --wall-*,
+// which a season changes; its decorations hang in front of the bricks.
+const HeroWall = ({ decor: Decor }: { decor?: React.ComponentType }) => (
   <div className="absolute -top-10 bottom-0 left-1/2 -translate-x-1/2 w-screen -z-10 pointer-events-none" aria-hidden="true">
   <svg
     className="block w-full h-full"
@@ -126,17 +129,17 @@ const HeroWall = () => (
   >
     <defs>
       <radialGradient id="hero-wall-base" cx="50%" cy="32%" r="64%">
-        <stop offset="0" stopColor="#3a2a78" stopOpacity="0.95" />
-        <stop offset="0.55" stopColor="#2a1f5c" stopOpacity="0.6" />
-        <stop offset="1" stopColor="#1a1440" stopOpacity="0" />
+        <stop offset="0" style={{ stopColor: 'var(--wall-base)' }} stopOpacity="0.95" />
+        <stop offset="0.55" style={{ stopColor: 'var(--wall-mid)' }} stopOpacity="0.6" />
+        <stop offset="1" style={{ stopColor: 'var(--wall-edge)' }} stopOpacity="0" />
       </radialGradient>
       <radialGradient id="hero-wall-pink" cx="37%" cy="30%" r="36%">
-        <stop offset="0" stopColor="#ff4fd8" stopOpacity="0.42" />
-        <stop offset="1" stopColor="#ff4fd8" stopOpacity="0" />
+        <stop offset="0" style={{ stopColor: 'var(--wall-left)' }} stopOpacity="0.42" />
+        <stop offset="1" style={{ stopColor: 'var(--wall-left)' }} stopOpacity="0" />
       </radialGradient>
       <radialGradient id="hero-wall-cyan" cx="64%" cy="30%" r="36%">
-        <stop offset="0" stopColor="#00e5ff" stopOpacity="0.3" />
-        <stop offset="1" stopColor="#00e5ff" stopOpacity="0" />
+        <stop offset="0" style={{ stopColor: 'var(--wall-right)', stopOpacity: 'var(--wall-right-strength)' }} />
+        <stop offset="1" style={{ stopColor: 'var(--wall-right)' }} stopOpacity="0" />
       </radialGradient>
       <radialGradient id="hero-wall-fade" cx="50%" cy="36%" r="64%">
         <stop offset="0" stopColor="#fff" />
@@ -157,6 +160,7 @@ const HeroWall = () => (
       <rect width="100%" height="100%" fill="url(#hero-wall-bricks)" />
     </g>
   </svg>
+  {Decor && <div className="absolute inset-0 overflow-hidden"><Decor /></div>}
   </div>
 );
 
@@ -181,7 +185,7 @@ const SongCard = ({ song, position, context }: { song: BrowseSong; position: num
       onClick={picked}
       className="group block rounded-2xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
     >
-      <div className="relative aspect-video overflow-hidden rounded-2xl bg-white/[0.04] ring-1 ring-inset ring-white/[0.1] transition-[box-shadow,transform] duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_18px_40px_-16px_rgba(255,79,216,0.5)] group-hover:ring-white/20 group-focus-visible:-translate-y-0.5 group-focus-visible:shadow-[0_18px_40px_-16px_rgba(255,79,216,0.5)]">
+      <div className="relative aspect-video overflow-hidden rounded-2xl bg-white/[0.04] ring-1 ring-inset ring-white/[0.1] transition-[box-shadow,transform] duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_18px_40px_-16px_rgba(var(--hot-glow),0.5)] group-hover:ring-white/20 group-focus-visible:-translate-y-0.5 group-focus-visible:shadow-[0_18px_40px_-16px_rgba(var(--hot-glow),0.5)]">
         {song.videoId ? (
           <img
             src={`https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg`}
@@ -474,6 +478,8 @@ const EntryPage = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [searchParams, setSearchParams] = useSearchParams();
   const [languages, setLanguages] = useState<CatalogueLanguage[]>([]);
+  // Halloween and the like (src/seasons): its decorations on the wall, its songs above the grid
+  const season = useSeason();
 
   const filters = readFilters(searchParams);
   const query = filtersToQuery(filters);
@@ -538,7 +544,7 @@ const EntryPage = () => {
 
       {/* Hero: the neon sign on its brick wall, like the icon */}
       <div className="text-center pt-10 pb-12 sm:pt-14 sm:pb-16 relative isolate">
-        <HeroWall />
+        <HeroWall decor={season?.Decor} />
 
         <div className="relative flex items-center justify-center mb-6">
           <h1 className="m-0 leading-none">
@@ -691,7 +697,8 @@ const EntryPage = () => {
 
       {/* Song grid — search results or the browse list, same component */}
       <section className="mb-6 pb-20 sm:pb-12">
-        {/* What goes with the songs this browser or account sang, on the plain grid only */}
+        {/* The season's songs first, then what goes with the songs this browser or account sang, on the plain grid only */}
+        {!filters.q && !hasFilters && season && <SeasonRow key={season.id} season={season} />}
         {!filters.q && !hasFilters && <ForYouRow />}
         <InfiniteScrollGrid
           query={query}

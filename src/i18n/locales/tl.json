@@ -83,6 +83,14 @@
     "hidden": "Nakatago ang “Para sa iyo”.",
     "show": "Ipakita ulit"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 Halloween",
+      "explain": "Nakakatakot na mga kanta para sa pinakanakakatakot na gabi ng taon"
+    },
+    "more": "Ipakita lahat",
+    "less": "Ipakita ang mas kaunti"
+  },
   "listen": {
     "button": "Makinig: hanapin ang kantang tumutugtog",
     "starting": "Hinihintay ang mikropono…",

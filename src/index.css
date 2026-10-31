@@ -24,6 +24,32 @@
 }
 
 @layer base {
+  /* What a season changes (src/seasons: html[data-season] sets its own): the
+     sign's pink → purple on the main actions and on-states, the stage light
+     (rgb triplets, for rgba()), the page's violet, the hero wall's light and
+     the links */
+  :root {
+    --hot-from: #ff5cd6;
+    --hot-to: #c04bff;
+    --hot-hover-from: #ff78de;
+    --hot-hover-to: #cc66ff;
+    --hot-glow: 255, 79, 216;
+    --light-left: 255, 79, 216;
+    --light-right: 0, 229, 255;
+    --light-below: 180, 74, 255;
+    --page-top: #1e1745;
+    --page-mid: #161230;
+    --page-bottom: #130f2a;
+    --wall-base: #3a2a78;
+    --wall-mid: #2a1f5c;
+    --wall-edge: #1a1440;
+    --wall-left: #ff4fd8;
+    --wall-right: #00e5ff;
+    --wall-right-strength: 0.3;
+    --link: var(--color-neon-cyan);
+    --link-hover: var(--color-neon-magenta);
+  }
+
   html {
     color-scheme: dark;
   }
@@ -36,11 +62,11 @@
        right, purple from below (no fixed attachment, which repaints the page
        on every scroll on phones; no blur, no animation) */
     background:
-      radial-gradient(900px 620px at 8% -8%, rgba(255, 79, 216, 0.24), transparent 62%),
-      radial-gradient(900px 620px at 96% -4%, rgba(0, 229, 255, 0.15), transparent 62%),
-      radial-gradient(1100px 700px at 50% 108%, rgba(180, 74, 255, 0.2), transparent 62%),
-      linear-gradient(180deg, #1e1745 0%, #161230 45%, #130f2a 100%);
-    background-color: #130f2a;
+      radial-gradient(900px 620px at 8% -8%, rgba(var(--light-left), 0.24), transparent 62%),
+      radial-gradient(900px 620px at 96% -4%, rgba(var(--light-right), 0.15), transparent 62%),
+      radial-gradient(1100px 700px at 50% 108%, rgba(var(--light-below), 0.2), transparent 62%),
+      linear-gradient(180deg, var(--page-top) 0%, var(--page-mid) 45%, var(--page-bottom) 100%);
+    background-color: var(--page-bottom);
     background-repeat: no-repeat;
     color: #eeeef8;
     min-height: 100vh;
@@ -53,12 +79,12 @@
   }
 
   a {
-    color: var(--color-neon-cyan);
+    color: var(--link);
     text-decoration: none;
   }
 
   a:hover {
-    color: var(--color-neon-magenta);
+    color: var(--link-hover);
   }
 
   /* Native drop-down lists: Chrome on Windows draws the open list with the
@@ -116,12 +142,12 @@
   /* The one main action of a screen, and anything switched on: the sign's pink → purple */
   .btn-primary, .fill-hot {
     background-color: var(--color-hot);
-    background-image: linear-gradient(135deg, #ff5cd6 0%, #c04bff 100%);
+    background-image: linear-gradient(135deg, var(--hot-from) 0%, var(--hot-to) 100%);
     color: #fff;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 10px 28px -12px rgba(255, 79, 216, 0.85);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 10px 28px -12px rgba(var(--hot-glow), 0.85);
   }
   .btn-primary:hover:not(:disabled) {
-    background-image: linear-gradient(135deg, #ff78de 0%, #cc66ff 100%);
+    background-image: linear-gradient(135deg, var(--hot-hover-from) 0%, var(--hot-hover-to) 100%);
     color: #fff;
   }
 
@@ -196,10 +222,10 @@
   .chip:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
   .chip[aria-pressed="true"], .chip.is-on {
     background-color: var(--color-hot);
-    background-image: linear-gradient(135deg, #ff5cd6 0%, #c04bff 100%);
+    background-image: linear-gradient(135deg, var(--hot-from) 0%, var(--hot-to) 100%);
     color: #fff;
     border-color: transparent;
-    box-shadow: 0 8px 20px -10px rgba(255, 79, 216, 0.9);
+    box-shadow: 0 8px 20px -10px rgba(var(--hot-glow), 0.9);
   }
 
   /* On / off: a <button role="switch" aria-checked>; on wears the sign's pink → purple */
@@ -228,7 +254,7 @@
   .switch:hover { background-color: rgba(255, 255, 255, 0.26); }
   .switch[aria-checked="true"] {
     background-color: var(--color-hot);
-    background-image: linear-gradient(135deg, #ff5cd6 0%, #c04bff 100%);
+    background-image: linear-gradient(135deg, var(--hot-from) 0%, var(--hot-to) 100%);
   }
   .switch[aria-checked="true"]::after { transform: translateX(1rem); }
   .switch:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -245,9 +271,9 @@
   .field::placeholder { color: rgba(255, 255, 255, 0.5); }
   .field:focus {
     outline: none;
-    border-color: rgba(255, 92, 214, 0.7);
+    border-color: rgba(var(--hot-glow), 0.7);
     background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 0 4px rgba(255, 92, 214, 0.18);
+    box-shadow: 0 0 0 4px rgba(var(--hot-glow), 0.18);
   }
 
   /* After .chip/.field (same layer, later wins): the native list of a select takes this solid colour */

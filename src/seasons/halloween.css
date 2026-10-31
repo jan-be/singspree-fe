@@ -1,0 +1,67 @@
+/* Halloween (halloween.tsx): instead of the stage's pink and cyan neon, pumpkin
+   orange and slime green light on a darker plum; the main actions go orange →
+   purple, the sign's tubes take the same colours and flicker now and then like
+   a tube about to die. The tokens are index.css's; outside the layers, so
+   they win over the theme's and the components' own. */
+html[data-season="halloween"] {
+  --color-ink: #140c22;
+  --color-panel: #22163a;
+  --color-panel-raised: #2c1d4a;
+  --color-stage: #180f2c;
+  --color-hot: #ff7316;
+
+  --hot-from: #ff7a18;
+  --hot-to: #9d34f5;
+  --hot-hover-from: #ff9640;
+  --hot-hover-to: #b157ff;
+  --hot-glow: 255, 115, 22;
+
+  --light-left: 255, 115, 22;
+  --light-right: 110, 255, 70;
+  --light-below: 130, 50, 220;
+  --page-top: #1d1030;
+  --page-mid: #140c24;
+  --page-bottom: #0f091b;
+
+  --wall-base: #3a2350;
+  --wall-mid: #28173a;
+  --wall-edge: #160d26;
+  --wall-left: #ff7316;
+  --wall-right: #6dff3a;
+  --wall-right-strength: 0.2;
+
+  --link: #ffaa55;
+  --link-hover: #c08cff;
+}
+
+/* The sign (nav and the entry page's hero): S and "ing" in pumpkin orange,
+   "Spree" and the mic in slime green. The tubes' colours are the drawing's
+   own attributes (src/wordmark.svg), which CSS outranks. Flat selectors, no
+   :is() or nesting: the build's floor is Chrome 79 (vite.config.ts). */
+html[data-season="halloween"] nav svg [stop-color="#b44aff"], html[data-season="halloween"] h1 svg [stop-color="#b44aff"] { stop-color: #ff4a0a; }
+html[data-season="halloween"] nav svg [stop-color="#ff1ff0"], html[data-season="halloween"] h1 svg [stop-color="#ff1ff0"] { stop-color: #ffae1f; }
+html[data-season="halloween"] nav svg [stroke="#ffe0fb"], html[data-season="halloween"] h1 svg [stroke="#ffe0fb"] { stroke: #fff0d0; }
+html[data-season="halloween"] nav svg [stroke="#00e5ff"], html[data-season="halloween"] h1 svg [stroke="#00e5ff"] { stroke: #74ff3c; }
+html[data-season="halloween"] nav svg [fill="#00e5ff"], html[data-season="halloween"] h1 svg [fill="#00e5ff"] { fill: #74ff3c; }
+html[data-season="halloween"] nav svg [stroke="#2eeaff"], html[data-season="halloween"] h1 svg [stroke="#2eeaff"] { stroke: #9dff5e; }
+html[data-season="halloween"] nav svg [stroke="#e0fdff"], html[data-season="halloween"] h1 svg [stroke="#e0fdff"] { stroke: #f0ffe0; }
+html[data-season="halloween"] nav svg [stroke="#b8f9ff"], html[data-season="halloween"] h1 svg [stroke="#b8f9ff"] { stroke: #dcffc8; }
+
+/* A dying tube: steady most of the time, then a stutter. Opacity on the whole
+   drawing only, which the compositor animates without repainting it. */
+@keyframes season-flicker {
+  0%, 88%, 100% { opacity: 1; }
+  89% { opacity: 0.5; }
+  90% { opacity: 1; }
+  92% { opacity: 0.3; }
+  93.5% { opacity: 0.85; }
+  95% { opacity: 0.45; }
+  96.5% { opacity: 1; }
+}
+html[data-season="halloween"] h1 > svg {
+  animation: season-flicker 7s steps(1, end) infinite;
+  will-change: opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-season="halloween"] h1 > svg { animation: none; }
+}

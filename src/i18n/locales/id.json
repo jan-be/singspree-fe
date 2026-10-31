@@ -81,6 +81,14 @@
     "hidden": "“Untukmu” disembunyikan.",
     "show": "Tampilkan lagi"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 Halloween",
+      "explain": "Lagu-lagu seram untuk malam paling menakutkan tahun ini"
+    },
+    "more": "Tampilkan semua",
+    "less": "Tampilkan lebih sedikit"
+  },
   "listen": {
     "button": "Dengarkan: temukan lagu yang sedang diputar",
     "starting": "Menunggu mikrofon…",

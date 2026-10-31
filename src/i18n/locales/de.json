@@ -83,6 +83,14 @@
     "hidden": "„Für dich“ ist ausgeblendet.",
     "show": "Wieder anzeigen"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 Halloween",
+      "explain": "Schaurige Songs für die gruseligste Nacht des Jahres"
+    },
+    "more": "Alle zeigen",
+    "less": "Weniger zeigen"
+  },
   "listen": {
     "button": "Zuhören: den Song finden, der gerade läuft",
     "starting": "Warte auf das Mikrofon…",
@@ -881,7 +889,8 @@
         "queue-similar": "Ähnliche Songs in der Party",
         "auto-similar": "Automatisch, als die Warteschlange leer war",
         "sing-again": "Noch mal starten (letzte Party)",
-        "for-you": "Reihe „Für dich“"
+        "for-you": "Reihe „Für dich“",
+        "season": "Saison-Reihe (Halloween …)"
       },
       "searches": "Suchen",
       "sources": {

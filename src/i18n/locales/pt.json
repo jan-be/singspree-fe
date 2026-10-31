@@ -83,6 +83,14 @@
     "hidden": "“Para você” está oculto.",
     "show": "Mostrar de novo"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 Halloween",
+      "explain": "Músicas arrepiantes para a noite mais assustadora do ano"
+    },
+    "more": "Ver todas",
+    "less": "Ver menos"
+  },
   "listen": {
     "button": "Ouvir: encontre a música que está tocando",
     "starting": "Aguardando o microfone…",

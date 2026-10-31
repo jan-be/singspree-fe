@@ -81,6 +81,14 @@
     "hidden": "Đã ẩn “Dành cho bạn”.",
     "show": "Hiện lại"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 Halloween",
+      "explain": "Những bài hát rùng rợn cho đêm đáng sợ nhất trong năm"
+    },
+    "more": "Xem tất cả",
+    "less": "Thu gọn"
+  },
   "listen": {
     "button": "Nghe: tìm bài hát đang phát",
     "starting": "Đang chờ micro…",

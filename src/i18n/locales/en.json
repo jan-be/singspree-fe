@@ -83,6 +83,14 @@
     "hidden": "“For you” is hidden.",
     "show": "Show again"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 Halloween",
+      "explain": "Spooky songs for the scariest night of the year"
+    },
+    "more": "Show all",
+    "less": "Show fewer"
+  },
   "listen": {
     "button": "Listen: find the song that's playing",
     "starting": "Waiting for the microphone…",
@@ -881,7 +889,8 @@
         "queue-similar": "Similar songs in the party",
         "auto-similar": "Auto-pick when the queue ran out",
         "sing-again": "Start again (last party)",
-        "for-you": "For you row"
+        "for-you": "For you row",
+        "season": "Seasonal row (Halloween …)"
       },
       "searches": "Searches",
       "sources": {

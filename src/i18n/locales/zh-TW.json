@@ -81,6 +81,14 @@
     "hidden": "已隱藏「為你推薦」。",
     "show": "重新顯示"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 萬聖節",
+      "explain": "為一年中最恐怖的夜晚準備的驚悚歌曲"
+    },
+    "more": "顯示全部",
+    "less": "收起"
+  },
   "listen": {
     "button": "聽歌識曲：找到正在播放的歌",
     "starting": "正在等待麥克風…",

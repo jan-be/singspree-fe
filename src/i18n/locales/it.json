@@ -83,6 +83,14 @@
     "hidden": "«Per te» è nascosto.",
     "show": "Mostra di nuovo"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 Halloween",
+      "explain": "Canzoni da brivido per la notte più spaventosa dell’anno"
+    },
+    "more": "Mostra tutte",
+    "less": "Mostra meno"
+  },
   "listen": {
     "button": "Ascolta: trova la canzone che sta suonando",
     "starting": "In attesa del microfono…",

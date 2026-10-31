@@ -83,6 +83,14 @@
     "hidden": "« Pour vous » est masqué.",
     "show": "Afficher à nouveau"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 Halloween",
+      "explain": "Des chansons qui font frissonner pour la nuit la plus effrayante de l’année"
+    },
+    "more": "Tout afficher",
+    "less": "Afficher moins"
+  },
   "listen": {
     "button": "Écouter : trouver la chanson qui passe",
     "starting": "En attente du micro…",

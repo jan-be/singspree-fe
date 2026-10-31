@@ -83,6 +83,14 @@
     "hidden": "”För dig” är dolt.",
     "show": "Visa igen"
   },
+  "season": {
+    "halloween": {
+      "title": "🎃 Halloween",
+      "explain": "Läskiga låtar för årets kusligaste natt"
+    },
+    "more": "Visa alla",
+    "less": "Visa färre"
+  },
   "listen": {
     "button": "Lyssna: hitta låten som spelas",
     "starting": "Väntar på mikrofonen…",

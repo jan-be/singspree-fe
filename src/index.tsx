@@ -18,6 +18,7 @@ import { syncAudioLatencyFromUrl } from "./logic/audioLatencyFlag";
 import { captureReferrer } from "./logic/referrer";
 import { watchInstallPrompt } from "./logic/installPrompt";
 import { installSpatialNav } from "./logic/spatialNav";
+import { applySeason } from "./seasons/seasons";
 
 // ?gpu=1 / ?gpu=0 on any URL switches the opt-in GPU pitch detection for this browser
 syncPitchGpuFlagFromUrl();
@@ -34,6 +35,8 @@ captureReferrer();
 watchInstallPrompt();
 // The arrow keys (a TV remote's D-pad) move the focus from control to control, as on youtube.com/tv
 installSpatialNav();
+// Halloween and the like: the season's colours on the page while its dates last (src/seasons, ?season=<id> to preview one)
+applySeason();
 
 const container = document.getElementById('root');
 if (!container) throw new Error('The page has no #root to render into'); // (index.html has it)
