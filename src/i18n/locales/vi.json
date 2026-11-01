@@ -82,9 +82,61 @@
     "show": "Hiện lại"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 Đêm Giao thừa",
+      "explain": "Những bản nhạc tiệc tùng để đếm ngược đến nửa đêm"
+    },
+    "valentines": {
+      "title": "💘 Lễ Tình nhân",
+      "explain": "Những bản tình ca và song ca để hát tặng người đặc biệt"
+    },
+    "pi-day": {
+      "title": "🥧 Ngày số Pi",
+      "explain": "Những bài hát về bánh pie, hình tròn và mọi thứ xoay vòng, cho người mê toán"
+    },
+    "st-patricks": {
+      "title": "☘️ Ngày Thánh Patrick",
+      "explain": "Những bài hát Ireland và nhạc quán rượu để hát cùng nhau suốt đêm"
+    },
+    "easter": {
+      "title": "🐣 Lễ Phục Sinh",
+      "explain": "Những bài hát rạng rỡ cho mùa xuân, những chú thỏ và trứng Phục Sinh"
+    },
+    "music-day": {
+      "title": "🎶 Ngày Âm nhạc Thế giới",
+      "explain": "Những bài hát về chính âm nhạc, cho ngày âm nhạc tràn ngập phố phường"
+    },
+    "canada-day": {
+      "title": "🍁 Quốc khánh Canada",
+      "explain": "Những bản hit Canada để cùng hát từ bờ biển này sang bờ biển kia"
+    },
+    "independence-day": {
+      "title": "🎆 Ngày 4 tháng 7",
+      "explain": "Những bài hát đỏ, trắng, xanh để cùng hát bên pháo hoa và tiệc nướng"
+    },
+    "bastille-day": {
+      "title": "🎆 Ngày 14 tháng 7",
+      "explain": "Những bài hát Pháp để cùng hát dưới pháo hoa ngày Quốc khánh"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ Ngày Nói Chuyện Như Cướp Biển",
+      "explain": "Những bài ca thủy thủ, cướp biển và bài hát về biển cả, giương buồm!"
+    },
+    "german-unity-day": {
+      "title": "🎆 Ngày Thống nhất nước Đức",
+      "explain": "Những bài hát về tự do và sự sụp đổ của Bức tường, từ Đông sang Tây"
+    },
     "halloween": {
       "title": "🎃 Halloween",
       "explain": "Những bài hát rùng rợn cho đêm đáng sợ nhất trong năm"
+    },
+    "winter": {
+      "title": "❄️ Mùa đông",
+      "explain": "Những bài hát về tuyết, băng và đêm đông lạnh giá"
+    },
+    "christmas": {
+      "title": "🎄 Giáng sinh",
+      "explain": "Những bài hát rộn ràng cho khoảng thời gian tuyệt vời nhất trong năm"
     },
     "more": "Xem tất cả",
     "less": "Thu gọn"

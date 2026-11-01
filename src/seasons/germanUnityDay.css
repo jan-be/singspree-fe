@@ -1,0 +1,60 @@
+/* Tag der Deutschen Einheit (germanUnityDay.tsx): instead of the stage's pink
+   and cyan neon, an autumn evening in black, red and gold, as light rather
+   than flags: a warm dark page, the main actions in ember red, the sign's S
+   and "ing" glowing red and "Spree" gold like the floodlit Gate. The tokens
+   are index.css's; outside the layers, so they win over the theme's and the
+   components' own. */
+html[data-season="german-unity-day"] {
+  --color-ink: #120e0c;
+  --color-panel: #221a16;
+  --color-panel-raised: #2d231d;
+  --color-stage: #17110e;
+  --color-hot: #ffcc4d;
+
+  --hot-from: #e8382c;
+  --hot-to: #a8181f;
+  --hot-hover-from: #f54a3c;
+  --hot-hover-to: #bf2027;
+  --hot-glow: 236, 64, 48;
+
+  --light-left: 236, 62, 46;
+  --light-right: 255, 196, 72;
+  --light-below: 150, 64, 30;
+  --page-top: #231913;
+  --page-mid: #18110d;
+  --page-bottom: #100b09;
+
+  --wall-base: #3b2b22;
+  --wall-mid: #2a1e18;
+  --wall-edge: #160f0c;
+  --wall-left: #ff4a3a;
+  --wall-right: #ffc94a;
+  --wall-right-strength: 0.24;
+
+  --link: #ffd36a;
+  --link-hover: #ff8a70;
+
+  /* the sign (seasons.css): S and "ing" in ember red, "Spree" and the mic in gold */
+  --sign-sing-from: #f0211f;
+  --sign-sing-to: #ff6a3d;
+  --sign-sing-core: #ffe6dc;
+  --sign-spree: #ffc21f;
+  --sign-spree-2: #ffd44d;
+  --sign-spree-core: #fff7dc;
+  --sign-spree-light: #ffe9a6;
+}
+
+/* The balloons sway on their strings: the whole drawing turns a little about
+   the knot at the bottom (a transform, so it stays on the compositor) */
+@keyframes season-german-unity-day-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+html[data-season="german-unity-day"] .season-german-unity-day-sway {
+  transform-origin: 50% 100%;
+  animation: season-german-unity-day-sway 6s ease-in-out infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-season="german-unity-day"] .season-german-unity-day-sway { animation: none; }
+}

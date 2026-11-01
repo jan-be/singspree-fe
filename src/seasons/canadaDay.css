@@ -1,0 +1,57 @@
+/* Canada Day (canadaDay.tsx): instead of the stage's pink and cyan neon,
+   red and white light on a red brick wall at dusk; the main actions go red
+   → deep red, the sign's S and "ing" glow red and "Spree" white. The tokens
+   are index.css's; outside the layers, so they win over the theme's and
+   the components' own. */
+html[data-season="canada-day"] {
+  --color-ink: #1a0c0e;
+  --color-panel: #2a1416;
+  --color-panel-raised: #371b1e;
+  --color-stage: #200f11;
+  --color-hot: #ff2d3a;
+
+  --hot-from: #f0303c;
+  --hot-to: #b3121f;
+  --hot-hover-from: #ff4f5a;
+  --hot-hover-to: #c92633;
+  --hot-glow: 240, 48, 60;
+
+  --light-left: 255, 40, 55;
+  --light-right: 255, 236, 238;
+  --light-below: 150, 24, 36;
+  --page-top: #24100f;
+  --page-mid: #1a0c0e;
+  --page-bottom: #12080a;
+
+  --wall-base: #55211f;
+  --wall-mid: #3b1615;
+  --wall-edge: #1e0b0b;
+  --wall-left: #ff2b3a;
+  --wall-right: #fff0f2;
+  --wall-right-strength: 0.18;
+
+  --link: #ff9aa0;
+  --link-hover: #ffd6d9;
+
+  /* the sign (seasons.css): S and "ing" in red, "Spree" and the mic in white */
+  --sign-sing-from: #ff1a2b;
+  --sign-sing-to: #ff5450;
+  --sign-sing-core: #ffe2e0;
+  --sign-spree: #fff3f4;
+  --sign-spree-2: #ffffff;
+  --sign-spree-core: #ffffff;
+  --sign-spree-light: #ffe2e6;
+}
+
+/* The glints: each fades and shrinks now and then, slowly and out of step
+   with the others (their delays). Opacity and transform only. */
+@keyframes season-canada-day-twinkle {
+  0%, 100% { opacity: 0.95; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(0.6); }
+}
+html[data-season="canada-day"] .season-canada-day-twinkle {
+  animation: season-canada-day-twinkle 3.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-season="canada-day"] .season-canada-day-twinkle { animation: none; }
+}

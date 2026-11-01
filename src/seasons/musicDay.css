@@ -1,0 +1,46 @@
+/* World Music Day (musicDay.tsx): instead of the stage's pink and cyan neon,
+   an open-air stage on a summer evening: a dusky rose sky over a warm brick
+   wall lit amber from one side and turquoise from the other; the main
+   actions go sunset orange → coral, the sign's S and "ing" glow from coral
+   to sun yellow and "Spree" turquoise. The tokens are index.css's and
+   seasons.css's; outside the layers, so they win over the theme's and the
+   components' own. */
+html[data-season="music-day"] {
+  --color-ink: #1c0f13;
+  --color-panel: #2d1a1f;
+  --color-panel-raised: #382228;
+  --color-stage: #231217;
+  --color-hot: #ff8a2a;
+
+  --hot-from: #ff8f2e;
+  --hot-to: #e8435a;
+  --hot-hover-from: #ffa04a;
+  --hot-hover-to: #f2586d;
+  --hot-glow: 255, 122, 64;
+
+  --light-left: 255, 160, 60;
+  --light-right: 59, 232, 207;
+  --light-below: 255, 90, 110;
+  --page-top: #381a22;
+  --page-mid: #241016;
+  --page-bottom: #180a0e;
+
+  --wall-base: #5e3132;
+  --wall-mid: #422124;
+  --wall-edge: #261215;
+  --wall-left: #ffa23c;
+  --wall-right: #3be8cf;
+  --wall-right-strength: 0.24;
+
+  --link: #5ef0d8;
+  --link-hover: #ffb85c;
+
+  /* the sign (seasons.css): S and "ing" from coral to sun yellow, "Spree" and the mic turquoise */
+  --sign-sing-from: #ff4f6a;
+  --sign-sing-to: #ffc83a;
+  --sign-sing-core: #fff2e0;
+  --sign-spree: #2ff0d0;
+  --sign-spree-2: #5cf5dc;
+  --sign-spree-core: #e6fffa;
+  --sign-spree-light: #b8fff2;
+}

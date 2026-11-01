@@ -1,0 +1,61 @@
+/* Valentine's Day (valentines.tsx): instead of the stage's pink and cyan neon,
+   rose red and blush pink light on a deep wine; the main actions go rose red
+   → raspberry, the sign's tubes take the same two colours, and the neon heart
+   beside it beats. The tokens are index.css's; outside the layers, so they
+   win over the theme's and the components' own. */
+html[data-season="valentines"] {
+  --color-ink: #1c0b16;
+  --color-panel: #2c1222;
+  --color-panel-raised: #3a182c;
+  --color-stage: #210d1a;
+  --color-hot: #ff2d55;
+
+  --hot-from: #ff3b5c;
+  --hot-to: #c2185b;
+  --hot-hover-from: #ff5a75;
+  --hot-hover-to: #d6336c;
+  --hot-glow: 255, 45, 85;
+
+  --light-left: 255, 45, 85;
+  --light-right: 255, 160, 185;
+  --light-below: 160, 20, 70;
+  --page-top: #261020;
+  --page-mid: #1c0b16;
+  --page-bottom: #140810;
+
+  --wall-base: #4a1d33;
+  --wall-mid: #331426;
+  --wall-edge: #1b0a14;
+  --wall-left: #ff2d55;
+  --wall-right: #ffa3bc;
+  --wall-right-strength: 0.24;
+
+  --link: #ff8fa8;
+  --link-hover: #ffc4d2;
+
+  /* the sign (seasons.css): S and "ing" in rose red, "Spree" and the mic in blush pink */
+  --sign-sing-from: #ff1744;
+  --sign-sing-to: #ff4d6d;
+  --sign-sing-core: #ffe3e8;
+  --sign-spree: #ff9fb8;
+  --sign-spree-2: #ffb3c7;
+  --sign-spree-core: #fff1f4;
+  --sign-spree-light: #ffd9e3;
+}
+
+/* The neon heart beside the sign beats, lub-dub, a little slower than a
+   resting heart. Transform on the whole drawing only, which the compositor
+   animates without repainting it. */
+@keyframes season-valentines-beat {
+  0%, 34%, 100% { transform: scale(1); }
+  9% { transform: scale(1.07); }
+  17% { transform: scale(1.01); }
+  25% { transform: scale(1.05); }
+}
+html[data-season="valentines"] .season-valentines-beat {
+  animation: season-valentines-beat 1.5s ease-in-out infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-season="valentines"] .season-valentines-beat { animation: none; }
+}

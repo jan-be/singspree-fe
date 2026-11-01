@@ -1,0 +1,44 @@
+/* St. Patrick's Day (stPatricks.tsx): instead of the stage's pink and cyan
+   neon, emerald green and warm gold, like a pub's lamps on a deep green
+   night; the main actions go emerald → dark green, the sign's S and "ing"
+   glow emerald and "Spree" gold. The tokens are index.css's; outside the
+   layers, so they win over the theme's and the components' own. */
+html[data-season="st-patricks"] {
+  --color-ink: #08140f;
+  --color-panel: #10241a;
+  --color-panel-raised: #173223;
+  --color-stage: #0b1b13;
+  --color-hot: #ffc83d;
+
+  --hot-from: #17b065;
+  --hot-to: #0b7559;
+  --hot-hover-from: #22c574;
+  --hot-hover-to: #0f8c6a;
+  --hot-glow: 34, 196, 112;
+
+  --light-left: 34, 214, 120;
+  --light-right: 255, 196, 61;
+  --light-below: 16, 120, 78;
+  --page-top: #0f2219;
+  --page-mid: #0a1912;
+  --page-bottom: #07120d;
+
+  --wall-base: #1f3b2b;
+  --wall-mid: #142a1e;
+  --wall-edge: #0a1710;
+  --wall-left: #1fd67c;
+  --wall-right: #ffc23a;
+  --wall-right-strength: 0.24;
+
+  --link: #ffd36a;
+  --link-hover: #62e8a2;
+
+  /* the sign (seasons.css): S and "ing" in emerald, "Spree" and the mic in gold */
+  --sign-sing-from: #00c95f;
+  --sign-sing-to: #4dffa6;
+  --sign-sing-core: #e4fff0;
+  --sign-spree: #ffc21f;
+  --sign-spree-2: #ffd44d;
+  --sign-spree-core: #fff7dc;
+  --sign-spree-light: #ffe9a6;
+}

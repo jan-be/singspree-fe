@@ -1,0 +1,58 @@
+/* Winter (winter.tsx): instead of the stage's violet, a deep night blue
+   under fresh snow, lit by ice blue and frosty silver; the sign's S and
+   "ing" glow frost white → ice, "Spree" glacier blue, and the main actions
+   go ice blue → deep blue. The tokens are index.css's; outside the layers,
+   so they win over the theme's and the components' own. */
+html[data-season="winter"] {
+  --color-ink: #070f1f;
+  --color-panel: #0f1b31;
+  --color-panel-raised: #16253f;
+  --color-stage: #0b1528;
+  --color-hot: #9fdcff;
+
+  --hot-from: #2b8ae8;
+  --hot-to: #3c46c4;
+  --hot-hover-from: #46a2f5;
+  --hot-hover-to: #5160dc;
+  --hot-glow: 70, 160, 255;
+
+  --light-left: 120, 200, 255;
+  --light-right: 205, 225, 255;
+  --light-below: 80, 120, 255;
+  --page-top: #0c1830;
+  --page-mid: #08111f;
+  --page-bottom: #050b16;
+
+  --wall-base: #22324d;
+  --wall-mid: #172540;
+  --wall-edge: #0b1426;
+  --wall-left: #7fd0ff;
+  --wall-right: #dfe9ff;
+  --wall-right-strength: 0.2;
+
+  --link: #a8e4ff;
+  --link-hover: #e2ebff;
+
+  /* the sign (seasons.css): S and "ing" frost white → ice blue, "Spree" and the mic glacier blue */
+  --sign-sing-from: #e6f6ff;
+  --sign-sing-to: #6fd0ff;
+  --sign-sing-core: #ffffff;
+  --sign-spree: #6f9dff;
+  --sign-spree-2: #8fb4ff;
+  --sign-spree-core: #eef3ff;
+  --sign-spree-light: #cfdcff;
+}
+
+/* The big ice crystal turns once a minute: a transform on the whole drawing,
+   which the compositor turns without repainting. */
+@keyframes season-winter-turn {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+html[data-season="winter"] .season-winter-crystal {
+  animation: season-winter-turn 60s linear infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-season="winter"] .season-winter-crystal { animation: none; }
+}

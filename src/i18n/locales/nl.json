@@ -84,9 +84,61 @@
     "show": "Weer tonen"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 Oudejaarsavond",
+      "explain": "Feestnummers voor het aftellen naar middernacht"
+    },
+    "valentines": {
+      "title": "💘 Valentijnsdag",
+      "explain": "Liefdesliedjes en duetten om voor je geliefde te zingen"
+    },
+    "pi-day": {
+      "title": "🥧 Pi-dag",
+      "explain": "Liedjes over taarten, cirkels en alles wat ronddraait, voor wiskundefans"
+    },
+    "st-patricks": {
+      "title": "☘️ St. Patrick's Day",
+      "explain": "Ierse nummers en kroeghits om de hele nacht mee te zingen"
+    },
+    "easter": {
+      "title": "🐣 Pasen",
+      "explain": "Zonnige nummers voor de lente, paashazen en paaseieren"
+    },
+    "music-day": {
+      "title": "🎶 Fête de la Musique",
+      "explain": "Liedjes over muziek zelf, voor de dag dat muziek de straten vult"
+    },
+    "canada-day": {
+      "title": "🍁 Canada Day",
+      "explain": "Canadese hits om mee te zingen, van kust tot kust"
+    },
+    "independence-day": {
+      "title": "🎆 4 juli",
+      "explain": "Rood-wit-blauwe meezingers voor vuurwerk en barbecues"
+    },
+    "bastille-day": {
+      "title": "🎆 14 juli",
+      "explain": "Franse liedjes om samen te zingen onder het vuurwerk van de nationale feestdag"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ Praat als een Piraat-dag",
+      "explain": "Zeemansliederen, piraten en liedjes over de zee, arr!"
+    },
+    "german-unity-day": {
+      "title": "🎆 Dag van de Duitse Eenheid",
+      "explain": "Liedjes over vrijheid en de val van de Muur, uit Oost en West"
+    },
     "halloween": {
       "title": "🎃 Halloween",
       "explain": "Griezelige nummers voor de engste nacht van het jaar"
+    },
+    "winter": {
+      "title": "❄️ Winter",
+      "explain": "Liedjes over sneeuw, ijs en koude winternachten"
+    },
+    "christmas": {
+      "title": "🎄 Kerst",
+      "explain": "Feestelijke nummers voor de mooiste tijd van het jaar"
     },
     "more": "Alles tonen",
     "less": "Minder tonen"

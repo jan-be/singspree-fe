@@ -1,0 +1,45 @@
+/* 14 July (bastilleDay.tsx): instead of the stage's pink and cyan neon,
+   bleu, blanc, rouge on a summer night over Paris: the wall lit blue from
+   one side and red from the other, the main actions blue, the sign's S and
+   "ing" glowing blue and "Spree" red, both around white-hot cores. The
+   tokens are index.css's and seasons.css's; outside the layers, so they win
+   over the theme's and the components' own. */
+html[data-season="bastille-day"] {
+  --color-ink: #0a0f24;
+  --color-panel: #141c3c;
+  --color-panel-raised: #1b2550;
+  --color-stage: #0e1530;
+  --color-hot: #3a6cf0;
+
+  --hot-from: #3d6ff2;
+  --hot-to: #2340b8;
+  --hot-hover-from: #5582f6;
+  --hot-hover-to: #2d4fcc;
+  --hot-glow: 60, 110, 255;
+
+  --light-left: 70, 120, 255;
+  --light-right: 255, 64, 84;
+  --light-below: 70, 90, 220;
+  --page-top: #121a40;
+  --page-mid: #0b112a;
+  --page-bottom: #080c1f;
+
+  --wall-base: #242c62;
+  --wall-mid: #181f4a;
+  --wall-edge: #0c1230;
+  --wall-left: #4f7dff;
+  --wall-right: #ff4a5c;
+  --wall-right-strength: 0.26;
+
+  --link: #a4c0ff;
+  --link-hover: #ff8f99;
+
+  /* the sign (seasons.css): S and "ing" blue, "Spree" and the mic red, white at the core */
+  --sign-sing-from: #2f6bff;
+  --sign-sing-to: #63a2ff;
+  --sign-sing-core: #eef4ff;
+  --sign-spree: #ff3347;
+  --sign-spree-2: #ff5a6a;
+  --sign-spree-core: #fff1f2;
+  --sign-spree-light: #ffc4ca;
+}

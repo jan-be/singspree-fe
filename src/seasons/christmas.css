@@ -1,0 +1,60 @@
+/* Christmas (christmas.tsx): a winter night instead of the stage's violet,
+   lit by the sign in candy red and evergreen, with warm candlelight from
+   below; the main actions go crimson. The tokens are index.css's; outside
+   the layers, so they win over the theme's and the components' own. */
+html[data-season="christmas"] {
+  --color-ink: #0b1420;
+  --color-panel: #14212f;
+  --color-panel-raised: #1b2b3c;
+  --color-stage: #0f1a28;
+  --color-hot: #e8283e;
+
+  --hot-from: #f2364a;
+  --hot-to: #b3123a;
+  --hot-hover-from: #ff5263;
+  --hot-hover-to: #cc2450;
+  --hot-glow: 242, 54, 74;
+
+  --light-left: 242, 44, 66;
+  --light-right: 40, 220, 130;
+  --light-below: 255, 186, 90;
+  --page-top: #101d2c;
+  --page-mid: #0b1420;
+  --page-bottom: #080f19;
+
+  --wall-base: #2a3850;
+  --wall-mid: #1c283c;
+  --wall-edge: #0f1726;
+  --wall-left: #ff2e44;
+  --wall-right: #22e08a;
+  --wall-right-strength: 0.22;
+
+  --link: #8ff0c0;
+  --link-hover: #ff9aa5;
+
+  /* the sign (seasons.css): S and "ing" in candy red, "Spree" and the mic in evergreen */
+  --sign-sing-from: #e0102e;
+  --sign-sing-to: #ff4a4a;
+  --sign-sing-core: #ffe8e8;
+  --sign-spree: #1fe38a;
+  --sign-spree-2: #4af0a2;
+  --sign-spree-core: #e8fff3;
+  --sign-spree-light: #c6ffe2;
+}
+
+/* The fairy lights' glow breathes, half of the bulbs at a time: opacity on
+   two whole drawings only, which the compositor fades without repainting. */
+@keyframes season-christmas-twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+html[data-season="christmas"] .season-christmas-glow {
+  animation: season-christmas-twinkle 3.6s ease-in-out infinite;
+  will-change: opacity;
+}
+html[data-season="christmas"] .season-christmas-glow + .season-christmas-glow {
+  animation-delay: -1.8s;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-season="christmas"] .season-christmas-glow { animation: none; }
+}

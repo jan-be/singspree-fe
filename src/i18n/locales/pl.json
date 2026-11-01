@@ -88,9 +88,61 @@
     "show": "Pokaż ponownie"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 Sylwester",
+      "explain": "Imprezowe hity na odliczanie do północy"
+    },
+    "valentines": {
+      "title": "💘 Walentynki",
+      "explain": "Piosenki o miłości i duety do zaśpiewania we dwoje"
+    },
+    "pi-day": {
+      "title": "🥧 Dzień Liczby Pi",
+      "explain": "Piosenki o ciastach, okręgach i wszystkim, co się kręci – dla fanów matmy"
+    },
+    "st-patricks": {
+      "title": "☘️ Dzień Świętego Patryka",
+      "explain": "Irlandzkie piosenki i pubowe hymny do śpiewania przez całą noc"
+    },
+    "easter": {
+      "title": "🐣 Wielkanoc",
+      "explain": "Słoneczne piosenki na wiosnę, zajączki i pisanki"
+    },
+    "music-day": {
+      "title": "🎶 Święto Muzyki",
+      "explain": "Piosenki o samej muzyce na dzień, w którym muzyka wypełnia ulice"
+    },
+    "canada-day": {
+      "title": "🍁 Dzień Kanady",
+      "explain": "Kanadyjskie przeboje do śpiewania od wybrzeża do wybrzeża"
+    },
+    "independence-day": {
+      "title": "🎆 4 lipca",
+      "explain": "Czerwono-biało-niebieskie przeboje do śpiewania przy fajerwerkach i grillu"
+    },
+    "bastille-day": {
+      "title": "🎆 14 lipca",
+      "explain": "Francuskie piosenki do wspólnego śpiewania pod fajerwerkami święta narodowego"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ Dzień Mówienia Jak Pirat",
+      "explain": "Szanty, piraci i piosenki o morzu – stawiać żagle!"
+    },
+    "german-unity-day": {
+      "title": "🎆 Dzień Jedności Niemiec",
+      "explain": "Piosenki o wolności i upadku Muru, ze Wschodu i z Zachodu"
+    },
     "halloween": {
       "title": "🎃 Halloween",
       "explain": "Upiorne piosenki na najstraszniejszą noc w roku"
+    },
+    "winter": {
+      "title": "❄️ Zima",
+      "explain": "Piosenki o śniegu, lodzie i mroźnych zimowych nocach"
+    },
+    "christmas": {
+      "title": "🎄 Boże Narodzenie",
+      "explain": "Świąteczne piosenki na najpiękniejszy czas w roku"
     },
     "more": "Pokaż wszystkie",
     "less": "Pokaż mniej"

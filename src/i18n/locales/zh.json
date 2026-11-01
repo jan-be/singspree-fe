@@ -82,9 +82,61 @@
     "show": "重新显示"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 跨年夜",
+      "explain": "陪你倒数到午夜的派对金曲"
+    },
+    "valentines": {
+      "title": "💘 情人节",
+      "explain": "唱给特别的人听的情歌与对唱"
+    },
+    "pi-day": {
+      "title": "🥧 圆周率日",
+      "explain": "关于派、圆圈和一切旋转之物的歌，献给数学迷"
+    },
+    "st-patricks": {
+      "title": "☘️ 圣帕特里克节",
+      "explain": "整夜一起唱的爱尔兰歌曲和酒吧金曲"
+    },
+    "easter": {
+      "title": "🐣 复活节",
+      "explain": "为春天、小兔子和彩蛋准备的阳光歌曲"
+    },
+    "music-day": {
+      "title": "🎶 世界音乐日",
+      "explain": "唱给音乐本身的歌，献给音乐响彻街头的这一天"
+    },
+    "canada-day": {
+      "title": "🍁 加拿大日",
+      "explain": "从东岸唱到西岸的加拿大金曲"
+    },
+    "independence-day": {
+      "title": "🎆 美国独立日",
+      "explain": "红白蓝的合唱金曲，配上烟花和烧烤"
+    },
+    "bastille-day": {
+      "title": "🎆 法国国庆日",
+      "explain": "在7月14日的烟花下一起唱的法语歌"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ 海盗腔日",
+      "explain": "水手号子、海盗和大海之歌，扬帆起航！"
+    },
+    "german-unity-day": {
+      "title": "🎆 德国统一日",
+      "explain": "关于自由与柏林墙倒塌的歌，东西方一起唱"
+    },
     "halloween": {
       "title": "🎃 万圣节",
       "explain": "为一年中最恐怖的夜晚准备的惊悚歌曲"
+    },
+    "winter": {
+      "title": "❄️ 冬日",
+      "explain": "关于雪、冰和寒冷冬夜的歌"
+    },
+    "christmas": {
+      "title": "🎄 圣诞节",
+      "explain": "为一年中最美好的时节准备的节日歌曲"
     },
     "more": "显示全部",
     "less": "收起"

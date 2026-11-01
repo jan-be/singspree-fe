@@ -1,0 +1,57 @@
+/* The Fourth of July (independenceDay.tsx): instead of the stage's pink and
+   cyan neon, red and blue light on a deep navy summer night; the main
+   actions go red → deep red, the sign's S and "ing" glow red and "Spree"
+   blue with a white core. The tokens are index.css's; outside the layers,
+   so they win over the theme's and the components' own. */
+html[data-season="independence-day"] {
+  --color-ink: #0b0f26;
+  --color-panel: #141a3a;
+  --color-panel-raised: #1c2450;
+  --color-stage: #0f1430;
+  --color-hot: #ff3347;
+
+  --hot-from: #ff3a4c;
+  --hot-to: #c0142f;
+  --hot-hover-from: #ff5868;
+  --hot-hover-to: #d62a44;
+  --hot-glow: 255, 51, 71;
+
+  --light-left: 255, 51, 71;
+  --light-right: 79, 140, 255;
+  --light-below: 40, 70, 180;
+  --page-top: #121a44;
+  --page-mid: #0b0f26;
+  --page-bottom: #080b1c;
+
+  --wall-base: #26306a;
+  --wall-mid: #1a2150;
+  --wall-edge: #0c1030;
+  --wall-left: #ff3347;
+  --wall-right: #4f8cff;
+  --wall-right-strength: 0.3;
+
+  --link: #8fb4ff;
+  --link-hover: #ff8a96;
+
+  /* the sign (seasons.css): S and "ing" in red, "Spree" and the mic in blue */
+  --sign-sing-from: #ff1f3a;
+  --sign-sing-to: #ff5a6a;
+  --sign-sing-core: #ffe3e6;
+  --sign-spree: #3d86ff;
+  --sign-spree-2: #6aa2ff;
+  --sign-spree-core: #f2f6ff;
+  --sign-spree-light: #cfe0ff;
+}
+
+/* The glints: each fades and shrinks now and then, slowly and out of step
+   with the others (their delays). Opacity and transform only. */
+@keyframes season-independence-day-twinkle {
+  0%, 100% { opacity: 0.95; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(0.6); }
+}
+html[data-season="independence-day"] .season-independence-day-twinkle {
+  animation: season-independence-day-twinkle 3.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-season="independence-day"] .season-independence-day-twinkle { animation: none; }
+}

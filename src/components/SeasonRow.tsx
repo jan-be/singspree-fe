@@ -54,7 +54,7 @@ const SeasonCard = ({ song, position, seasonId, folded }: { song: SeasonSong; po
  * one is on: Halloween's in the last week of October, and so on.
  */
 export default function SeasonRow({ season }: { season: Season }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [songs, setSongs] = useState<SeasonSong[] | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -67,7 +67,8 @@ export default function SeasonRow({ season }: { season: Season }) {
     return () => { gone = true; };
   }, [season]);
 
-  if (!songs?.length) return null;
+  // (a season without its strings shows no row rather than the bare key "season.<id>.title"; seasons.test.ts checks them all)
+  if (!songs?.length || !i18n.exists(`season.${season.id}.title`)) return null;
   const more = songs.length > FOLDED;
 
   return (

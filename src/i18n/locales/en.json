@@ -84,9 +84,61 @@
     "show": "Show again"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 New Year's Eve",
+      "explain": "Party anthems for the countdown to midnight"
+    },
+    "valentines": {
+      "title": "💘 Valentine's Day",
+      "explain": "Love songs and duets to sing for someone special"
+    },
+    "pi-day": {
+      "title": "🥧 Pi Day",
+      "explain": "Songs about pies, circles and things going round, for maths fans"
+    },
+    "st-patricks": {
+      "title": "☘️ St. Patrick's Day",
+      "explain": "Irish songs and pub anthems to sing along all night"
+    },
+    "easter": {
+      "title": "🐣 Easter",
+      "explain": "Sunny songs for spring, bunnies and Easter eggs"
+    },
+    "music-day": {
+      "title": "🎶 World Music Day",
+      "explain": "Songs about music itself, for the day music fills the streets"
+    },
+    "canada-day": {
+      "title": "🍁 Canada Day",
+      "explain": "Canadian hits to sing from coast to coast"
+    },
+    "independence-day": {
+      "title": "🎆 Fourth of July",
+      "explain": "Red, white and blue singalongs for fireworks and cookouts"
+    },
+    "bastille-day": {
+      "title": "🎆 Bastille Day",
+      "explain": "French songs to sing together under the 14 July fireworks"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ Talk Like a Pirate Day",
+      "explain": "Sea shanties, pirates and songs of the sea, arr!"
+    },
+    "german-unity-day": {
+      "title": "🎆 German Unity Day",
+      "explain": "Songs of freedom and the fall of the Wall, from East and West"
+    },
     "halloween": {
       "title": "🎃 Halloween",
       "explain": "Spooky songs for the scariest night of the year"
+    },
+    "winter": {
+      "title": "❄️ Winter",
+      "explain": "Songs of snow, ice and cold winter nights"
+    },
+    "christmas": {
+      "title": "🎄 Christmas",
+      "explain": "Festive songs for the most wonderful time of the year"
     },
     "more": "Show all",
     "less": "Show fewer"
@@ -890,7 +942,7 @@
         "auto-similar": "Auto-pick when the queue ran out",
         "sing-again": "Start again (last party)",
         "for-you": "For you row",
-        "season": "Seasonal row (Halloween …)"
+        "season": "Seasonal row (Christmas, Easter …)"
       },
       "searches": "Searches",
       "sources": {

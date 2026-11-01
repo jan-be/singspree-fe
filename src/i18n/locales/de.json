@@ -84,9 +84,61 @@
     "show": "Wieder anzeigen"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 Silvester",
+      "explain": "Partyhymnen für den Countdown bis Mitternacht"
+    },
+    "valentines": {
+      "title": "💘 Valentinstag",
+      "explain": "Liebeslieder und Duette für einen besonderen Menschen"
+    },
+    "pi-day": {
+      "title": "🥧 Pi-Tag",
+      "explain": "Songs über Kuchen, Kreise und alles, was sich dreht – für Mathe-Fans"
+    },
+    "st-patricks": {
+      "title": "☘️ St. Patrick's Day",
+      "explain": "Irische Songs und Pub-Hymnen zum Mitsingen bis spät in die Nacht"
+    },
+    "easter": {
+      "title": "🐣 Ostern",
+      "explain": "Sonnige Songs für Frühling, Osterhasen und bunte Eier"
+    },
+    "music-day": {
+      "title": "🎶 Fête de la Musique",
+      "explain": "Lieder über die Musik selbst, für den Tag, an dem sie durch die Straßen klingt"
+    },
+    "canada-day": {
+      "title": "🍁 Canada Day",
+      "explain": "Kanadische Hits zum Mitsingen, von Küste zu Küste"
+    },
+    "independence-day": {
+      "title": "🎆 4. Juli",
+      "explain": "Mitsing-Hits in Rot, Weiß und Blau für Feuerwerk und Grillpartys"
+    },
+    "bastille-day": {
+      "title": "🎆 14. Juli",
+      "explain": "Französische Lieder zum gemeinsamen Singen unterm Feuerwerk des Nationalfeiertags"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ Sprich-wie-ein-Pirat-Tag",
+      "explain": "Shantys, Piraten und Lieder vom Meer – Segel setzen, ahoi!"
+    },
+    "german-unity-day": {
+      "title": "🎆 Tag der Deutschen Einheit",
+      "explain": "Lieder von Freiheit und Mauerfall, aus Ost und West"
+    },
     "halloween": {
       "title": "🎃 Halloween",
       "explain": "Schaurige Songs für die gruseligste Nacht des Jahres"
+    },
+    "winter": {
+      "title": "❄️ Winter",
+      "explain": "Songs über Schnee, Eis und kalte Winternächte"
+    },
+    "christmas": {
+      "title": "🎄 Weihnachten",
+      "explain": "Festliche Songs für die schönste Zeit des Jahres"
     },
     "more": "Alle zeigen",
     "less": "Weniger zeigen"
@@ -890,7 +942,7 @@
         "auto-similar": "Automatisch, als die Warteschlange leer war",
         "sing-again": "Noch mal starten (letzte Party)",
         "for-you": "Reihe „Für dich“",
-        "season": "Saison-Reihe (Halloween …)"
+        "season": "Saison-Reihe (Weihnachten, Ostern …)"
       },
       "searches": "Suchen",
       "sources": {

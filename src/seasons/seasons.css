@@ -1,0 +1,17 @@
+/* The sign's tubes in a season's colours (seasons.ts): the nav's sign and the
+   entry page's hero take --sign-* from the season's CSS, the usual neon where
+   one leaves a colour out. The tubes' colours are the drawing's own
+   attributes (src/wordmark.svg), which CSS outranks. Flat selectors, no :is()
+   or nesting: the build's floor is Chrome 79 (vite.config.ts).
+     --sign-sing-from / -to   the S and "ing", top to bottom (purple → pink)
+     --sign-sing-core         their white-hot middle
+     --sign-spree             "Spree" and the mic (cyan), -2 its letters' glow
+     --sign-spree-core        its white-hot middle, -light the mic's grille */
+html[data-season] nav svg [stop-color="#b44aff"], html[data-season] h1 svg [stop-color="#b44aff"] { stop-color: var(--sign-sing-from, #b44aff); }
+html[data-season] nav svg [stop-color="#ff1ff0"], html[data-season] h1 svg [stop-color="#ff1ff0"] { stop-color: var(--sign-sing-to, #ff1ff0); }
+html[data-season] nav svg [stroke="#ffe0fb"], html[data-season] h1 svg [stroke="#ffe0fb"] { stroke: var(--sign-sing-core, #ffe0fb); }
+html[data-season] nav svg [stroke="#00e5ff"], html[data-season] h1 svg [stroke="#00e5ff"] { stroke: var(--sign-spree, #00e5ff); }
+html[data-season] nav svg [fill="#00e5ff"], html[data-season] h1 svg [fill="#00e5ff"] { fill: var(--sign-spree, #00e5ff); }
+html[data-season] nav svg [stroke="#2eeaff"], html[data-season] h1 svg [stroke="#2eeaff"] { stroke: var(--sign-spree-2, #2eeaff); }
+html[data-season] nav svg [stroke="#e0fdff"], html[data-season] h1 svg [stroke="#e0fdff"] { stroke: var(--sign-spree-core, #e0fdff); }
+html[data-season] nav svg [stroke="#b8f9ff"], html[data-season] h1 svg [stroke="#b8f9ff"] { stroke: var(--sign-spree-light, #b8f9ff); }

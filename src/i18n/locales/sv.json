@@ -84,9 +84,61 @@
     "show": "Visa igen"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 Nyårsafton",
+      "explain": "Festlåtar för nedräkningen till midnatt"
+    },
+    "valentines": {
+      "title": "💘 Alla hjärtans dag",
+      "explain": "Kärlekslåtar och duetter att sjunga för någon speciell"
+    },
+    "pi-day": {
+      "title": "🥧 Pi-dagen",
+      "explain": "Låtar om pajer, cirklar och allt som snurrar, för mattenördar"
+    },
+    "st-patricks": {
+      "title": "☘️ S:t Patricks dag",
+      "explain": "Irländska låtar och pubhymner att sjunga med i hela natten"
+    },
+    "easter": {
+      "title": "🐣 Påsk",
+      "explain": "Soliga låtar för våren, påskharar och påskägg"
+    },
+    "music-day": {
+      "title": "🎶 Musikens dag",
+      "explain": "Låtar om musiken själv, för dagen då musiken fyller gatorna"
+    },
+    "canada-day": {
+      "title": "🍁 Kanadas nationaldag",
+      "explain": "Kanadensiska hits att sjunga med i, från kust till kust"
+    },
+    "independence-day": {
+      "title": "🎆 4 juli",
+      "explain": "Rödvitblå allsångslåtar för fyrverkerier och grillfester"
+    },
+    "bastille-day": {
+      "title": "🎆 14 juli",
+      "explain": "Franska låtar att sjunga tillsammans under nationaldagens fyrverkerier"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ Prata som en pirat-dagen",
+      "explain": "Sjömansvisor, pirater och sånger om havet, arr!"
+    },
+    "german-unity-day": {
+      "title": "🎆 Tysklands enhetsdag",
+      "explain": "Sånger om frihet och murens fall, från öst och väst"
+    },
     "halloween": {
       "title": "🎃 Halloween",
       "explain": "Läskiga låtar för årets kusligaste natt"
+    },
+    "winter": {
+      "title": "❄️ Vinter",
+      "explain": "Låtar om snö, is och kalla vinternätter"
+    },
+    "christmas": {
+      "title": "🎄 Jul",
+      "explain": "Festliga låtar för årets mysigaste tid"
     },
     "more": "Visa alla",
     "less": "Visa färre"

@@ -84,9 +84,61 @@
     "show": "Mostrar de novo"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 Réveillon",
+      "explain": "Hinos de festa para a contagem regressiva até a meia-noite"
+    },
+    "valentines": {
+      "title": "💘 Dia de São Valentim",
+      "explain": "Músicas de amor e duetos para cantar para alguém especial"
+    },
+    "pi-day": {
+      "title": "🥧 Dia do Pi",
+      "explain": "Músicas sobre tortas, círculos e tudo que gira, para fãs de matemática"
+    },
+    "st-patricks": {
+      "title": "☘️ Dia de São Patrício",
+      "explain": "Músicas irlandesas e hinos de pub para cantar a noite toda"
+    },
+    "easter": {
+      "title": "🐣 Páscoa",
+      "explain": "Músicas ensolaradas para a primavera, os coelhinhos e os ovos de Páscoa"
+    },
+    "music-day": {
+      "title": "🎶 Dia Mundial da Música",
+      "explain": "Canções sobre a própria música, para o dia em que a música enche as ruas"
+    },
+    "canada-day": {
+      "title": "🍁 Dia do Canadá",
+      "explain": "Sucessos canadenses para cantar de costa a costa"
+    },
+    "independence-day": {
+      "title": "🎆 4 de Julho",
+      "explain": "Músicas em vermelho, branco e azul para cantar entre fogos de artifício e churrascos"
+    },
+    "bastille-day": {
+      "title": "🎆 14 de Julho",
+      "explain": "Canções francesas para cantar juntos sob o fogo de artifício da festa nacional"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ Dia de Falar como um Pirata",
+      "explain": "Canções de marinheiro, piratas e músicas do mar, arrr!"
+    },
+    "german-unity-day": {
+      "title": "🎆 Dia da Unidade Alemã",
+      "explain": "Canções de liberdade e da queda do Muro, do Leste e do Oeste"
+    },
     "halloween": {
       "title": "🎃 Halloween",
       "explain": "Músicas arrepiantes para a noite mais assustadora do ano"
+    },
+    "winter": {
+      "title": "❄️ Inverno",
+      "explain": "Músicas de neve, gelo e noites frias de inverno"
+    },
+    "christmas": {
+      "title": "🎄 Natal",
+      "explain": "Músicas festivas para a época mais bonita do ano"
     },
     "more": "Ver todas",
     "less": "Ver menos"

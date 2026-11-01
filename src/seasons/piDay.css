@@ -1,0 +1,44 @@
+/* Pi Day (piDay.tsx): instead of the stage's pink and cyan neon, a
+   blueprint-blue night with chalk drawings on it and the colours of a cherry
+   pie; the main actions go cherry → crust orange, the sign's S and "ing"
+   glow cherry and "Spree" golden crust. The tokens are index.css's; outside
+   the layers, so they win over the theme's and the components' own. */
+html[data-season="pi-day"] {
+  --color-ink: #06142a;
+  --color-panel: #0d2140;
+  --color-panel-raised: #132c52;
+  --color-stage: #091a33;
+  --color-hot: #ffb627;
+
+  --hot-from: #f0365a;
+  --hot-to: #e2802a;
+  --hot-hover-from: #ff4f6e;
+  --hot-hover-to: #f2963e;
+  --hot-glow: 240, 54, 90;
+
+  --light-left: 255, 64, 100;
+  --light-right: 255, 182, 39;
+  --light-below: 40, 110, 210;
+  --page-top: #0f2a52;
+  --page-mid: #0b2042;
+  --page-bottom: #081830;
+
+  --wall-base: #1c3f73;
+  --wall-mid: #13305c;
+  --wall-edge: #0a1c3a;
+  --wall-left: #ff3d63;
+  --wall-right: #ffb627;
+  --wall-right-strength: 0.22;
+
+  --link: #ffc857;
+  --link-hover: #ff8fa3;
+
+  /* the sign (seasons.css): S and "ing" in cherry red, "Spree" and the mic in golden crust */
+  --sign-sing-from: #ff1f4f;
+  --sign-sing-to: #ff6f91;
+  --sign-sing-core: #ffe3ea;
+  --sign-spree: #ffb21f;
+  --sign-spree-2: #ffc54d;
+  --sign-spree-core: #fff5dc;
+  --sign-spree-light: #ffe0a0;
+}

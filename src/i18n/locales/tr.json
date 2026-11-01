@@ -84,9 +84,61 @@
     "show": "Yeniden göster"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 Yılbaşı",
+      "explain": "Gece yarısına geri sayım için parti şarkıları"
+    },
+    "valentines": {
+      "title": "💘 Sevgililer Günü",
+      "explain": "Özel biri için söylenecek aşk şarkıları ve düetler"
+    },
+    "pi-day": {
+      "title": "🥧 Pi Günü",
+      "explain": "Turtalar, çemberler ve dönen her şey üzerine şarkılar, matematik tutkunlarına"
+    },
+    "st-patricks": {
+      "title": "☘️ Aziz Patrick Günü",
+      "explain": "Bütün gece eşlik etmelik İrlanda şarkıları ve pub marşları"
+    },
+    "easter": {
+      "title": "🐣 Paskalya",
+      "explain": "Bahar, tavşanlar ve Paskalya yumurtaları için neşeli şarkılar"
+    },
+    "music-day": {
+      "title": "🎶 Dünya Müzik Günü",
+      "explain": "Müziğin sokakları doldurduğu gün için müziği anlatan şarkılar"
+    },
+    "canada-day": {
+      "title": "🍁 Kanada Günü",
+      "explain": "Kıyıdan kıyıya birlikte söylemek için Kanadalı hitler"
+    },
+    "independence-day": {
+      "title": "🎆 4 Temmuz",
+      "explain": "Havai fişekler ve mangal partileri için kırmızı, beyaz ve mavi şarkılar"
+    },
+    "bastille-day": {
+      "title": "🎆 14 Temmuz",
+      "explain": "Ulusal bayram havai fişekleri altında birlikte söylenecek Fransızca şarkılar"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ Korsan Gibi Konuşma Günü",
+      "explain": "Denizci şarkıları, korsanlar ve deniz şarkıları, yelkenler fora!"
+    },
+    "german-unity-day": {
+      "title": "🎆 Alman Birlik Günü",
+      "explain": "Özgürlük ve Duvar'ın yıkılışı üzerine şarkılar, Doğu'dan ve Batı'dan"
+    },
     "halloween": {
       "title": "🎃 Cadılar Bayramı",
       "explain": "Yılın en korkunç gecesi için ürkütücü şarkılar"
+    },
+    "winter": {
+      "title": "❄️ Kış",
+      "explain": "Kar, buz ve soğuk kış geceleri üzerine şarkılar"
+    },
+    "christmas": {
+      "title": "🎄 Noel",
+      "explain": "Yılın en güzel zamanı için neşeli şarkılar"
     },
     "more": "Tümünü göster",
     "less": "Daha az göster"

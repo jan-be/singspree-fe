@@ -84,9 +84,61 @@
     "show": "Mostra di nuovo"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 Capodanno",
+      "explain": "Inni da festa per il conto alla rovescia fino a mezzanotte"
+    },
+    "valentines": {
+      "title": "💘 San Valentino",
+      "explain": "Canzoni d’amore e duetti da cantare a una persona speciale"
+    },
+    "pi-day": {
+      "title": "🥧 Pi Day",
+      "explain": "Canzoni su torte, cerchi e tutto ciò che gira, per gli appassionati di matematica"
+    },
+    "st-patricks": {
+      "title": "☘️ San Patrizio",
+      "explain": "Canzoni irlandesi e inni da pub da cantare tutta la notte"
+    },
+    "easter": {
+      "title": "🐣 Pasqua",
+      "explain": "Canzoni solari per la primavera, i coniglietti e le uova di Pasqua"
+    },
+    "music-day": {
+      "title": "🎶 Festa della Musica",
+      "explain": "Canzoni sulla musica stessa, per il giorno in cui la musica riempie le strade"
+    },
+    "canada-day": {
+      "title": "🍁 Canada Day",
+      "explain": "Successi canadesi da cantare da una costa all’altra"
+    },
+    "independence-day": {
+      "title": "🎆 4 luglio",
+      "explain": "Canzoni rosse, bianche e blu da cantare tra fuochi d’artificio e grigliate"
+    },
+    "bastille-day": {
+      "title": "🎆 14 luglio",
+      "explain": "Canzoni francesi da cantare insieme sotto i fuochi d’artificio della festa nazionale"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ Giornata del parlare come un pirata",
+      "explain": "Canti marinareschi, pirati e canzoni del mare, arrr!"
+    },
+    "german-unity-day": {
+      "title": "🎆 Giorno dell'Unità tedesca",
+      "explain": "Canzoni di libertà e della caduta del Muro, dall'Est e dall'Ovest"
+    },
     "halloween": {
       "title": "🎃 Halloween",
       "explain": "Canzoni da brivido per la notte più spaventosa dell’anno"
+    },
+    "winter": {
+      "title": "❄️ Inverno",
+      "explain": "Canzoni di neve, ghiaccio e fredde notti d'inverno"
+    },
+    "christmas": {
+      "title": "🎄 Natale",
+      "explain": "Canzoni di festa per il periodo più bello dell’anno"
     },
     "more": "Mostra tutte",
     "less": "Mostra meno"

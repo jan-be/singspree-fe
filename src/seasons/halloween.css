@@ -32,20 +32,16 @@ html[data-season="halloween"] {
 
   --link: #ffaa55;
   --link-hover: #c08cff;
-}
 
-/* The sign (nav and the entry page's hero): S and "ing" in pumpkin orange,
-   "Spree" and the mic in slime green. The tubes' colours are the drawing's
-   own attributes (src/wordmark.svg), which CSS outranks. Flat selectors, no
-   :is() or nesting: the build's floor is Chrome 79 (vite.config.ts). */
-html[data-season="halloween"] nav svg [stop-color="#b44aff"], html[data-season="halloween"] h1 svg [stop-color="#b44aff"] { stop-color: #ff4a0a; }
-html[data-season="halloween"] nav svg [stop-color="#ff1ff0"], html[data-season="halloween"] h1 svg [stop-color="#ff1ff0"] { stop-color: #ffae1f; }
-html[data-season="halloween"] nav svg [stroke="#ffe0fb"], html[data-season="halloween"] h1 svg [stroke="#ffe0fb"] { stroke: #fff0d0; }
-html[data-season="halloween"] nav svg [stroke="#00e5ff"], html[data-season="halloween"] h1 svg [stroke="#00e5ff"] { stroke: #74ff3c; }
-html[data-season="halloween"] nav svg [fill="#00e5ff"], html[data-season="halloween"] h1 svg [fill="#00e5ff"] { fill: #74ff3c; }
-html[data-season="halloween"] nav svg [stroke="#2eeaff"], html[data-season="halloween"] h1 svg [stroke="#2eeaff"] { stroke: #9dff5e; }
-html[data-season="halloween"] nav svg [stroke="#e0fdff"], html[data-season="halloween"] h1 svg [stroke="#e0fdff"] { stroke: #f0ffe0; }
-html[data-season="halloween"] nav svg [stroke="#b8f9ff"], html[data-season="halloween"] h1 svg [stroke="#b8f9ff"] { stroke: #dcffc8; }
+  /* the sign (seasons.css): S and "ing" in pumpkin orange, "Spree" and the mic in slime green */
+  --sign-sing-from: #ff4a0a;
+  --sign-sing-to: #ffae1f;
+  --sign-sing-core: #fff0d0;
+  --sign-spree: #74ff3c;
+  --sign-spree-2: #9dff5e;
+  --sign-spree-core: #f0ffe0;
+  --sign-spree-light: #dcffc8;
+}
 
 /* A dying tube: steady most of the time, then a stutter. Opacity on the whole
    drawing only, which the compositor animates without repainting it. */

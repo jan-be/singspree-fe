@@ -84,9 +84,61 @@
     "show": "Ipakita ulit"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 Bisperas ng Bagong Taon",
+      "explain": "Mga pampartying kanta para sa countdown hanggang hatinggabi"
+    },
+    "valentines": {
+      "title": "💘 Araw ng mga Puso",
+      "explain": "Mga awit ng pag-ibig at duet na kakantahin para sa espesyal na tao"
+    },
+    "pi-day": {
+      "title": "🥧 Araw ng Pi",
+      "explain": "Mga kanta tungkol sa pie, bilog at lahat ng umiikot, para sa mga mahilig sa math"
+    },
+    "st-patricks": {
+      "title": "☘️ Araw ni San Patricio",
+      "explain": "Mga awiting Irish at pub anthem na sasabayan buong gabi"
+    },
+    "easter": {
+      "title": "🐣 Pasko ng Pagkabuhay",
+      "explain": "Masasayang kanta para sa tagsibol, mga kuneho at mga Easter egg"
+    },
+    "music-day": {
+      "title": "🎶 World Music Day",
+      "explain": "Mga kanta tungkol sa musika mismo, para sa araw na puno ng musika ang mga kalye"
+    },
+    "canada-day": {
+      "title": "🍁 Araw ng Canada",
+      "explain": "Mga sikat na kantang Canadian na sabay-sabay kantahin"
+    },
+    "independence-day": {
+      "title": "🎆 Ika-4 ng Hulyo",
+      "explain": "Mga kantang pula, puti at asul para sabayan ang paputok at ihawan"
+    },
+    "bastille-day": {
+      "title": "🎆 Bastille Day",
+      "explain": "Mga kantang Pranses na sabay-sabay kantahin sa ilalim ng paputok ng 14 Hulyo"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ Araw ng Pagsasalita Gaya ng Pirata",
+      "explain": "Mga awit ng mandaragat, pirata at mga kanta ng dagat, arr!"
+    },
+    "german-unity-day": {
+      "title": "🎆 Araw ng Pagkakaisa ng Germany",
+      "explain": "Mga kanta ng kalayaan at pagbagsak ng Pader, mula Silangan at Kanluran"
+    },
     "halloween": {
       "title": "🎃 Halloween",
       "explain": "Nakakatakot na mga kanta para sa pinakanakakatakot na gabi ng taon"
+    },
+    "winter": {
+      "title": "❄️ Taglamig",
+      "explain": "Mga kanta tungkol sa niyebe, yelo at malamig na gabi ng taglamig"
+    },
+    "christmas": {
+      "title": "🎄 Pasko",
+      "explain": "Masasayang kanta para sa pinakamagandang panahon ng taon"
     },
     "more": "Ipakita lahat",
     "less": "Ipakita ang mas kaunti"

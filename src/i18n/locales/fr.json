@@ -84,9 +84,61 @@
     "show": "Afficher à nouveau"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 Nouvel An",
+      "explain": "Des hymnes de fête pour le compte à rebours jusqu’à minuit"
+    },
+    "valentines": {
+      "title": "💘 Saint-Valentin",
+      "explain": "Chansons d’amour et duos à chanter pour quelqu’un de spécial"
+    },
+    "pi-day": {
+      "title": "🥧 Journée de Pi",
+      "explain": "Des chansons de tartes, de cercles et de tout ce qui tourne, pour les fans de maths"
+    },
+    "st-patricks": {
+      "title": "☘️ Saint-Patrick",
+      "explain": "Des chansons irlandaises et des hymnes de pub à chanter toute la nuit"
+    },
+    "easter": {
+      "title": "🐣 Pâques",
+      "explain": "Des chansons ensoleillées pour le printemps, les lapins et les œufs de Pâques"
+    },
+    "music-day": {
+      "title": "🎶 Fête de la Musique",
+      "explain": "Des chansons sur la musique, pour le jour où elle envahit les rues"
+    },
+    "canada-day": {
+      "title": "🍁 Fête du Canada",
+      "explain": "Des tubes canadiens à chanter d’un océan à l’autre"
+    },
+    "independence-day": {
+      "title": "🎆 4 Juillet",
+      "explain": "Des tubes bleu, blanc, rouge à chanter entre feux d’artifice et barbecues"
+    },
+    "bastille-day": {
+      "title": "🎆 14 Juillet",
+      "explain": "Les chansons françaises à chanter ensemble sous le feu d’artifice"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ Journée « Parlez comme un pirate »",
+      "explain": "Chants de marins, pirates et chansons de la mer, hissez les voiles !"
+    },
+    "german-unity-day": {
+      "title": "🎆 Jour de l'Unité allemande",
+      "explain": "Chansons de liberté et de la chute du Mur, de l'Est et de l'Ouest"
+    },
     "halloween": {
       "title": "🎃 Halloween",
       "explain": "Des chansons qui font frissonner pour la nuit la plus effrayante de l’année"
+    },
+    "winter": {
+      "title": "❄️ Hiver",
+      "explain": "Des chansons de neige, de glace et de froides nuits d'hiver"
+    },
+    "christmas": {
+      "title": "🎄 Noël",
+      "explain": "Des chansons festives pour la plus belle période de l’année"
     },
     "more": "Tout afficher",
     "less": "Afficher moins"

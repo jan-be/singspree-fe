@@ -82,9 +82,61 @@
     "show": "Tampilkan lagi"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 Malam Tahun Baru",
+      "explain": "Lagu-lagu pesta untuk hitung mundur menuju tengah malam"
+    },
+    "valentines": {
+      "title": "💘 Hari Valentine",
+      "explain": "Lagu cinta dan duet untuk dinyanyikan bagi seseorang yang spesial"
+    },
+    "pi-day": {
+      "title": "🥧 Hari Pi",
+      "explain": "Lagu tentang pai, lingkaran, dan segala yang berputar, untuk penggemar matematika"
+    },
+    "st-patricks": {
+      "title": "☘️ Hari Santo Patrick",
+      "explain": "Lagu-lagu Irlandia dan lagu kebangsaan pub untuk bernyanyi semalaman"
+    },
+    "easter": {
+      "title": "🐣 Paskah",
+      "explain": "Lagu-lagu cerah untuk musim semi, kelinci, dan telur Paskah"
+    },
+    "music-day": {
+      "title": "🎶 Hari Musik Sedunia",
+      "explain": "Lagu tentang musik itu sendiri, untuk hari ketika musik memenuhi jalanan"
+    },
+    "canada-day": {
+      "title": "🍁 Hari Kanada",
+      "explain": "Lagu-lagu hit Kanada untuk dinyanyikan dari pantai ke pantai"
+    },
+    "independence-day": {
+      "title": "🎆 4 Juli",
+      "explain": "Lagu merah, putih, dan biru untuk dinyanyikan bersama di tengah kembang api dan barbekyu"
+    },
+    "bastille-day": {
+      "title": "🎆 14 Juli",
+      "explain": "Lagu-lagu Prancis untuk dinyanyikan bersama di bawah kembang api hari nasional"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ Hari Bicara Seperti Bajak Laut",
+      "explain": "Lagu pelaut, bajak laut, dan lagu-lagu tentang laut, arr!"
+    },
+    "german-unity-day": {
+      "title": "🎆 Hari Persatuan Jerman",
+      "explain": "Lagu tentang kebebasan dan runtuhnya Tembok, dari Timur dan Barat"
+    },
     "halloween": {
       "title": "🎃 Halloween",
       "explain": "Lagu-lagu seram untuk malam paling menakutkan tahun ini"
+    },
+    "winter": {
+      "title": "❄️ Musim dingin",
+      "explain": "Lagu tentang salju, es, dan malam musim dingin"
+    },
+    "christmas": {
+      "title": "🎄 Natal",
+      "explain": "Lagu-lagu meriah untuk saat terindah dalam setahun"
     },
     "more": "Tampilkan semua",
     "less": "Tampilkan lebih sedikit"

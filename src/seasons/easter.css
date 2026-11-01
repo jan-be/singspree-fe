@@ -1,0 +1,43 @@
+/* Easter (easter.tsx): spring pastels glowing as neon on a lilac night: the
+   sign's S and "ing" go from butter yellow to blossom pink like a dyed egg,
+   "Spree" and the mic are mint; the main actions go mint → lilac, the wall is
+   lit pink and mint. The tokens are index.css's and seasons.css's; outside
+   the layers, so they win over the theme's and the components' own. */
+html[data-season="easter"] {
+  --color-ink: #120f24;
+  --color-panel: #1f1a3a;
+  --color-panel-raised: #29234b;
+  --color-stage: #16122e;
+  --color-hot: #17a985;
+
+  --hot-from: #17ad88;
+  --hot-to: #8358ee;
+  --hot-hover-from: #26c29b;
+  --hot-hover-to: #9773ff;
+  --hot-glow: 70, 220, 175;
+
+  --light-left: 255, 140, 200;
+  --light-right: 110, 240, 200;
+  --light-below: 150, 110, 240;
+  --page-top: #1b1738;
+  --page-mid: #13112b;
+  --page-bottom: #0e0c20;
+
+  --wall-base: #34305c;
+  --wall-mid: #252147;
+  --wall-edge: #141229;
+  --wall-left: #ff9ccf;
+  --wall-right: #74f0c8;
+  --wall-right-strength: 0.24;
+
+  --link: #ffd86b;
+  --link-hover: #9ff3d6;
+
+  --sign-sing-from: #ffe66b;
+  --sign-sing-to: #ff8fc6;
+  --sign-sing-core: #fff6fb;
+  --sign-spree: #5ef2c4;
+  --sign-spree-2: #8af5d6;
+  --sign-spree-core: #effffa;
+  --sign-spree-light: #c6fbe9;
+}

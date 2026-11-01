@@ -82,9 +82,61 @@
     "show": "다시 보기"
   },
   "season": {
+    "new-year": {
+      "title": "🥂 새해 전야",
+      "explain": "자정까지 카운트다운을 위한 파티 노래"
+    },
+    "valentines": {
+      "title": "💘 밸런타인데이",
+      "explain": "특별한 사람에게 불러 줄 사랑 노래와 듀엣"
+    },
+    "pi-day": {
+      "title": "🥧 파이 데이",
+      "explain": "파이와 원, 빙글빙글 도는 것들에 관한 노래, 수학 팬을 위해"
+    },
+    "st-patricks": {
+      "title": "☘️ 성 패트릭의 날",
+      "explain": "밤새 함께 부르는 아일랜드 노래와 펍 애창곡"
+    },
+    "easter": {
+      "title": "🐣 부활절",
+      "explain": "봄과 토끼, 부활절 달걀을 위한 화창한 노래"
+    },
+    "music-day": {
+      "title": "🎶 세계 음악의 날",
+      "explain": "거리마다 음악이 흐르는 날, 음악 그 자체를 노래하는 곡들"
+    },
+    "canada-day": {
+      "title": "🍁 캐나다 데이",
+      "explain": "대서양부터 태평양까지 함께 부르는 캐나다 히트곡"
+    },
+    "independence-day": {
+      "title": "🎆 미국 독립기념일",
+      "explain": "불꽃놀이와 바비큐 파티에서 다 함께 부르는 빨강, 하양, 파랑의 노래"
+    },
+    "bastille-day": {
+      "title": "🎆 프랑스 혁명 기념일",
+      "explain": "7월 14일 불꽃놀이 아래 함께 부르는 프랑스 노래"
+    },
+    "pirate-day": {
+      "title": "🏴‍☠️ 해적처럼 말하기의 날",
+      "explain": "뱃노래와 해적, 바다의 노래로 돛을 올려라!"
+    },
+    "german-unity-day": {
+      "title": "🎆 독일 통일의 날",
+      "explain": "자유와 베를린 장벽 붕괴의 노래, 동과 서가 함께"
+    },
     "halloween": {
       "title": "🎃 할로윈",
       "explain": "일 년 중 가장 무서운 밤을 위한 오싹한 노래"
+    },
+    "winter": {
+      "title": "❄️ 겨울",
+      "explain": "눈과 얼음, 추운 겨울밤의 노래"
+    },
+    "christmas": {
+      "title": "🎄 크리스마스",
+      "explain": "일 년 중 가장 행복한 계절을 위한 크리스마스 노래"
     },
     "more": "모두 보기",
     "less": "간단히 보기"

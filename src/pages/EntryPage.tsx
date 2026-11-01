@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSongNames } from "../logic/useSongNames";
@@ -160,7 +160,8 @@ const HeroWall = ({ decor: Decor }: { decor?: React.ComponentType }) => (
       <rect width="100%" height="100%" fill="url(#hero-wall-bricks)" />
     </g>
   </svg>
-  {Decor && <div className="absolute inset-0 overflow-hidden"><Decor /></div>}
+  {/* (a season's decorations load on their own, after the page: nothing in their place until then) */}
+  {Decor && <div className="absolute inset-0 overflow-hidden"><Suspense fallback={null}><Decor /></Suspense></div>}
   </div>
 );
 

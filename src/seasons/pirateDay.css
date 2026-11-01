@@ -1,0 +1,44 @@
+/* Talk Like a Pirate Day (pirateDay.tsx): instead of the stage's pink and
+   cyan neon, a night at sea in deep teal with lantern gold; the main
+   actions go gold → rust, the sign's S and "ing" glow treasure gold and
+   "Spree" the red of a pirate's bandana. The tokens are index.css's; outside
+   the layers, so they win over the theme's and the components' own. */
+html[data-season="pirate-day"] {
+  --color-ink: #050b12;
+  --color-panel: #0d1822;
+  --color-panel-raised: #14232f;
+  --color-stage: #08121b;
+  --color-hot: #ffcb52;
+
+  --hot-from: #e3a836;
+  --hot-to: #b4571f;
+  --hot-hover-from: #efb84a;
+  --hot-hover-to: #c96a2a;
+  --hot-glow: 227, 168, 54;
+
+  --light-left: 255, 184, 64;
+  --light-right: 40, 190, 180;
+  --light-below: 20, 110, 130;
+  --page-top: #0b1d2a;
+  --page-mid: #08151f;
+  --page-bottom: #060f17;
+
+  --wall-base: #1e3442;
+  --wall-mid: #152632;
+  --wall-edge: #0a141c;
+  --wall-left: #ffb840;
+  --wall-right: #ff4a3d;
+  --wall-right-strength: 0.2;
+
+  --link: #ffd36a;
+  --link-hover: #ff8a7a;
+
+  /* the sign (seasons.css): S and "ing" in treasure gold, "Spree" and the mic in bandana red */
+  --sign-sing-from: #f59a12;
+  --sign-sing-to: #ffd040;
+  --sign-sing-core: #fff3d0;
+  --sign-spree: #ff3b30;
+  --sign-spree-2: #ff5a4a;
+  --sign-spree-core: #ffe4dc;
+  --sign-spree-light: #ffb8a8;
+}
