@@ -121,12 +121,12 @@ const HalloweenDecor = () => (
 );
 
 // ── The season ─────────────────────────────────────────────────────────
-// The week up to Halloween and the night itself, which at a karaoke party
-// goes on past midnight: over at five in the morning of 1 November.
+// The week up to Halloween, the night itself and one more day after it
+// (a karaoke night goes on past midnight): over at five in the morning of 2 November.
 export const halloween: Season = {
   id: "halloween",
   from: "10-24",
-  until: "11-01T05:00",
+  until: "11-02T05:00",
   songs: [
     "19UZRP4ilOO", // Michael Jackson – Thriller
     "4XmQZkeujyX", // Ray Parker Jr. – Ghostbusters

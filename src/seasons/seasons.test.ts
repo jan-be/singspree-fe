@@ -8,18 +8,19 @@ describe('Halloween', () => {
   test('on in the last week of October, all night long', () => {
     expect(seasonAt(at(2026, 10, 31, 21, 30), [halloween])?.id).toBe('halloween');
     expect(seasonAt(at(2026, 10, 24), [halloween])?.id).toBe('halloween');
-    expect(seasonAt(at(2026, 11, 1, 4, 59), [halloween])?.id).toBe('halloween');
+    expect(seasonAt(at(2026, 11, 1, 12), [halloween])?.id).toBe('halloween');
+    expect(seasonAt(at(2026, 11, 2, 4, 59), [halloween])?.id).toBe('halloween');
   });
 
-  test('over on the morning of 1 November, back next year', () => {
-    expect(seasonAt(at(2026, 11, 1, 5, 0), [halloween])).toBeNull();
+  test('over on the morning of 2 November, back next year', () => {
+    expect(seasonAt(at(2026, 11, 2, 5, 0), [halloween])).toBeNull();
     expect(seasonAt(at(2026, 10, 23, 23, 59), [halloween])).toBeNull();
     expect(seasonAt(at(2027, 3, 1), [halloween])).toBeNull();
     expect(seasonAt(at(2027, 10, 30), [halloween])?.id).toBe('halloween');
   });
 
-  test('ends at 05:00 on 1 November, local time', () => {
-    expect(seasonEnd(halloween, at(2026, 10, 31, 22))).toEqual(at(2026, 11, 1, 5));
+  test('ends at 05:00 on 2 November, local time', () => {
+    expect(seasonEnd(halloween, at(2026, 10, 31, 22))).toEqual(at(2026, 11, 2, 5));
   });
 
   test('has songs for its row, each once', () => {
