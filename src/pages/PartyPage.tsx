@@ -1438,9 +1438,11 @@ const PartyPage = () => {
   }, [togglePlayback]);
   // On a joiner the free stage is no pause button: no pointer, no focus (a
   // double click there still goes fullscreen). On a co-host it is.
+  // No minimum height: on a short screen (a tablet in windowed Chrome) the
+  // free stage gives way before the stage below lg has to scroll
   const stageButtonProps = canControl
-    ? { 'aria-label': videoState === 1 ? 'Pause' : 'Play', 'data-stage': '', className: 'group relative flex-1 min-h-4 cursor-pointer bg-transparent' }
-    : { 'aria-hidden': true, tabIndex: -1, className: 'flex-1 min-h-4 cursor-default bg-transparent' };
+    ? { 'aria-label': videoState === 1 ? 'Pause' : 'Play', 'data-stage': '', className: 'group relative flex-1 min-h-0 cursor-pointer bg-transparent' }
+    : { 'aria-hidden': true, tabIndex: -1, className: 'flex-1 min-h-0 cursor-default bg-transparent' };
   // A TV remote's arrows reach the free stage too (logic/spatialNav.ts):
   // focused, it shows what OK does there in its middle, where a ring around
   // the empty space would say nothing (index.css takes the ring off)

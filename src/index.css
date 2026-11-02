@@ -71,8 +71,9 @@
     color: #eeeef8;
     /* The small viewport: 100vh on a phone or tablet counts the space under
        the browser's toolbar too, so the party page (fixed, nothing else in
-       the page) could be scrolled by that much */
-    min-height: 100vh;
+       the page) could be scrolled by that much. No 100vh fallback (the build
+       drops it anyway): a browser without svh (Chrome < 108) gets no minimum,
+       which is right for the party page and WrapperPage has its own */
     min-height: 100svh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
