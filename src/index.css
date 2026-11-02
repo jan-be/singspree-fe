@@ -69,7 +69,11 @@
     background-color: var(--page-bottom);
     background-repeat: no-repeat;
     color: #eeeef8;
+    /* The small viewport: 100vh on a phone or tablet counts the space under
+       the browser's toolbar too, so the party page (fixed, nothing else in
+       the page) could be scrolled by that much */
     min-height: 100vh;
+    min-height: 100svh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

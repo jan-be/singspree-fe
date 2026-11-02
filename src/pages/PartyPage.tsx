@@ -3473,7 +3473,11 @@ const PartyPage = () => {
   ].slice(0, 6) : null;
 
   return (
-    <div className="relative flex flex-col h-dvh overflow-hidden">
+    // Fixed to the screen, not 100dvh tall: in fullscreen Chrome on Android can
+    // leave dvh at a windowed height (with or without its toolbar, depending on
+    // whether the toolbar had scrolled away), while a fixed box is always the
+    // visible area
+    <div className="fixed inset-0 flex flex-col overflow-hidden">
       {/* The blurred thumbnail is a full-screen layer; while the video plays,
           the player (black bars included) covers all of it */}
       <BackgroundImage videoId={videoId} hidden={showVideo && videoState === 1} />
