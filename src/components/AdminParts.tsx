@@ -1,10 +1,39 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n/i18n';
+import { timeAgo } from '../logic/timeAgo';
+import { localizedHostNames, hostLabel } from '../logic/hostNames';
 
 /**
  * The admin console's building blocks (tiles, sections, badges, thumbnails,
- * buttons), shared by AdminPage.tsx and the sections that live in their own
- * file (AdminChartJobs.tsx, AdminTrends.tsx), so all of /admin looks alike.
+ * buttons), shared by AdminPage.tsx and its tabs (AdminOverviewTab.tsx,
+ * AdminInbox.tsx, AdminChartJobs.tsx, …), so all of /admin looks alike.
  */
+
+/**
+ * What a tab gets from the page for its buttons: `run` does an action with
+ * every button disabled meanwhile (`busy`) and its error shown at the top of
+ * the page, `say` puts what it did there, `fail` an error from loading.
+ */
+export interface AdminActions {
+  busy: boolean;
+  run: (fn: () => Promise<void>) => Promise<void>;
+  say: (msg: string) => void;
+  fail: (e: unknown) => void;
+}
+
+export const useAgo = () => {
+  const { i18n: inst } = useTranslation();
+  return (d: string | number) => timeAgo(d, { lang: inst.language });
+};
+
+const HOST_NAMES = localizedHostNames(i18n.options?.resources ?? i18n.store?.data); // "Gastgeber", "ホスト", …
+
+/** A player's name, with "(host)" after a default host name in another language. */
+export const useName = () => {
+  const { t } = useTranslation();
+  return (name: string) => hostLabel(name, HOST_NAMES, t('admin.host'));
+};
 
 export const btn = {
   primary: 'btn btn-sm btn-primary',
@@ -17,6 +46,10 @@ export const panel = 'rounded-2xl bg-panel border border-white/10';
 
 /** A list in one panel, rows parted by hairlines */
 export const list = `${panel} divide-y divide-white/[0.07] overflow-hidden`;
+
+/** A small panel of its own inside a section, with an uppercase label */
+export const card = `${panel} p-4 min-w-0`;
+export const cardLabel = 'pop-label mb-3';
 
 /** Loading line, as the front page's */
 export const Loading = ({ children }: { children?: React.ReactNode }) => <div className="text-white/40 text-sm text-center py-6 animate-pulse">{children}</div>;

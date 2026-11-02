@@ -125,7 +125,7 @@ const MyRouter = () =>
       <Route path="/u/:username" element={<ProfilePage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/me" element={<MeRedirect />} />
-      <Route path="/admin" element={<AdminPage />} />
+      <Route path="/admin/:tab?" element={<AdminPage />} />
       <Route path="/mic/:partyId/:username" element={<MicRedirect />} />
       <Route path="/sing/:slug/:songId" element={<SlugRedirect />} />
       <Route path="/sing/:songId" element={<SongRoute />} />

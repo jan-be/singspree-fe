@@ -778,6 +778,22 @@
     "title": "Admin",
     "subtitle": "Was gerade auf SingSpree los ist.",
     "updated": "Stand {{time}}",
+    "tabs": {
+      "overview": "Übersicht",
+      "trends": "Verlauf",
+      "visitors": "Besucher",
+      "inbox": "Eingang",
+      "charts": "KI-Charts",
+      "accounts": "Konten",
+      "counts": {
+        "overview_one": "{{count}} Party läuft",
+        "overview_other": "{{count}} Partys laufen",
+        "inbox_one": "{{count}} Meldung wartet",
+        "inbox_other": "{{count}} Meldungen warten",
+        "charts_one": "{{count}} Job läuft oder wartet",
+        "charts_other": "{{count}} Jobs laufen oder warten"
+      }
+    },
     "showMore": "Mehr anzeigen",
     "host": "Host",
     "ping": "{{ms}} ms Ping",

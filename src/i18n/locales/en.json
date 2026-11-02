@@ -778,6 +778,22 @@
     "title": "Admin",
     "subtitle": "What is going on right now on SingSpree.",
     "updated": "Updated {{time}}",
+    "tabs": {
+      "overview": "Overview",
+      "trends": "Trends",
+      "visitors": "Visitors",
+      "inbox": "Inbox",
+      "charts": "AI charts",
+      "accounts": "Accounts",
+      "counts": {
+        "overview_one": "{{count}} party running",
+        "overview_other": "{{count}} parties running",
+        "inbox_one": "{{count}} report waiting",
+        "inbox_other": "{{count}} reports waiting",
+        "charts_one": "{{count}} job running or waiting",
+        "charts_other": "{{count}} jobs running or waiting"
+      }
+    },
     "showMore": "Show more",
     "host": "host",
     "ping": "{{ms}} ms ping",

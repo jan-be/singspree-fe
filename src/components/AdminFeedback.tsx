@@ -6,7 +6,7 @@ import { getAdminFeedback, type AdminFeedback as Answer, type FeedbackFilter, ty
 import { timeAgo } from '../logic/timeAgo';
 import { deviceLabel } from '../logic/deviceLabel';
 import { DEVICE_KINDS } from '../logic/deviceRows';
-import { FilterButtons, Hint, Loading, Section, StatTile, btn, countryLabel, list, panel } from './AdminParts';
+import { FilterButtons, Hint, Loading, Section, StatTile, btn, card, cardLabel, countryLabel, list } from './AdminParts';
 
 /**
  * The admin page's feedback (backend feedback.ts, GET /admin/feedback): how
@@ -22,9 +22,6 @@ const FILTERS: FeedbackFilter[] = ['all', 'comments', '5', '4', '3', '2', '1'];
 const PAGE = 20;
 
 type Loaded = { rows: Answer[]; hasMore: boolean };
-
-const card = `${panel} p-4 min-w-0`;
-const cardLabel = 'pop-label mb-3';
 
 /** A language code's name in the page's language ("de" → "Deutsch") */
 const languageName = (code: string, lang: string) => {

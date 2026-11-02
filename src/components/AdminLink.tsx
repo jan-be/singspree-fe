@@ -16,7 +16,7 @@ const AdminLink = () => {
   const { user } = useAuth();
   const { pathname } = useLocation();
   if (!user?.isAdmin) return null;
-  const active = pathname === '/admin';
+  const active = pathname === '/admin' || pathname.startsWith('/admin/'); // (its tabs too)
   return (
     <Link
       to="/admin"
