@@ -409,6 +409,165 @@
   animation: gradient-shift 4s ease infinite;
 }
 
+/* --- Stars (components/StarMeter.tsx) ---
+   Each star: a faint outline, and a gold copy clipped to its fill level on
+   top. Sizes are in em of the meter's font size (a star is 1em). Over the
+   playing video ('chip') only transforms and opacity move, no filters.
+   In the components layer, so utilities (hidden, sm:…) override them. */
+@layer components {
+  .star-meter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.14em;
+    line-height: 1;
+    vertical-align: middle;
+  }
+  .star-meter__star {
+    position: relative;
+    display: block;
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+  }
+  .star-meter__body,
+  .star-meter__body > svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
+  .star-meter path {
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+  }
+  .star-meter__base path {
+    fill: rgba(255, 255, 255, 0.12);
+    stroke: rgba(255, 255, 255, 0.3);
+  }
+  /* still filling: a deeper gold, so the full ones light up */
+  .star-meter__fill path {
+    fill: #eaa524;
+    stroke: #eaa524;
+  }
+  .star-meter__star.is-earned .star-meter__fill path {
+    fill: #ffd04a;
+    stroke: #fff0a8;
+  }
+  .star-meter--chip .star-meter__star.is-earned {
+    background: radial-gradient(closest-side, rgba(255, 200, 61, 0.5), rgba(255, 200, 61, 0));
+  }
+  .star-meter--card .star-meter__star.is-earned > .star-meter__body {
+    filter: drop-shadow(0 0 0.28em rgba(255, 200, 61, 0.85));
+  }
+
+  /* Earned: the star jumps, a ring spreads and sparks fly out from it. They
+     end where they started, so no fill mode keeps them alive afterwards */
+  .star-meter__star::before,
+  .star-meter__star::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .star-meter__star::after {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border: 0.09em solid #ffd04a;
+    border-radius: 9999px;
+  }
+  /* the sparks are the shadows of a dot in the middle, flying out as it grows */
+  .star-meter__star::before {
+    top: 50%;
+    left: 50%;
+    width: 0.15em;
+    height: 0.15em;
+    margin: -0.075em 0 0 -0.075em;
+    border-radius: 9999px;
+    box-shadow:
+      0 -0.95em #fff3b0, 0.68em -0.68em #ffd04a, 0.95em 0 #fff3b0, 0.68em 0.68em #ffd04a,
+      0 0.95em #fff3b0, -0.68em 0.68em #ffd04a, -0.95em 0 #fff3b0, -0.68em -0.68em #ffd04a;
+  }
+  .star-meter--card .star-meter__star::before {
+    width: 0.12em;
+    height: 0.12em;
+    margin: -0.06em 0 0 -0.06em;
+    box-shadow:
+      0 -1.1em #fff3b0, 0.78em -0.78em #ffd04a, 1.1em 0 #fff3b0, 0.78em 0.78em #ffd04a,
+      0 1.1em #fff3b0, -0.78em 0.78em #ffd04a, -1.1em 0 #fff3b0, -0.78em -0.78em #ffd04a,
+      0.4em -0.68em #ff9de9, 0.68em 0.4em #ff9de9, -0.4em 0.68em #ff9de9, -0.68em -0.4em #ff9de9;
+  }
+  .star-meter__star.is-popping > .star-meter__body {
+    animation: star-pop 0.6s ease-out;
+  }
+  .star-meter__star.is-popping::after {
+    animation: star-ring 0.6s ease-out;
+  }
+  .star-meter__star.is-popping::before {
+    animation: star-sparks 0.7s ease-out;
+  }
+  /* all five: a wave along the row, once the last one has landed */
+  .star-meter.is-waving > .star-meter__star {
+    animation: star-wave 0.55s ease-in-out calc(0.4s + var(--i) * 0.07s);
+  }
+  /* the score screen's stars come in one by one before the count starts */
+  .star-meter--card > .star-meter__star {
+    animation: star-in 0.4s ease-out calc(var(--reveal-delay, 0ms) - 0.3s + var(--i) * 0.05s) backwards;
+  }
+  .star-meter--card.is-waving > .star-meter__star {
+    animation: star-wave 0.6s ease-in-out calc(0.4s + var(--i) * 0.08s);
+  }
+}
+
+@keyframes star-pop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.65) rotate(-14deg); }
+  60% { transform: scale(0.9) rotate(5deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes star-ring {
+  0% { transform: scale(0.4); opacity: 0.95; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes star-sparks {
+  0% { transform: scale(0.3); opacity: 1; }
+  65% { opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@keyframes star-wave {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-0.3em) scale(1.18); }
+}
+@keyframes star-in {
+  from { transform: scale(0.2); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* The score screen's bar grows with the count (StarMeter's ScoreReveal: same time and easing) */
+.animate-grow-x {
+  transform-origin: left;
+  animation: grow-x var(--reveal-ms, 1s) cubic-bezier(0.5, 1, 0.89, 1) var(--reveal-delay, 0ms) backwards;
+}
+@keyframes grow-x {
+  from { transform: scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-meter__star.is-popping > .star-meter__body,
+  .star-meter__star.is-popping::before,
+  .star-meter__star.is-popping::after,
+  .star-meter.is-waving > .star-meter__star,
+  .star-meter--card > .star-meter__star,
+  .animate-grow-x {
+    animation: none;
+  }
+}
+
 /* Arrow-key navigation (logic/spatialNav.ts), a TV remote's D-pad above all:
    the focused control has to read from across the room, so once the arrows
    are in use it wears a thick white ring, whatever ring it has for Tab.

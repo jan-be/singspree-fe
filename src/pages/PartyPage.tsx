@@ -69,10 +69,11 @@ import { avatarSprites } from "../logic/avatarSprite";
 import ShareCard from "../components/ShareCard";
 import ShareDialog from "../components/ShareDialog";
 import StarRating from "../components/StarRating";
+import { ScoreReveal, revealMs } from "../components/StarMeter";
 import { useAuth } from "../logic/AuthContext";
 import { probeYouTube } from "../logic/youtubeReachable";
 import { getSongScores, getSuggestions, requestFriend, thrownField } from "../logic/authApi";
-import { starsFor, MAX_SCORE, STAR_THRESHOLDS } from "../logic/scoreScale";
+import { MAX_SCORE, STAR_THRESHOLDS } from "../logic/scoreScale";
 import { achievementInfo, creditLine, mergeEndAchievements, scoreCardChips } from "../logic/achievements";
 import { DuetIcon, LockIcon, SpeakerIcon } from "../components/Icons";
 import { getSessionId, getGuestId } from "../logic/sessionId";
@@ -3943,16 +3944,20 @@ const PartyPage = () => {
                   const barWidth = Math.max(3, (player.score / MAX_SCORE) * 100);
                   const hasCumulative = player.cumulativeScore > player.score;
                   const isMe = player.username === currentUserName;
+                  // Once the card has slid in, the score counts up, the bar grows
+                  // with it and the stars pop as it passes them (StarMeter.tsx)
+                  const revealDelay = (i + 1) * 150 + 350;
+                  const reveal = { '--reveal-delay': `${revealDelay}ms`, '--reveal-ms': `${revealMs(player.score)}ms` } as React.CSSProperties;
 
                   return (
                     <div
                       key={player.username}
                       className={`relative rounded-2xl ring-1 ring-inset bg-gradient-to-r ${colorClass} overflow-hidden animate-slide-up`}
-                      style={{ animationDelay: `${(i + 1) * 150}ms` }}
+                      style={{ animationDelay: `${(i + 1) * 150}ms`, ...reveal }}
                     >
                       {/* Score bar background, with the star thresholds marked */}
                       <div
-                        className="absolute inset-y-0 left-0 bg-white/[0.06] transition-all duration-1000 ease-out"
+                        className="absolute inset-y-0 left-0 bg-white/[0.06] animate-grow-x"
                         style={{ width: `${barWidth}%` }}
                       />
                       {STAR_THRESHOLDS.map(th => (
@@ -4002,10 +4007,12 @@ const PartyPage = () => {
                           })()}
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <div className={`font-bold tabular-nums tracking-[-0.02em] ${rank === 0 ? "text-2xl" : "text-lg"} ${scoreColor} leading-tight`}>
-                            {player.score.toLocaleString()}
-                          </div>
-                          <StarRating stars={player.stars ?? starsFor(player.score)} size={rank === 0 ? 15 : 12} className="mt-0.5" />
+                          <ScoreReveal
+                            score={player.score}
+                            delay={revealDelay}
+                            size={rank === 0 ? 22 : 17}
+                            className={`font-bold tabular-nums tracking-[-0.02em] ${rank === 0 ? "text-2xl" : "text-lg"} ${scoreColor} leading-tight mb-1`}
+                          />
                           {hasCumulative && (
                             <div className="text-xs text-white/50 tabular-nums leading-tight mt-0.5">
                               {t('party.total')} {player.cumulativeScore.toLocaleString()}

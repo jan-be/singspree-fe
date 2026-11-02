@@ -13,6 +13,15 @@ export function starsFor(score: number): number {
   return stars;
 }
 
+/**
+ * How full star `i` (0-based) is at a score, 0–1: it fills between the
+ * threshold before it and its own, so the stars fill one after another.
+ */
+export function starFill(score: number, i: number): number {
+  const from = i === 0 ? 0 : STAR_THRESHOLDS[i - 1], to = STAR_THRESHOLDS[i];
+  return Math.min(1, Math.max(0, (score - from) / (to - from)));
+}
+
 /** Points still missing for the next star, or 0 with all stars earned. */
 export function toNextStar(score: number): number {
   const next = STAR_THRESHOLDS.find(t => score < t);

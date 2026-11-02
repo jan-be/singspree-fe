@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Avatar from './Avatar';
+import StarMeter, { paintStars } from './StarMeter';
 import { playerHue, type PlayerColors } from '../logic/playerColor';
 import { rankSingers } from '../logic/scoreStrip';
 import type { AvatarPaths } from '../logic/avatar';
@@ -23,12 +24,15 @@ export interface LiveScoreStripProps {
 /**
  * The scores, always in view above the highway: everyone who sang this song,
  * best first, with their picture (logic/scoreStrip.ts decides who and in what
- * order). The tags on the highway follow the singing; this stays put.
+ * order) and their stars filling up as they hit notes (on a phone only your
+ * own: there is no room for everyone's). The tags on the highway follow the
+ * singing; this stays put.
  *
  * It renders again only when who is shown, or the order, changes. The numbers
  * move with every batch of notes, many times a second, so they are written
  * straight into their elements from the live store (liveStore.ts), the way
- * the lyrics and the countdown avoid a React render per frame on weak hosts.
+ * the lyrics and the countdown avoid a React render per frame on weak hosts;
+ * so are the stars' fill levels (paintStars).
  */
 const LiveScoreStrip = ({ store, scores, colors, avatars, me, parts, duet, max = 8 }: LiveScoreStripProps) => {
   const { t } = useTranslation();
@@ -41,6 +45,7 @@ const LiveScoreStrip = ({ store, scores, colors, avatars, me, parts, duet, max =
   const [view, setView] = useState(read);
   const keyRef = useRef(view.key);
   const numbers = useRef(new Map<string, { el: HTMLSpanElement; score: number }>()); // username -> { el, score } of the number on screen
+  const meters = useRef(new Map<string, HTMLSpanElement>()); // username -> their stars
 
   useEffect(() => {
     const update = () => {
@@ -56,6 +61,8 @@ const LiveScoreStrip = ({ store, scores, colors, avatars, me, parts, duet, max =
           n.score = r.score;
           n.el.textContent = r.score.toLocaleString();
         }
+        const m = meters.current.get(r.username);
+        if (m) paintStars(m, r.score);
       }
     };
     update(); // the board in React state changed, or a new store
@@ -63,7 +70,7 @@ const LiveScoreStrip = ({ store, scores, colors, avatars, me, parts, duet, max =
   }, [store, read, scores]);
 
   if (view.rows.length === 0) return null;
-  const chip = 'flex items-center gap-1.5 h-7 pl-0.5 pr-2.5 rounded-full flex-shrink-0 bg-[rgba(10,10,26,0.75)] ring-1 ring-inset';
+  const chip = 'flex items-center gap-1.5 h-8 sm:h-9 pl-0.5 sm:pl-1 pr-2.5 sm:pr-3 rounded-full flex-shrink-0 bg-[rgba(10,10,26,0.75)] ring-1 ring-inset';
   return (
     <div className="relative z-10 flex justify-center pb-1.5 min-w-0">
       <ol aria-label={t('party.scores')} className="flex gap-1.5 overflow-x-auto max-w-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -72,7 +79,7 @@ const LiveScoreStrip = ({ store, scores, colors, avatars, me, parts, duet, max =
           const isMe = r.username === me;
           return (
             <li key={r.username} className={`${chip} ${isMe ? 'ring-white/45' : 'ring-white/10'}`} style={{ color: `hsl(${hue}, 100%, 82%)` }}>
-              <Avatar username={r.username} src={avatars?.[r.username] ?? null} hue={hue} size={24} className="text-[11px]" />
+              <Avatar username={r.username} src={avatars?.[r.username] ?? null} hue={hue} size={28} className="text-[11px]" />
               <span className="text-xs font-medium text-white/90 truncate max-w-[7rem]">{r.username}</span>
               {duet && <span className="text-[10px] font-semibold text-white/60">P{parts?.[r.username] ?? 1}</span>}
               <span
@@ -81,15 +88,21 @@ const LiveScoreStrip = ({ store, scores, colors, avatars, me, parts, duet, max =
               >
                 {r.score.toLocaleString()}
               </span>
+              <StarMeter
+                score={r.score}
+                className={`ml-0.5 text-[15px] sm:text-[19px] ${isMe ? '' : 'hidden sm:inline-flex'}`}
+                meterRef={el => { if (el) meters.current.set(r.username, el); else meters.current.delete(r.username); }}
+              />
             </li>
           );
         })}
         {view.mine && (
           // In a crowd: your own place among everyone, when the screen shows others
           <li className={`${chip} ring-white/45 text-white/85`}>
-            <Avatar username={me} src={avatars?.[me] ?? null} hue={playerHue(colors, me)} size={24} className="text-[11px]" />
+            <Avatar username={me} src={avatars?.[me] ?? null} hue={playerHue(colors, me)} size={28} className="text-[11px]" />
             <span className="text-xs font-medium tabular-nums">#{view.mine.rank} / {view.mine.total}</span>
             <span className="text-xs font-bold tabular-nums">{view.mine.score.toLocaleString()}</span>
+            <StarMeter score={view.mine.score} className="ml-0.5 text-[15px] sm:text-[19px]" />
           </li>
         )}
       </ol>
