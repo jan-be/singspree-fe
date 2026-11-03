@@ -1026,6 +1026,99 @@
         "failed": "fehlgeschlagen"
       },
       "deletedAccount": "gelöschtes Konto",
+      "origin": {
+        "batch": "Katalog-Stapel",
+        "batch_pc": "Katalog-Stapel, auf dem PC erstellt"
+      },
+      "generators": {
+        "title": "Wo sie erstellt werden",
+        "routes": {
+          "auto": "Erst PC, dann Modal",
+          "pc": "Nur PC",
+          "modal": "Nur Modal"
+        },
+        "explain": {
+          "auto": "Jeder Song geht an den PC, solange er fast nichts zu tun hat (keiner unserer Songs darauf, GPU unter {{gpu}} %, Windows-CPU unter {{cpu}} %, genug Speicher frei), sonst an Modal. Katalog-Stapel warten auf den PC.",
+          "pc": "Jeder Song geht an den PC; ist er beschäftigt, warten sie in seiner Schlange, ist er aus, in unserer. Für Modal wird nichts ausgegeben.",
+          "modal": "Jeder Song geht an Modal, der PC bleibt in Ruhe. Katalog-Stapel warten."
+        },
+        "pc": "PC",
+        "modal": "Modal",
+        "state": {
+          "free": "frei",
+          "busy": "beschäftigt",
+          "offline": "nicht erreichbar",
+          "none": "nicht eingerichtet",
+          "ready": "bereit"
+        },
+        "busy": {
+          "offline": "Nicht erreichbar: aus, Docker Desktop läuft nicht oder das VPN ist unten",
+          "job": "Erstellt gerade einen Song ({{value}} in seiner Schlange)",
+          "gpu": "GPU zu {{value}} % ausgelastet (Grenze {{limit}} %)",
+          "vram": "Andere Programme belegen {{value}} GB GPU-Speicher (Grenze {{limit}} GB)",
+          "cpu": "Windows-CPU zu {{value}} % ausgelastet (Grenze {{limit}} %)",
+          "memory": "Nur {{value}} GB RAM frei (braucht {{limit}} GB)",
+          "commit": "Windows kann nur noch {{value}} GB zusagen (braucht {{limit}} GB)",
+          "vm_memory": "Dockers VM hat nur {{value}} GB frei (braucht {{limit}} GB)"
+        },
+        "busyShort": {
+          "job": "erstellte einen anderen Song",
+          "gpu": "GPU {{value}} %",
+          "vram": "{{value}} GB GPU-Speicher belegt",
+          "cpu": "CPU {{value}} %",
+          "memory": "{{value}} GB RAM frei",
+          "commit": "noch {{value}} GB zusagbar",
+          "vm_memory": "{{value}} GB frei in Dockers VM"
+        },
+        "load": {
+          "gpu": "GPU {{util}} %",
+          "gpuMem": "{{used}} von {{total}} GB GPU-Speicher ({{others}} GB andere Programme)",
+          "cpu": "Windows-CPU {{cpu}} %",
+          "ram": "{{free}} GB RAM frei",
+          "noHost": "Windows-CPU und -RAM nicht gemessen: local-server.cmd auf dem PC startet den Messer",
+          "ours_one": "{{count}} von uns darauf",
+          "ours_other": "{{count}} von uns darauf"
+        },
+        "notSetUp": {
+          "pc": "Kein PC-Generator eingerichtet (CHARTGEN_PC_URL): alles geht an Modal.",
+          "modal": "Modal ist nicht eingerichtet (CHARTGEN_API_URL): alles geht an den PC."
+        },
+        "month": "Diesen Monat: {{pc}} auf dem PC · {{modal}} auf Modal, ≈ {{cost}} $ Guthaben",
+        "songs_one": "{{count}} Song",
+        "songs_other": "{{count}} Songs",
+        "next": "Ein jetzt gewünschter Song: {{where}}",
+        "nextWhere": {
+          "pc": "der PC",
+          "modal": "Modal",
+          "wait": "wartet auf den PC"
+        },
+        "why": {
+          "pc_free": "der PC ist frei",
+          "pc_busy": "der PC war beschäftigt",
+          "pc_offline": "der PC war nicht erreichbar",
+          "route_pc": "nur PC",
+          "route_modal": "nur Modal",
+          "batch": "Katalog-Stapel warten auf den PC",
+          "only_pc": "der einzige Generator",
+          "only_modal": "der einzige Generator",
+          "retry": "nachdem der andere scheiterte",
+          "fallback": "der andere lehnte ab",
+          "wait_pc": "nur der PC darf ihn erstellen",
+          "wait_route": "Stapel gehen nie an Modal"
+        },
+        "where": {
+          "pc": "auf dem PC",
+          "modal": "auf Modal"
+        },
+        "cost": "≈ {{cost}} $",
+        "retried": "zuerst auf dem {{gen}} gescheitert: {{error}}",
+        "setBy": "Auf „{{route}}“ gestellt von {{name}} {{time}}",
+        "fallback": {
+          "env": "Hier noch nicht eingestellt: CHARTGEN_ROUTE des Servers gilt ({{route}}).",
+          "default": "Hier noch nicht eingestellt: die Voreinstellung gilt ({{route}})."
+        },
+        "switched": "KI-Charts jetzt: {{route}}."
+      },
       "nameUnknown": "Name noch nicht gelesen",
       "views": "{{views}} Aufrufe",
       "plays_one": "{{count}}-mal gespielt",
@@ -1069,7 +1162,8 @@
         "too_short": "Zu kurz für einen Song",
         "not_music": "Kein Song (laut den Angaben des Videos)",
         "held": "Dieses Video wurde schon einmal zurückgehalten",
-        "known": "Schon ein Song"
+        "known": "Schon ein Song",
+        "lost": "Der Chart-Generator hat den Job verloren (neu gestartet oder antwortet nicht mehr)"
       }
     },
     "stats": {

@@ -1026,6 +1026,99 @@
         "failed": "failed"
       },
       "deletedAccount": "deleted account",
+      "origin": {
+        "batch": "Catalogue batch",
+        "batch_pc": "Catalogue batch, made on the PC"
+      },
+      "generators": {
+        "title": "Where they are made",
+        "routes": {
+          "auto": "PC first, then Modal",
+          "pc": "PC only",
+          "modal": "Modal only"
+        },
+        "explain": {
+          "auto": "Each song goes to the PC while it is nearly idle (none of our songs on it, GPU under {{gpu}} %, Windows' CPU under {{cpu}} %, memory to spare), else to Modal. Catalogue batches wait for the PC.",
+          "pc": "Every song goes to the PC; while it is busy they wait in its line, while it is off in ours. Nothing is spent on Modal.",
+          "modal": "Every song goes to Modal and the PC is left alone. Catalogue batches wait."
+        },
+        "pc": "PC",
+        "modal": "Modal",
+        "state": {
+          "free": "free",
+          "busy": "busy",
+          "offline": "not reachable",
+          "none": "not set up",
+          "ready": "ready"
+        },
+        "busy": {
+          "offline": "Not reachable: off, Docker Desktop not running, or the VPN down",
+          "job": "Making a song ({{value}} in its line)",
+          "gpu": "GPU {{value}} % busy (limit {{limit}} %)",
+          "vram": "Other programs hold {{value}} GB of GPU memory (limit {{limit}} GB)",
+          "cpu": "Windows' CPU {{value}} % busy (limit {{limit}} %)",
+          "memory": "Only {{value}} GB of RAM free (needs {{limit}} GB)",
+          "commit": "Windows can commit only {{value}} GB more (needs {{limit}} GB)",
+          "vm_memory": "Docker's VM has only {{value}} GB free (needs {{limit}} GB)"
+        },
+        "busyShort": {
+          "job": "making another song",
+          "gpu": "GPU {{value}} %",
+          "vram": "{{value}} GB GPU memory in use",
+          "cpu": "CPU {{value}} %",
+          "memory": "{{value}} GB RAM free",
+          "commit": "{{value}} GB left to commit",
+          "vm_memory": "{{value}} GB free in Docker's VM"
+        },
+        "load": {
+          "gpu": "GPU {{util}} %",
+          "gpuMem": "{{used}} of {{total}} GB GPU memory ({{others}} GB other programs)",
+          "cpu": "Windows' CPU {{cpu}} %",
+          "ram": "{{free}} GB RAM free",
+          "noHost": "Windows' CPU and RAM not measured: run local-server.cmd on the PC to start the sampler",
+          "ours_one": "{{count}} of ours on it",
+          "ours_other": "{{count}} of ours on it"
+        },
+        "notSetUp": {
+          "pc": "No PC generator set up (CHARTGEN_PC_URL): everything goes to Modal.",
+          "modal": "Modal is not set up (CHARTGEN_API_URL): everything goes to the PC."
+        },
+        "month": "This month: {{pc}} on the PC · {{modal}} on Modal, ≈ ${{cost}} of credit",
+        "songs_one": "{{count}} song",
+        "songs_other": "{{count}} songs",
+        "next": "A song asked for now: {{where}}",
+        "nextWhere": {
+          "pc": "the PC",
+          "modal": "Modal",
+          "wait": "waits for the PC"
+        },
+        "why": {
+          "pc_free": "the PC is free",
+          "pc_busy": "the PC was busy",
+          "pc_offline": "the PC was not reachable",
+          "route_pc": "PC only",
+          "route_modal": "Modal only",
+          "batch": "catalogue batches wait for the PC",
+          "only_pc": "the only generator",
+          "only_modal": "the only generator",
+          "retry": "after failing on the other one",
+          "fallback": "the other one refused it",
+          "wait_pc": "only the PC may take it",
+          "wait_route": "batches never go to Modal"
+        },
+        "where": {
+          "pc": "on the PC",
+          "modal": "on Modal"
+        },
+        "cost": "≈ ${{cost}}",
+        "retried": "failed on the {{gen}} first: {{error}}",
+        "setBy": "Set to “{{route}}” by {{name}} {{time}}",
+        "fallback": {
+          "env": "Not set here yet: the server's CHARTGEN_ROUTE applies ({{route}}).",
+          "default": "Not set here yet: the built-in default applies ({{route}})."
+        },
+        "switched": "AI charts now: {{route}}."
+      },
       "nameUnknown": "name not read yet",
       "views": "{{views}} views",
       "plays_one": "{{count}} play",
@@ -1069,7 +1162,8 @@
         "too_short": "Too short to be a song",
         "not_music": "Not a song (from the video's details)",
         "held": "This video was held before",
-        "known": "Already a song"
+        "known": "Already a song",
+        "lost": "The chart generator lost the job (restarted or stopped answering)"
       }
     },
     "stats": {

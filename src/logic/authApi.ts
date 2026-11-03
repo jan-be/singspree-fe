@@ -5,7 +5,7 @@ import { getGuestId } from './sessionId';
 import { parseAvatarPath } from './avatar';
 import type { PrivacySettings, Visibility } from './statsPrivacy';
 import type { AchievementItem } from './achievements';
-import type { ChartAccessLevel, JobFilter } from './chartJobAdmin';
+import type { BusyReason, ChartAccessLevel, ChartRoute, GeneratorName, JobFilter, JobOrigin } from './chartJobAdmin';
 import type { ChartJobStatus } from './chartJobs';
 import type { TrendsData } from './trends';
 
@@ -511,6 +511,25 @@ export interface ChartJobStats {
   songs: number;
   playsWeek: number;
   limits: ChartJobLimits;
+  /** this calendar month (UTC: Modal's billing month), per generator: jobs sent there, seconds there, Modal's estimated $ */
+  month: { since: string; pc: GeneratorMonth; modal: GeneratorMonth };
+}
+
+/** A generator's month (ChartJobStats.month) */
+export interface GeneratorMonth { jobs: number; seconds: number; cost: number }
+
+/** Where a job ran and why it went there (backend chartJobsAdmin.ts adminJob.gen) */
+export interface JobGeneratorInfo {
+  /** the backend's chooseGenerator why: pc_free, pc_busy, pc_offline, route_pc, route_modal, batch, only_pc, only_modal, retry, fallback, resume */
+  why: string | null;
+  /** the PC's objections when it was passed over */
+  reasons: BusyReason[];
+  seconds: number | null;
+  gpu: string | null;
+  /** Modal only: estimated dollars */
+  cost: number | null;
+  /** it failed there first and went back into the line once */
+  retried: { gen: GeneratorName; code: string } | null;
 }
 
 /** An AI chart job as the admin page lists it (backend chartJobsAdmin.ts adminJob) */
@@ -532,6 +551,11 @@ export interface AdminChartJob {
   finishedAt: string | null;
   qa: { decision: string | null; reasons: string[]; predicted: number | null } | null;
   error: string | null;
+  /** who or what asked for it: an account (deleted once it is gone) or the catalogue's batch (batch_pc: made on the PC) */
+  origin: JobOrigin;
+  /** where it ran (null: not sent yet, or from before 2026-11-03) */
+  generator: GeneratorName | null;
+  gen: JobGeneratorInfo | null;
   /** live while it runs (chartJobs.ts progressAt) */
   progress: { position?: number; stage?: string; fraction?: number; eta?: number } | null;
   at: number | null;
@@ -546,6 +570,27 @@ export interface ChartAccessState {
   stored: { access: ChartAccessLevel; updatedAt: string; updatedBy: string | null } | null;
   fallback: { access: ChartAccessLevel; from: 'env' | 'default' };
   generator: boolean;
+}
+
+/** The PC's GET /load as the backend passes it on (singspree-chartgen chartgen/load.py) */
+export interface PcLoad {
+  jobs: { running: number; waiting: number };
+  gpu: { name?: string | null; util: number | null; mem_used_mb: number; mem_total_mb: number; own_mb: number; others_mb: number } | null;
+  /** Windows' CPU and memory (null: its sampler does not run) */
+  host: { cpu: number | null; mem_avail_mb?: number; mem_total_mb?: number; commit_avail_mb?: number } | null;
+  vm: { mem_avail_mb: number; mem_total_mb: number } | null;
+}
+
+/** Where AI charts are made (GET /admin/chart-jobs/generators) */
+export interface GeneratorState {
+  route: ChartRoute;
+  stored: { route: ChartRoute; updatedAt: string; updatedBy: string | null } | null;
+  fallback: { route: ChartRoute; from: 'env' | 'default' };
+  configured: Record<GeneratorName, boolean>;
+  pc: { reachable: boolean; error: string | null; at: number; load: PcLoad | null; reasons: BusyReason[]; ours: number; queue: number } | null;
+  limits: { gpuUtil: number; gpuOthersMb: number; cpu: number; memMinMb: number; commitMinMb: number; vmMemMinMb: number };
+  /** where a song asked for now would go (gen null: it would wait) */
+  next: { gen: GeneratorName | null; why: string } | null;
 }
 
 /** Every answer's envelope; a failed one carries the code and the English message */
@@ -730,4 +775,6 @@ export const adminReviewAvatarReport = (id: number, status: 'dismissed' | 'open'
 export const getAdminChartJobs = (status: JobFilter = 'all', offset = 0, limit = 20) => get<ChartJobsPage>(`/admin/chart-jobs?status=${status}&offset=${offset}&limit=${limit}`);
 /** Who may have AI charts made: { access, stored: { access, updatedAt, updatedBy } | null, fallback: { access, from }, generator } */
 export const getAdminChartAccess = () => get<{ data: ChartAccessState }>('/admin/chart-jobs/access').then(j => j.data);
+export const getAdminChartGenerators = () => get<{ data: GeneratorState }>('/admin/chart-jobs/generators').then(j => j.data);
+export const adminSetChartRoute = (route: ChartRoute) => call<{ data: GeneratorState }>('PUT', '/admin/chart-jobs/route', { route }).then(j => j.data);
 export const adminSetChartAccess = (access: ChartAccessLevel) => call<{ data: ChartAccessState }>('PUT', '/admin/chart-jobs/access', { access }).then(j => j.data);

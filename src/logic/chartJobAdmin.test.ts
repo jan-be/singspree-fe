@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { errorKey, jobTimes, qaReason } from './chartJobAdmin';
+import { errorKey, jobTimes, qaReason, busyReason, gigabytes, whyKey } from './chartJobAdmin';
 
 describe('jobTimes', () => {
   const now = Date.parse('2026-10-04T10:10:00Z');
@@ -49,5 +49,20 @@ describe('errorKey', () => {
     expect(errorKey('qa_hold')).toBe('qa_hold');
     expect(errorKey('weird')).toBe('error');
     expect(errorKey(null)).toBe('error');
+  });
+});
+
+describe('where songs are made', () => {
+  it('busy reasons with their values, memory in gigabytes in the page language', () => {
+    expect(busyReason({ code: 'gpu', value: 88, limit: 25 })).toEqual({ key: 'gpu', values: { value: 88, limit: 25 } });
+    expect(busyReason({ code: 'vram', value: 4012, limit: 2500 })).toEqual({ key: 'vram', values: { value: '4', limit: '2.5' } });
+    expect(busyReason({ code: 'memory', value: 2450, limit: 3000 }, 'de')).toEqual({ key: 'memory', values: { value: '2,5', limit: '3' } });
+    expect(busyReason({ code: 'offline' })).toEqual({ key: 'offline', values: { value: 0, limit: 0 } });
+    expect(gigabytes(null)).toBe('?');
+  });
+  it('the reasons a job went where it went, as far as there are words for them', () => {
+    expect(whyKey('pc_busy')).toBe('pc_busy');
+    expect(whyKey('resume')).toBe(null);
+    expect(whyKey(null)).toBe(null);
   });
 });

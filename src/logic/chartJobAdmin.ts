@@ -8,6 +8,31 @@
 export type JobFilter = 'all' | 'active' | 'done' | 'rejected' | 'failed';
 /** Who may have charts made */
 export type ChartAccessLevel = 'off' | 'admins' | 'everyone';
+/** The two chart generators: the admin's PC, Modal's GPUs (backend chartGenerators.ts) */
+export type GeneratorName = 'pc' | 'modal';
+/** Where songs go: the PC while it is free else Modal, the PC only, Modal only */
+export type ChartRoute = 'auto' | 'pc' | 'modal';
+/** Who or what asked for a job (backend chartJobsAdmin.ts jobOrigin) */
+export type JobOrigin = 'user' | 'deleted' | 'batch' | 'batch_pc';
+/** Why the PC counts as busy: a code with the measured value and its limit */
+export interface BusyReason { code: 'offline' | 'job' | 'gpu' | 'vram' | 'cpu' | 'memory' | 'commit' | 'vm_memory'; value?: number; limit?: number }
+
+/** The route switch's positions, in the order it shows them */
+export const ROUTES: ChartRoute[] = ['auto', 'pc', 'modal'];
+
+/** Gigabytes with one decimal, from MiB, in the page's language ('?' when unknown) */
+export const gigabytes = (mb: number | null | undefined, lang = 'en') =>
+  (mb == null ? '?' : (Math.round(mb / 100) / 10).toLocaleString(lang, { maximumFractionDigits: 1 }));
+
+/** A busy reason as admin.chartJobs.generators.busy.<key> with its values (memory in GB) */
+export function busyReason(r: BusyReason, lang = 'en') {
+  const memory = r.code === 'vram' || r.code === 'memory' || r.code === 'commit' || r.code === 'vm_memory';
+  return { key: r.code, values: memory ? { value: gigabytes(r.value, lang), limit: gigabytes(r.limit, lang) } : { value: r.value ?? 0, limit: r.limit ?? 0 } };
+}
+
+/** The backend's why codes a job row and the next-song line word (admin.chartJobs.generators.why.<code>); others none */
+const WHYS = new Set(['pc_free', 'pc_busy', 'pc_offline', 'route_pc', 'route_modal', 'batch', 'only_pc', 'only_modal', 'retry', 'fallback', 'wait_pc', 'wait_route']);
+export const whyKey = (why: string | null | undefined) => (why && WHYS.has(why) ? why : null);
 
 /** The list's status filter, as the backend takes it: everything, the unfinished ones, or one outcome */
 export const JOB_FILTERS: JobFilter[] = ['all', 'active', 'done', 'rejected', 'failed'];
@@ -19,7 +44,7 @@ export const ACCESS_LEVELS: ChartAccessLevel[] = ['off', 'admins', 'everyone'];
 export const STATUS_TONE: Record<string, 'gray' | 'cyan' | 'green' | 'yellow' | 'red'> = { queued: 'gray', downloading: 'cyan', generating: 'cyan', done: 'green', rejected: 'yellow', failed: 'red' };
 
 /** Error codes the backend stores on a job (chartJobs.ts); anything else reads as 'error' */
-const ERRORS = new Set(['live', 'too_long', 'too_short', 'not_music', 'held', 'known', 'download', 'generator', 'timeout', 'qa_hold', 'error']);
+const ERRORS = new Set(['live', 'too_long', 'too_short', 'not_music', 'held', 'known', 'download', 'generator', 'timeout', 'lost', 'qa_hold', 'error']);
 export const errorKey = (code: string | null) => (code !== null && ERRORS.has(code) ? code : 'error');
 
 const seconds = (from: number | null, to: number | null) => (from == null || to == null ? null : Math.max(0, Math.round((to - from) / 1000)));
