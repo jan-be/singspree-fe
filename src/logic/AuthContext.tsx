@@ -35,10 +35,17 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   }, []);
 
   const askingRef = useRef(0); // /auth/me requests under way
+  const changesRef = useRef(0); // the account changed here (signedIn)
   const refresh = useCallback(async () => {
     askingRef.current++;
+    const changes = changesRef.current;
     try {
       const me = await getMe();
+      // Changed here since it was asked: the answer tells of the time before.
+      // A passkey prompt closing focuses the tab just as its sign-in comes back,
+      // so this left without the new cookie and, landing after the sign-in,
+      // brought "Sign in" back until the next reload.
+      if (changes !== changesRef.current) return;
       setUser(me);
       if (me?.id !== userIdRef.current) {
         userIdRef.current = me?.id ?? null;
@@ -64,6 +71,7 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   }, [refresh]);
 
   const signedIn = useCallback((me: Me | null) => {
+    changesRef.current++;
     setUser(me);
     userIdRef.current = me?.id ?? null;
     if (me) refreshBest(); else setBest({});
