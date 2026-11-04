@@ -8,6 +8,8 @@ import AdminLink from "../components/AdminLink";
 export interface WrapperPageProps {
   children?: React.ReactNode;
   hideFooter?: boolean;
+  /** extra buttons in the top bar, left of the account (the front page's Join Party) */
+  navActions?: React.ReactNode;
 }
 
 const WrapperPage = (props: WrapperPageProps) => {
@@ -18,7 +20,9 @@ const WrapperPage = (props: WrapperPageProps) => {
           <Link to="/" className="flex items-center no-underline transition-colors">
             <Wordmark height={38} className="-my-1.5" />
           </Link>
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* relative: the anchor of a navAction's drop-down */}
+          <div className="relative flex items-center gap-2 sm:gap-3">
+            {props.navActions}
             <AdminLink />
             <AccountMenu />
           </div>

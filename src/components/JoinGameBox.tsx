@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { apiUrl } from "../GlobalConsts";
 import { useAuth } from "../logic/AuthContext";
 
-const JoinGameBox = () => {
+/** autoFocus: the code field takes the focus (a box opened on demand) */
+const JoinGameBox = ({ autoFocus = false }: { autoFocus?: boolean }) => {
   const { t } = useTranslation();
   // AuthContext's default value says user: null; signed in, it is the account
   const { user } = useAuth();
@@ -70,6 +71,7 @@ const JoinGameBox = () => {
               value={partyId}
               onChange={handlePartyIdChange}
               maxLength={4}
+              autoFocus={autoFocus}
               className="field h-14 px-4 text-center font-mono text-2xl font-semibold tracking-[0.35em] uppercase"
             />
           </div>

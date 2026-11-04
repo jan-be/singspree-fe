@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } fr
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSongNames } from "../logic/useSongNames";
-import JoinGameBox from "../components/JoinGameBox";
+import JoinPartyButton from "../components/JoinPartyButton";
 import SearchBar from "../components/SearchBar";
 import Dropdown, { DropdownChevron, type DropdownOption } from "../components/Dropdown";
 import PartyRecap from "../components/PartyRecap";
@@ -431,7 +431,6 @@ const LanguageDropdown = ({ languages, active, onSelect, userLang }: {
 // ── EntryPage ──────────────────────────────────────────────────────────
 const EntryPage = () => {
   const { t, i18n } = useTranslation();
-  const [joinOpen, setJoinOpen] = useState(false);
   const navigate = useNavigate();
   // A joiner who comes back to the menu has left the party: choosing a song
   // here starts their own. A host keeps the party (the joiners wait), sees it
@@ -541,7 +540,7 @@ const EntryPage = () => {
 
   return (
     <>
-    <WrapperPage hideFooter>
+    <WrapperPage hideFooter navActions={<JoinPartyButton />}>
 
       {/* Hero: the neon sign on its brick wall, like the icon */}
       <div className="text-center pt-10 pb-12 sm:pt-14 sm:pb-16 relative isolate">
@@ -555,28 +554,6 @@ const EntryPage = () => {
         <p className="text-[1.3rem] sm:text-2xl leading-snug font-medium tracking-[-0.015em] text-white/90 max-w-xl mx-auto text-balance relative">
           {t('hero.tagline')}
         </p>
-
-        <div className="flex items-center justify-center mt-8 relative">
-          <button
-            onClick={() => setJoinOpen(!joinOpen)}
-            aria-expanded={joinOpen}
-            className="btn btn-primary btn-lg"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-            {t('hero.joinParty')}
-          </button>
-        </div>
-
-        {joinOpen && (
-          <div className="mt-6 max-w-md mx-auto">
-            <JoinGameBox />
-          </div>
-        )}
 
         {/* The host's party is still on while they pick the next song — worth
             mentioning only while somebody is actually in it */}
