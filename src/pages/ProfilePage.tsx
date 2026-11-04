@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'reac
 import { useTranslation } from 'react-i18next';
 import WrapperPage from './WrapperPage';
 import StarRating from '../components/StarRating';
+import DifficultyTag from '../components/DifficultyTag';
 import Avatar from '../components/Avatar';
 import { useAvatarEditor } from '../components/AvatarEditor';
 import ReportPicture from '../components/ReportPicture';
@@ -34,7 +35,7 @@ import type { AchievementItem, ProfileAchievement } from '../logic/achievements'
 import type { CardMelodyNote } from '../logic/takes';
 
 /** A song in one of the profile's lists: a saved score (ScoreRow) or a song played (PlayedRow) */
-type ListedSong = Pick<ScoreRow, 'songId' | 'title' | 'artist' | 'videoId'> & {
+type ListedSong = Pick<ScoreRow, 'songId' | 'title' | 'artist' | 'videoId' | 'difficulty'> & {
   id?: string;
   score: number | null;
   stars?: number | null;
@@ -54,8 +55,8 @@ const StatTile = ({ label, value }: { label: string; value: React.ReactNode }) =
 );
 
 /**
- * One song: thumbnail, title, score and stars (and, for a duet, the part
- * sung); links to the song. A played song without a score says so, and a
+ * One song: thumbnail, title, score, the level it was sung at and stars (and,
+ * for a duet, the part sung); links to the song. A played song without a score says so, and a
  * partial play shows how far it got instead of stars. `actions`: buttons
  * beside the link (on your own profile: sharing the play, its recording; OwnRowActions).
  */
@@ -83,9 +84,11 @@ const SongRow = ({ row, date, actions = null }: { row: ListedSong; date?: string
     {row.score == null ? (
       <div className="text-xs text-white/40 flex-shrink-0">{t('profile.notScored')}</div>
     ) : (
-      <div className="text-right flex-shrink-0" title={partial ? t('profile.stoppedHint') : undefined}>
+      <div className="flex flex-col items-end gap-0.5 flex-shrink-0" title={partial ? t('profile.stoppedHint') : undefined}>
         <div className={`font-mono font-medium text-sm tabular-nums leading-tight ${partial ? 'text-white/60' : 'text-white'}`}>{row.score.toLocaleString()}</div>
         {!partial && <StarRating stars={row.stars ?? starsFor(row.score)} size={12} />}
+        {/* under the stars: beside the score it leaves a title next to your own buttons no room on a phone */}
+        <DifficultyTag level={row.difficulty} />
       </div>
     )}
   </Link>
@@ -258,7 +261,7 @@ const ShareSongButton = ({ row, score, scoreId, username, onShare }: {
       } else {
         let melody: CardMelodyNote[] | null;
         [art, melody] = await Promise.all([loadSongArt(row.videoId).catch(() => null), scoreMelody(scoreId).catch(() => null)]);
-        const me = { username, score, stars: row.stars ?? starsFor(score), rank: 1, ...(row.part ? { part: row.part } : {}) };
+        const me = { username, score, stars: row.stars ?? starsFor(score), rank: 1, difficulty: row.difficulty, ...(row.part ? { part: row.part } : {}) };
         const hueOf = (name: string) => playerHue(null, name);
         const card = { names, me, ranked: [me], rows: [me], more: 0, hueOf, melody, art: art && { aspect: art.aspect }, songUrl, t };
         const paint = { art, hue: hueOf(username) };

@@ -30,6 +30,16 @@ describe('ShareCardImage level', () => {
     expect(count(m, />difficulty\.easy</g)).toBe(1);
   });
 
+  it('says it once on a card of one singer, as the profile draws it, in the picture and in the video', () => {
+    const solo = { username: 'Ana', score: 6840, rank: 1, stars: 4, difficulty: 'hard' as const };
+    const draw = (layer?: ShareCardLayer) => renderToStaticMarkup(createElement(ShareCardImage, {
+      names: { title: 'Song', artist: 'Artist' }, me: solo, ranked: [solo], rows: [solo], more: 0, hueOf: () => 300,
+      melody: null, songUrl: 'https://singspree.com/sing/x', art: null, t: (k) => k, layer,
+    }));
+    expect(count(draw(), />difficulty\.hard</g)).toBe(1);
+    expect(count(draw('base'), />difficulty\.hard</g)).toBe(1);
+  });
+
   it('says nothing for a score without a level', () => {
     const m = withLevels({ username: 'Ana', score: 6840, rank: 1 }, { username: 'Bo', score: 5000, rank: 2, difficulty: null });
     expect(m).not.toContain('difficulty');
