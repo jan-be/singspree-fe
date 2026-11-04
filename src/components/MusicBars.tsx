@@ -17,6 +17,7 @@ import type { LiveStore } from "../logic/liveStore";
 import type { LyricElement, LyricLine } from "../logic/LyricsParser";
 import type { FrameGovernor } from "../logic/frameGovernor";
 import type { HighwayPainter, PainterCaches } from "../logic/highwayPainters";
+import { DEFAULT_DIFFICULTY, TOLERANCE, type Difficulty } from "../logic/difficulty";
 import type { OffThreadPainter } from "../logic/highwayRenderer";
 import type { PlayerColors } from "../logic/playerColor";
 
@@ -26,6 +27,8 @@ export interface MusicBarsProps {
   playerColors?: PlayerColors;
   /** username -> 1 | 2: a duet's second-part singers are judged against its notes */
   playerParts?: Record<string, number>;
+  /** username -> their level: each singer's notes are judged by their own */
+  playerDifficulties?: Record<string, Difficulty>;
   /** the host drags the cursor to shift the gap (live preview through setGap) */
   gapDragEnabled?: boolean;
   setGap?: (gap: number) => void;
@@ -243,9 +246,11 @@ function star(P: HighwayPainter, geom: LineGeometry, el: LyricElement, color: st
 // Canvases handed to a worker: they cannot be drawn on here any more, nor handed over twice
 const transferred = new WeakSet<HTMLCanvasElement>();
 
-const MusicBars = ({ store, isHost, playerColors, playerParts, gapDragEnabled, setGap, onClick }: MusicBarsProps) => {
+const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficulties, gapDragEnabled, setGap, onClick }: MusicBarsProps) => {
   const partsRef = useRef<Record<string, number>>({}); // username -> 1 | 2: a duet's second-part singers are judged against its notes
   partsRef.current = playerParts || {};
+  const difficultiesRef = useRef<Record<string, Difficulty>>({});
+  difficultiesRef.current = playerDifficulties || {};
   const { t } = useTranslation();
   const [measureRef, bounds] = useMeasure();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -500,18 +505,19 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, gapDragEnabled, s
     for (const { username, chart, visibleNotes, semitones } of perPlayer) {
       // Place each note and classify it against the chart, then group into
       // continuous line segments (gold only where a golden note is overlapped)
+      const tolerance = TOLERANCE[difficultiesRef.current[username] ?? DEFAULT_DIFFICULTY];
       const points = visibleNotes.map(({ tf, rawSemitone }, i) => {
         const semitone = semitones[i];
         const baseY = Math.max(0, Math.min(HEIGHT - NOTE_HEIGHT, toneToY(semitone) - NOTE_HEIGHT / 2)) + NOTE_HEIGHT / 2;
         const { offset, count } = overlapInfo(Math.round(tf), semitone, username);
         const y = Math.max(NOTE_HEIGHT / 2, Math.min(HEIGHT - NOTE_HEIGHT / 2, baseY + offset));
 
-        // Hit = within ±1 semitone of the expected tone at this tick (a
-        // freestyle note is not judged: nothing to hit there)
+        // Hit = within the singer's tolerance of the expected tone at this
+        // tick (a freestyle note is not judged: nothing to hit there)
         const tick = Math.floor(Math.max(0, tf));
         const ref = chart?.lyricRefs?.[tick];
         const syllable = ref && !ref.isSilent ? chart?.lyricLines?.[ref.lineIndex]?.[ref.syllableIndex] : null;
-        const isHit = !!syllable && !syllable.isFreestyle && (!!syllable.isRap || Math.abs(semitone - syllable.tone) <= 1);
+        const isHit = !!syllable && !syllable.isFreestyle && (!!syllable.isRap || Math.abs(semitone - syllable.tone) <= tolerance);
         return { tf, x: tickToX(tf), y, rawSemitone, semitone, isHit, isSpecial: syllable?.isSpecial ?? false, count };
       });
       const segments = buildSegments(points);

@@ -72,12 +72,13 @@ export const LiveStageLyrics = ({ store, p1Label, p2Label }: LiveStageLyricsProp
 /** What MusicBars takes, handed on as it is */
 export type LiveMusicBarsProps = React.ComponentProps<typeof MusicBars>;
 
-export const LiveMusicBars = ({ store, isHost, playerColors, playerParts, gapDragEnabled, setGap, onClick }: LiveMusicBarsProps) => (
+export const LiveMusicBars = ({ store, isHost, playerColors, playerParts, playerDifficulties, gapDragEnabled, setGap, onClick }: LiveMusicBarsProps) => (
   <MusicBars
     store={store}
     isHost={isHost}
     playerColors={playerColors}
     playerParts={playerParts}
+    playerDifficulties={playerDifficulties}
     gapDragEnabled={gapDragEnabled}
     setGap={setGap}
     onClick={onClick}

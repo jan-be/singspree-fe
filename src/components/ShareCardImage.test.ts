@@ -17,6 +17,25 @@ const scoreSpan = (markup: string) => {
   return span[0];
 };
 
+describe('ShareCardImage level', () => {
+  const withLevels = (singer: { username: string; score: number; rank: number; difficulty?: 'easy' | 'hard' | null }, other: { username: string; score: number; rank: number; difficulty?: 'easy' | 'hard' | null }) => renderToStaticMarkup(createElement(ShareCardImage, {
+    names: { title: 'Song', artist: 'Artist' }, me: singer, ranked: [singer, other], rows: [singer, other], more: 0, hueOf: () => 300,
+    melody: null, songUrl: 'https://singspree.com/sing/x', art: null, t: (k) => k,
+  }));
+
+  it('says the level next to your score and on every row of the leaderboard', () => {
+    const m = withLevels({ username: 'Ana', score: 6840, rank: 1, difficulty: 'hard' }, { username: 'Bo', score: 5000, rank: 2, difficulty: 'easy' });
+    expect(count(m, /data-difficulty="hard"/g)).toBe(1);
+    expect(count(m, />difficulty\.hard</g)).toBe(2); // yours, and your row
+    expect(count(m, />difficulty\.easy</g)).toBe(1);
+  });
+
+  it('says nothing for a score without a level', () => {
+    const m = withLevels({ username: 'Ana', score: 6840, rank: 1 }, { username: 'Bo', score: 5000, rank: 2, difficulty: null });
+    expect(m).not.toContain('difficulty');
+  });
+});
+
 describe('ShareCardImage layers', () => {
   it('the whole card: four gold stars and the score line, no boxes for the video', () => {
     const m = card(undefined);

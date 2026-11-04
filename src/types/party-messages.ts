@@ -4,6 +4,7 @@
  * API's answer (GET /songs/:songId, getSong.ts). Only the fields the page uses.
  */
 import type { ChartJob } from '../logic/chartJobs';
+import type { Difficulty } from '../logic/difficulty';
 import type { ScriptTitles } from '../logic/lyricsScripts';
 import type { NotesBatchMessage } from '../logic/WebsocketHandling';
 import type { QueueEntry } from '../components/QueuePanel';
@@ -41,6 +42,8 @@ export interface PartyStatePlayer {
   score?: number;
   cumulativeScore?: number;
   part?: number;
+  /** the level they sing at */
+  difficulty?: Difficulty;
   avatar?: string | null;
   /** another microphone of a page, not a person of its own */
   extra?: boolean;
@@ -91,6 +94,8 @@ export interface EndScore {
   cumulativeScore: number;
   /** the part of a duet sung */
   part?: number;
+  /** the level the score is at */
+  difficulty?: Difficulty;
   avatar?: string | null;
   saved?: boolean;
   previousBest?: number | null;
@@ -125,6 +130,8 @@ export type PartyServerMessage =
   | { type: 'player:avatar'; data: { username: string; avatar?: string | null } }
   | { type: 'player:renamed'; data: { from: string; to: string } }
   | { type: 'player:part_changed'; data: { username: string; part: number } }
+  /** score: their score at the new level */
+  | { type: 'player:difficulty_changed'; data: { username: string; difficulty: Difficulty; score: number } }
   | { type: 'song:lyrics_loaded'; data: { songId?: string; gap?: number; isDuet?: boolean } }
   | { type: 'party:player_joined'; data: PartyStatePlayer }
   | { type: 'party:player_left'; data: { username: string } }

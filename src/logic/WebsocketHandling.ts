@@ -1,4 +1,5 @@
 import { getGuestId } from './sessionId';
+import type { Difficulty } from './difficulty';
 import type { VoiceReport, VoiceSignal } from './voiceLink';
 
 // Same origin as the page (ws for http, wss for https), so the dev server,
@@ -237,6 +238,8 @@ export interface PartyJoin {
   color?: number | null;
   /** the duet part sung, 1 or 2 */
   part?: number | null;
+  /** the level sung at */
+  difficulty?: Difficulty;
   guestId?: string;
   /** another microphone of this page (extraSingers.ts) */
   extra?: boolean;
@@ -294,10 +297,10 @@ export interface NotesBatchMessage {
 // `extra`: the server then leaves the page's account off its seat. The page's
 // guest id goes along with it, which lets it in while the party is closed to
 // new people: a microphone of a page already in the party is no newcomer.
-export const sendPartyJoin = (ws: ObjSocket, { partyId, username, isShowingVideo, color, part, guestId, extra }: PartyJoin) => {
+export const sendPartyJoin = (ws: ObjSocket, { partyId, username, isShowingVideo, color, part, difficulty, guestId, extra }: PartyJoin) => {
   ws.sendObj({
     type: "party:join",
-    data: { partyId, username, isShowingVideo, color, part, guestId: guestId ?? getGuestId(), ...(extra ? { extra: true, pageGuestId: getGuestId() } : {}) },
+    data: { partyId, username, isShowingVideo, color, part, difficulty, guestId: guestId ?? getGuestId(), ...(extra ? { extra: true, pageGuestId: getGuestId() } : {}) },
   });
 };
 
@@ -479,6 +482,11 @@ export const sendCountdownCancel = (ws: ObjSocket) => {
 /** Which of a duet's two parts I sing (1 or 2): the server scores me against it and tells the others. */
 export const sendPlayerPart = (ws: ObjSocket, part: number) => {
   ws.sendObj({ type: "player:part", data: { part } });
+};
+
+/** The level I sing at: which of my scores counts (the server counts them all). */
+export const sendPlayerDifficulty = (ws: ObjSocket, difficulty: Difficulty) => {
+  ws.sendObj({ type: "player:difficulty", data: { difficulty } });
 };
 
 export const sendSongLyrics = (ws: ObjSocket, { lyrics, gap }: { lyrics: string; gap: number | null }) => {

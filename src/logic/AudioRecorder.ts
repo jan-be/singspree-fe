@@ -77,6 +77,8 @@ export interface RecordingExtra {
   serverScore?: number | null;
   /** which part of a duet was sung */
   part?: number | null;
+  /** the level serverScore is at */
+  difficulty?: string | null;
   gapAtEnd?: number | null;
 }
 
@@ -321,6 +323,7 @@ export class UserAudioRecorder {
             score: extra.score ?? metadata.score ?? null,
             serverScore: extra.serverScore ?? null,
             part: extra.part ?? null,
+            difficulty: extra.difficulty ?? null,
             gapAtEnd: extra.gapAtEnd ?? null,
             duration: Math.round(duration * 10) / 10,
             mimeType,

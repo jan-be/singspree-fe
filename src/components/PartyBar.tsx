@@ -20,7 +20,7 @@ import { partyJoinUrl } from "../logic/referrer";
 export interface PartyBarProps
   extends Pick<VolumeControlProps, "volume" | "restoreVolume" | "vocalsLevel" | "instrumentalLevel" | "onVolumeChange" | "onVocalsLevelChange"
     | "onInstrumentalLevelChange" | "hasStems" | "volumeTooltip" | "stemsHint" | "onDismissStemsHint" | "singerVoices">,
-  Pick<MicPanelProps, "micActive" | "micPhase" | "micError" | "multiMic" | "ownColor" | "onColorChange" | "latency" | "saveRecordings" | "onSaveRecordingsChange" | "voice">,
+  Pick<MicPanelProps, "micActive" | "micPhase" | "micError" | "multiMic" | "ownColor" | "onColorChange" | "latency" | "difficulty" | "onDifficultyChange" | "saveRecordings" | "onSaveRecordingsChange" | "voice">,
   Pick<PartyQrCardProps, "joiningOpen" | "people" | "playerAvatars" | "playerColors" | "onSetCohost" | "onSetJoiningOpen" | "voices" | "onSetVoices"> {
   /** undefined until the party is made */
   partyId?: string;
@@ -66,7 +66,7 @@ const isSmartphone = () =>
 // with their co-host switches (onSetCohost(name, on), onSetJoiningOpen(open)).
 const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeaveParty, autoSkip, onToggleAutoSkip, isHost, isFixingTiming, onFixingTimingChange, volume, restoreVolume, vocalsLevel, instrumentalLevel, onVolumeChange, onVocalsLevelChange, onInstrumentalLevelChange, hasStems, volumeTooltip, stemsHint, onDismissStemsHint,
   micActive, micPhase, micError, onJoinSinging, onLeaveSinging, micStatsRef, micDeviceId, onMicDeviceChange, multiMic, onMicPanelOpenChange, ownColor, onColorChange, latency,
-  saveRecordings, onSaveRecordingsChange, camera,
+  difficulty, onDifficultyChange, saveRecordings, onSaveRecordingsChange, camera,
   showVideo, onToggleVideo, videoHint, onDismissVideoHint, queueOpen, queuePoppedOut, onToggleQueue, queueCount = 0, onFreeClick,
   getReportContext, canControl = false, joiningOpen = true, people, playerAvatars, playerColors, onSetCohost, onSetJoiningOpen,
   voices, onSetVoices, voice, singerVoices }: PartyBarProps) => {
@@ -179,6 +179,8 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
             onColorChange={onColorChange}
             latency={latency}
             onOpenChange={handleMicPanelOpenChange}
+            difficulty={difficulty}
+            onDifficultyChange={onDifficultyChange}
             saveRecordings={saveRecordings}
             onSaveRecordingsChange={onSaveRecordingsChange}
             voice={voice}

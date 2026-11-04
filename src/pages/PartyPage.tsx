@@ -47,6 +47,7 @@ import {
   sendQueueRemove,
   sendQueueReorder,
   sendPlayerPart,
+  sendPlayerDifficulty,
   sendPingReply,
   sendPlayerColor,
   BIN_NOTES_BATCH,
@@ -63,6 +64,7 @@ import { NO_SETTINGS, readSettings, renameInSettings, cardPeople } from "../logi
 import { canPopOut, usePopout } from "../logic/popoutWindow";
 import { defaultHue, playerHue } from "../logic/playerColor";
 import Avatar from "../components/Avatar";
+import DifficultyTag from "../components/DifficultyTag";
 import LiveScoreStrip from "../components/LiveScoreStrip";
 import { avatarSrc, learnAvatars } from "../logic/avatar";
 import { avatarSprites } from "../logic/avatarSprite";
@@ -78,6 +80,7 @@ import { achievementInfo, creditLine, mergeEndAchievements, scoreCardChips } fro
 import { DuetIcon, LockIcon, SpeakerIcon } from "../components/Icons";
 import { getSessionId, getGuestId } from "../logic/sessionId";
 import { loadSaveRecordings, storeSaveRecordings, takeMoment } from "../logic/takes";
+import { DEFAULT_DIFFICULTY, TOLERANCE, loadDifficulty, storeDifficulty, type Difficulty } from "../logic/difficulty";
 import { CAMERA_LATENCY_S, cameraAction, cameraEncoderSupported, createCameraFilm, type CameraFilm } from "../logic/cameraClip";
 import CameraButton, { CameraPreview } from "../components/CameraButton";
 import { exitFullscreen, toggleFullscreen } from "../logic/fullscreen";
@@ -499,6 +502,12 @@ const PartyPage = () => {
   // "Save recordings" (logic/takes.ts): off, this page records nothing at all
   const [saveRecordings, setSaveRecordings] = useState(loadSaveRecordings);
   const saveRecordingsRef = useRef(saveRecordings);
+  // The level I sing at (the microphone panel's slider, kept in this browser;
+  // this page's other microphones follow it), and everyone's: each singer's
+  // notes are judged by their own, and it stands next to their score
+  const [difficulty, setDifficulty] = useState(loadDifficulty);
+  const difficultyRef = useRef(difficulty);
+  const [playerDifficulties, setPlayerDifficulties] = useState<Record<string, Difficulty>>({});
   // The play the party's server named for the song on (party:song_started / party:state): the take keeps it
   const currentPlayRef = useRef<{ songId: string; startedAt: number } | null>(null); // { songId, startedAt }
   // The take of the song that just ended (its upload's answer), for the score screen's share video
@@ -2156,6 +2165,7 @@ const PartyPage = () => {
       score: live.notes[name]?.score,
       serverScore: live.scores[name],
       part: myPartRef.current ?? null,             // which part of a duet was sung (scored against)
+      difficulty: difficultyRef.current,           // the level serverScore is at
       gapAtEnd: lyricDataRef.current?.gap ?? null, // the host may correct the timing while the song runs
     }) ?? Promise.resolve(null);
     // influencer mode: the camera keeps the take's moment of what it filmed (logic/cameraClip.ts)
@@ -2195,6 +2205,17 @@ const PartyPage = () => {
       // with the host's time as it heard it last (getHostVideoTime)
       isHost: !!isHostRef.current,
     });
+  }, []);
+
+  // The microphone panel's difficulty slider: at once, for the song so far too (the server counts every level)
+  const handleDifficultyChange = useCallback((level: Difficulty) => {
+    difficultyRef.current = level;
+    setDifficulty(level);
+    storeDifficulty(level);
+    setPlayerDifficulties(prev => ({ ...prev, [currentUserNameRef.current]: level }));
+    const w = wssRef.current;
+    if (w && w.readyState === WebSocket.OPEN) sendPlayerDifficulty(w, level);
+    for (const { singer } of extraSingersRef.current.values()) singer.setDifficulty(level);
   }, []);
 
   // The microphone panel's "Save recordings": off drops the take of the song on
@@ -2554,7 +2575,7 @@ const PartyPage = () => {
       const judged = td.lyricRef && td.lyricData ? { lyricData: td.lyricData } : null;
       for (const n of out) {
         if (judged) {
-          live.notes = getAndSetHitNotesByPlayer(judged, live.notes, n.freq, currentUserNameRef.current, n.t);
+          live.notes = getAndSetHitNotesByPlayer(judged, live.notes, n.freq, currentUserNameRef.current, n.t, TOLERANCE[difficultyRef.current]);
         }
         if (w) sendPlayerNote(w, { freq: n.freq, videoTime: n.t, fric: n.fric });
       }
@@ -2603,6 +2624,7 @@ const PartyPage = () => {
         held: songTimeHeld,
         gpu: isPitchGpuEnabled(),
         voice: voicesRef.current?.extraVoice(slot.name.trim()),
+        difficulty: () => difficultyRef.current,
         onState: st => setExtraStates(prev => ({ ...prev, [id]: st })),
       });
       singer.setVoice(!!voicesRef.current?.extraWanted);
@@ -2738,7 +2760,7 @@ const PartyPage = () => {
     if (!partyId || authLoading) return;
 
     const onOpen = (wsInstance: PartySocket) => {
-      sendPartyJoin(wsInstance, { partyId, username: currentUserNameRef.current, isShowingVideo: true, color: ownColorRef.current, part: myPartRef.current });
+      sendPartyJoin(wsInstance, { partyId, username: currentUserNameRef.current, isShowingVideo: true, color: ownColorRef.current, part: myPartRef.current, difficulty: difficultyRef.current });
       // where the voices on the speakers find a way (the answer: rtc:ice)
       voicesRef.current?.onSocketOpen(wsInstance);
 
@@ -2869,6 +2891,7 @@ const PartyPage = () => {
           learnPlayerAvatars(state.players);
           setMembers(state.players.filter(p => p.connected !== false).map(p => p.username));
           setPlayerParts(Object.fromEntries(state.players.map(p => [p.username, p.part ?? 1])));
+          setPlayerDifficulties(Object.fromEntries(state.players.map(p => [p.username, p.difficulty ?? DEFAULT_DIFFICULTY])));
           setExtraNames(new Set(state.players.filter(p => p.extra).map(p => p.username)));
         }
         if (state.owner) setPartyOwner(state.owner);
@@ -2950,6 +2973,7 @@ const PartyPage = () => {
         setPlayerColors(move);
         setPlayerAvatars(move);
         setPlayerParts(move);
+        setPlayerDifficulties(move);
         setServerScores(s => s && move(s));
         setMembers(m => m.map(u => (u === from ? to : u)));
         setPartySettings(st => renameInSettings(st, from, to));
@@ -2967,6 +2991,12 @@ const PartyPage = () => {
       if (jsonObj.type === "player:part_changed") {
         const { username, part } = jsonObj.data;
         setPlayerParts(prev => ({ ...prev, [username]: part }));
+      }
+
+      if (jsonObj.type === "player:difficulty_changed") {
+        const { username, difficulty: level, score } = jsonObj.data;
+        live.scores[username] = score; // (the strip reads it when the level below arrives there)
+        setPlayerDifficulties(prev => ({ ...prev, [username]: level }));
       }
 
       // The host switched the stage between solo and duet: joiners follow (their
@@ -3521,6 +3551,8 @@ const PartyPage = () => {
         ownColor={ownColor}
         onColorChange={handleColorChange}
         latency={latencyStore}
+        difficulty={difficulty}
+        onDifficultyChange={handleDifficultyChange}
         saveRecordings={saveRecordings}
         onSaveRecordingsChange={handleSaveRecordingsChange}
         camera={cameraProps}
@@ -3709,6 +3741,7 @@ const PartyPage = () => {
             avatars={playerAvatars}
             me={currentUserName}
             parts={playerParts}
+            difficulties={playerDifficulties}
             duet={duetMode}
           />
 
@@ -3726,6 +3759,7 @@ const PartyPage = () => {
                 isHost={canControl}
                 playerColors={playerColors}
                 playerParts={playerParts}
+                playerDifficulties={playerDifficulties}
                 onClick={handleStageClick}
                 gapDragEnabled={isFixingTiming}
                 setGap={setGap}
@@ -3974,6 +4008,7 @@ const PartyPage = () => {
                                 {player.part === 2 ? t('party.duetP2') : t('party.duetP1')}
                               </span>
                             )}
+                            <DifficultyTag level={player.difficulty} className="ml-2 align-middle" />
                           </div>
                           {isMe && (player.newBest || player.previousBest != null) && (
                             <div className={`text-xs leading-tight mt-0.5 ${player.newBest ? "text-[#ff7ade] font-semibold" : "text-white/55"}`}>
@@ -4044,6 +4079,7 @@ const PartyPage = () => {
                               <span className="truncate">{me ? t('scores.you') : f.username}</span>
                             </a>
                             <span className="flex items-center gap-2 tabular-nums flex-shrink-0">
+                              <DifficultyTag level={f.difficulty} />
                               <StarRating stars={f.stars} size={11} />
                               {f.score.toLocaleString()}
                             </span>

@@ -12,9 +12,11 @@
  * Scoring is time-proportional: each note sample has an implicit
  * duration (until the next sample). Score accumulates as
  *   dt * (bpm/60) * multiplier
- * when the note matches the expected tone within ±1 semitone.
+ * when the note matches the expected tone within the singer's level's
+ * tolerance (difficulty.ts).
  */
 
+import { DEFAULT_DIFFICULTY, TOLERANCE } from './difficulty';
 import { hzToSemitone } from './MicSharedFuns';
 import type { LyricLine, LyricRef } from './LyricsParser';
 
@@ -53,6 +55,7 @@ export interface RemoteNote extends HitNote {
 class PlayerNotes {
   declare notes: HitNote[];
   declare judgedBy: ScoringChart;
+  declare tolerance: number;
   declare unscored: boolean;
   declare scored: number;
 
@@ -63,20 +66,22 @@ class PlayerNotes {
     // whether the score over the notes as they are now is still to be worked out
     // (nothing is scored before the first judge(), which sets them all)
     this.judgedBy = { bpm: 0, gap: 0, lyricRefs: [], lyricLines: [] };
+    this.tolerance = DEFAULT_TOLERANCE;
     this.unscored = false;
     this.scored = 0;
   }
 
   /** The notes now are the ones the newest local note was judged with. */
-  judge({ bpm, gap, lyricRefs, lyricLines }: ScoringChart) {
+  judge({ bpm, gap, lyricRefs, lyricLines }: ScoringChart, tolerance: number) {
     const j = this.judgedBy;
     j.bpm = bpm; j.gap = gap; j.lyricRefs = lyricRefs; j.lyricLines = lyricLines;
+    this.tolerance = tolerance;
     this.unscored = true;
   }
 
   get score(): number {
     if (this.unscored) {
-      this.scored = scoreNotes(this.judgedBy, this.notes);
+      this.scored = scoreNotes(this.judgedBy, this.notes, this.tolerance);
       this.unscored = false;
     }
     return this.scored;
@@ -84,6 +89,8 @@ class PlayerNotes {
 }
 
 export type { PlayerNotes };
+
+const DEFAULT_TOLERANCE = TOLERANCE[DEFAULT_DIFFICULTY];
 
 /**
  * Process a local mic note and update the player's note history + score.
@@ -94,9 +101,10 @@ export type { PlayerNotes };
  * @param freq - Raw detected frequency in Hz (0 = silence)
  * @param player - Username
  * @param videoTime - Current video time in seconds
+ * @param tolerance - How far off a note the player's level allows, in semitones
  * @returns Updated hitNotesByPlayer (same reference, mutated)
  */
-export const getAndSetHitNotesByPlayer = (tickData: { lyricData: ScoringChart },hitNotesByPlayer: HitNotesByPlayer, freq: number, player: string, videoTime: number): HitNotesByPlayer => {
+export const getAndSetHitNotesByPlayer = (tickData: { lyricData: ScoringChart },hitNotesByPlayer: HitNotesByPlayer, freq: number, player: string, videoTime: number, tolerance = DEFAULT_TOLERANCE): HitNotesByPlayer => {
   if (!hitNotesByPlayer) hitNotesByPlayer = {};
   if (!hitNotesByPlayer[player]) hitNotesByPlayer[player] = new PlayerNotes();
 
@@ -113,7 +121,7 @@ export const getAndSetHitNotesByPlayer = (tickData: { lyricData: ScoringChart },
   pData.notes.push({ videoTime, freq });
 
   // Time-proportional score over these notes, worked out when read
-  pData.judge(tickData.lyricData);
+  pData.judge(tickData.lyricData, tolerance);
 
   return hitNotesByPlayer;
 };
@@ -121,15 +129,15 @@ export const getAndSetHitNotesByPlayer = (tickData: { lyricData: ScoringChart },
 /**
  * Time-proportional scoring.
  * Each consecutive pair of notes defines a duration. If the note matches
- * the expected tone (±1 semitone after octave adjustment), score is
+ * the expected tone (within `tolerance` after octave adjustment), score is
  * accumulated proportional to the time held: dt * (bpm/60) * multiplier.
  */
-export const calcScore = (lyricData: ScoringChart, playerData: { notes: readonly HitNote[], score: number }): void => {
-  playerData.score = scoreNotes(lyricData, playerData.notes);
+export const calcScore = (lyricData: ScoringChart, playerData: { notes: readonly HitNote[], score: number }, tolerance = DEFAULT_TOLERANCE): void => {
+  playerData.score = scoreNotes(lyricData, playerData.notes, tolerance);
 };
 
 /** calcScore's sum: the score of `notes` against `lyricData` ({ bpm, gap, lyricRefs, lyricLines }). */
-const scoreNotes = (lyricData: ScoringChart, notes: readonly HitNote[]): number => {
+const scoreNotes = (lyricData: ScoringChart, notes: readonly HitNote[], tolerance: number): number => {
   if (notes.length < 2) return 0;
 
   const { bpm, gap, lyricRefs, lyricLines } = lyricData;
@@ -164,7 +172,7 @@ const scoreNotes = (lyricData: ScoringChart, notes: readonly HitNote[]): number 
     // A rap note is spoken: any voiced sample (freq > 0, above) hits it.
     const semitone = hzToSemitone(freq);
     const octaveAdj = Math.round((expected - semitone) / 12) * 12;
-    if (syllable.isRap || Math.abs(semitone + octaveAdj - expected) <= 1) {
+    if (syllable.isRap || Math.abs(semitone + octaveAdj - expected) <= tolerance) {
       // dt * tickRate = "ticks worth of time" — score parity with old system
       score += dt * tickRate * (syllable.isSpecial ? 2 : 1);
     }

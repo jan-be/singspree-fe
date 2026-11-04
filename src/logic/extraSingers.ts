@@ -14,10 +14,11 @@
 import { initMicInput, micErrorKind } from './MicrophoneInput';
 import { createBleedController, FALLBACK_DELAY } from './bleedController';
 import { createSingingGate } from './singingGate';
-import { keepWebSocket, sendPartyJoin, sendPartyLeave, sendPingReply, sendPlayerNote, sendRtcSignal } from './WebsocketHandling';
+import { keepWebSocket, sendPartyJoin, sendPartyLeave, sendPingReply, sendPlayerDifficulty, sendPlayerNote, sendRtcSignal } from './WebsocketHandling';
 import { randomId } from './sessionId';
 import type { MicErrorKind, MicInput, MicStats, ProcessedPitch } from './MicrophoneInput';
 import type { BleedController } from './bleedController';
+import type { Difficulty } from './difficulty';
 import type { GateLyrics } from './singingGate';
 import type { KeptWebSocket, PartySocket } from './WebsocketHandling';
 import type { PartyServerMessage } from '../types/party-messages';
@@ -90,6 +91,8 @@ export interface ExtraSinger {
   readonly state: ExtraSingerState;
   /** opens the microphone (does nothing while open or opening) */
   openMic(): Promise<void> | null;
+  /** the page's level changed: this singer's follows */
+  setDifficulty(level: Difficulty): void;
   closeMic(): void;
   /** song playing or paused: the pipeline runs or idles, like the page's own */
   setActive(on: boolean): void;
@@ -211,10 +214,11 @@ export function syncBleedSong(bleed: BleedController | null, current: string | n
  *   held()       the song time is not the party's yet (the host's page on its way to its spot): no notes
  *   onState(s)   { phase: 'off' | 'starting' | 'on', error: null | 'taken' | 'closed' | mic error kind, stats }
  *   voice        its voice on the host's speakers (ExtraVoice), if the page offers it
+ *   difficulty() the level it sings at, the page's (a rejoin keeps it)
  * initMic / keep: for tests.
  */
 export function createExtraSinger({ slot, partyId, songTime, chart = () => undefined, isSongPlaying, held = () => false, onState = () => {}, gpu = false,
-  voice, initMic = initMicInput, keep = keepWebSocket }: {
+  voice, difficulty = () => undefined, initMic = initMicInput, keep = keepWebSocket }: {
   slot: Pick<ExtraMicSlot, 'name' | 'deviceId' | 'color' | 'guestId'>,
   partyId: string,
   songTime: () => number,
@@ -225,6 +229,7 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
   onState?: (state: ExtraSingerState) => void,
   gpu?: boolean,
   voice?: ExtraVoice,
+  difficulty?: () => Difficulty | undefined,
   initMic?: (options: { deviceId?: string, gpu?: boolean }) => Promise<ExtraMic>,
   keep?: (options: SingerSocketOptions) => KeptWebSocket,
 }): ExtraSinger {
@@ -263,7 +268,7 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
         // the party takes no new people and the server could not tell this page is in it (a page from before this one)
         else if (m.type === 'error' && m.data?.code === 'joining_closed') set({ error: 'closed' });
       };
-      sendPartyJoin(sock, { partyId, username: slot.name, isShowingVideo: false, color: slot.color, guestId: slot.guestId, extra: true });
+      sendPartyJoin(sock, { partyId, username: slot.name, isShowingVideo: false, color: slot.color, difficulty: difficulty(), guestId: slot.guestId, extra: true });
     },
     onDown: () => { ws = null; },
   });
@@ -318,6 +323,7 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
     },
     /** song playing or paused: the pipeline runs or idles, like the page's own */
     setActive(on: boolean) { mic?.setActive(on); link?.setActive(on); },
+    setDifficulty(level: Difficulty) { if (ws) sendPlayerDifficulty(ws, level); },
     /** the song the page plays and its stems: the delay is measured against them */
     syncSong(songId: string | undefined, stems: BleedStems | null) { bleedSong = syncBleedSong(bleed, bleedSong, songId, stems); },
     /** its voice on the host's speakers: wanted or not */

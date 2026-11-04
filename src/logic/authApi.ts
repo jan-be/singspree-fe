@@ -5,6 +5,7 @@ import { getGuestId } from './sessionId';
 import { parseAvatarPath } from './avatar';
 import type { PrivacySettings, Visibility } from './statsPrivacy';
 import type { AchievementItem } from './achievements';
+import type { Difficulty } from './difficulty';
 import type { BusyReason, ChartAccessLevel, ChartRoute, GeneratorName, JobFilter, JobOrigin } from './chartJobAdmin';
 import type { ChartJobStatus } from './chartJobs';
 import type { TrendsData } from './trends';
@@ -214,6 +215,8 @@ export interface LeaderboardEntry {
   username: string;
   score: number;
   stars: number;
+  /** the level the score is at */
+  difficulty?: Difficulty | null;
   sungAt: string;
   avatar: string | null;
 }

@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Avatar from './Avatar';
+import DifficultyTag from './DifficultyTag';
 import StarMeter, { paintStars } from './StarMeter';
+import { DEFAULT_DIFFICULTY, type Difficulty } from '../logic/difficulty';
 import { playerHue, type PlayerColors } from '../logic/playerColor';
 import { rankSingers } from '../logic/scoreStrip';
 import type { AvatarPaths } from '../logic/avatar';
@@ -17,6 +19,8 @@ export interface LiveScoreStripProps {
   me: string;
   /** username -> the duet part they sing, 1 or 2 */
   parts?: Record<string, number>;
+  /** username -> the level their score is at */
+  difficulties?: Record<string, Difficulty>;
   duet?: boolean;
   max?: number;
 }
@@ -34,7 +38,7 @@ export interface LiveScoreStripProps {
  * the lyrics and the countdown avoid a React render per frame on weak hosts;
  * so are the stars' fill levels (paintStars).
  */
-const LiveScoreStrip = ({ store, scores, colors, avatars, me, parts, duet, max = 8 }: LiveScoreStripProps) => {
+const LiveScoreStrip = ({ store, scores, colors, avatars, me, parts, difficulties, duet, max = 8 }: LiveScoreStripProps) => {
   const { t } = useTranslation();
   const scoresRef = useRef(scores);
   scoresRef.current = scores;
@@ -65,9 +69,9 @@ const LiveScoreStrip = ({ store, scores, colors, avatars, me, parts, duet, max =
         if (m) paintStars(m, r.score);
       }
     };
-    update(); // the board in React state changed, or a new store
+    update(); // the board in React state changed, someone's level (and so their score), or a new store
     return store.subscribe(update);
-  }, [store, read, scores]);
+  }, [store, read, scores, difficulties]);
 
   if (view.rows.length === 0) return null;
   const chip = 'flex items-center gap-1.5 h-8 sm:h-9 pl-0.5 sm:pl-1 pr-2.5 sm:pr-3 rounded-full flex-shrink-0 bg-[rgba(10,10,26,0.75)] ring-1 ring-inset';
@@ -88,6 +92,7 @@ const LiveScoreStrip = ({ store, scores, colors, avatars, me, parts, duet, max =
               >
                 {r.score.toLocaleString()}
               </span>
+              <DifficultyTag level={difficulties?.[r.username] ?? DEFAULT_DIFFICULTY} />
               <StarMeter
                 score={r.score}
                 className={`ml-0.5 text-[15px] sm:text-[19px] ${isMe ? '' : 'hidden sm:inline-flex'}`}
@@ -102,6 +107,7 @@ const LiveScoreStrip = ({ store, scores, colors, avatars, me, parts, duet, max =
             <Avatar username={me} src={avatars?.[me] ?? null} hue={playerHue(colors, me)} size={28} className="text-[11px]" />
             <span className="text-xs font-medium tabular-nums">#{view.mine.rank} / {view.mine.total}</span>
             <span className="text-xs font-bold tabular-nums">{view.mine.score.toLocaleString()}</span>
+            <DifficultyTag level={difficulties?.[me] ?? DEFAULT_DIFFICULTY} />
             <StarMeter score={view.mine.score} className="ml-0.5 text-[15px] sm:text-[19px]" />
           </li>
         )}

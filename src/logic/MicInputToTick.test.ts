@@ -1,4 +1,5 @@
 import { assert, describe, it, expect } from 'vitest';
+import { TOLERANCE } from './difficulty';
 import { calcScore } from './MicInputToTick';
 import type { HitNote, HitNotesByPlayer, RemoteNote } from './MicInputToTick';
 import { readTextFile } from './LyricsParser';
@@ -16,6 +17,18 @@ const sing = (from: number, to: number) => {
 };
 
 describe('calcScore', () => {
+  it('counts a note within the level\'s tolerance, and no further', async () => {
+    const lyricData = await readTextFile(CHART);
+    const offKey = sing(5, 8);
+    for (const n of offKey.notes) n.freq = HZ_TONE_12 * Math.pow(2, 1.8 / 12);
+    calcScore(lyricData, offKey, TOLERANCE.easy);
+    expect(offKey.score).toBeGreaterThan(0);
+    calcScore(lyricData, offKey, TOLERANCE.medium);
+    expect(offKey.score).toBe(0);
+    calcScore(lyricData, offKey);
+    expect(offKey.score).toBeGreaterThan(0); // easy is the default
+  });
+
   it('gives nothing for holding the first note through the intro', async () => {
     const lyricData = await readTextFile(CHART);
     const player = sing(0, 4.95);
@@ -158,7 +171,7 @@ describe('the lazy score', () => {
         const x = r();
         const freq = x < 0.15 ? 0 : x < 0.2 ? -1 : toneHz(target + (r() - 0.5) * 5 + (r() < 0.2 ? 12 : 0));
         if (td.lyricRef) {
-          live = getAndSetHitNotesByPlayer(td, live, freq, me, noteTime);
+          live = getAndSetHitNotesByPlayer(td, live, freq, me, noteTime, 1);
           ref.local(td, freq, me, noteTime);
         }
         if (r() < 0.3) {

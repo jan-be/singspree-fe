@@ -5,6 +5,7 @@ import { MicIcon, MicOffIcon } from './Icons';
 import PingIndicator from './PingIndicator';
 import Dropdown, { type DropdownOption } from './Dropdown';
 import { PLAYER_COLOR_PALETTE, hueToCss } from '../logic/playerColor';
+import { DEFAULT_DIFFICULTY, DIFFICULTIES, TOLERANCE, type Difficulty } from '../logic/difficulty';
 import { markPopoverClosed } from '../logic/popoverGuard';
 import { useStoreValue } from '../logic/valueStore';
 import { NAME_MAX, freeDevices, nameProblem, newExtraMic, type ExtraMicSlot, type ExtraSingerState } from '../logic/extraSingers';
@@ -25,6 +26,10 @@ import type { VoiceLinkState } from '../logic/voiceLink';
  * while micPhase is set the mic button spins, closed panel or not, and the
  * join button says what is happening and cannot be pressed twice. micError
  * says why the last attempt failed (and puts a red dot on the mic button).
+ *
+ * Difficulty (logic/difficulty.ts): how far off a note the singer may be, for
+ * this page's microphones. It takes effect at once, for the song so far too:
+ * the server counts every level.
  *
  * "Save recordings" (saveRecordings, on unless turned off; logic/takes.ts):
  * on, each song sung here is kept to listen to on the singer's profile;
@@ -67,6 +72,8 @@ export interface MicPanelProps {
   onColorChange: (hue: number) => void;
   latency?: LatencyStore;
   onOpenChange?: (open: boolean) => void;
+  difficulty?: Difficulty;
+  onDifficultyChange?: (level: Difficulty) => void;
   saveRecordings?: boolean;
   onSaveRecordingsChange?: (on: boolean) => void;
   /** the singer's switch for their voice on the host's speakers; state: the connection (null on the host's page) */
@@ -173,9 +180,10 @@ const MicPanel = ({
   micActive, micPhase = null, micError = null, onJoin, onLeave, statsRef,
   deviceId, onDeviceChange, multiMic,
   ownColor, onColorChange, latency, onOpenChange,
+  difficulty = DEFAULT_DIFFICULTY, onDifficultyChange,
   saveRecordings = true, onSaveRecordingsChange, voice,
 }: MicPanelProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   // The page keeps the microphone open while the panel shows its level (micStandby.ts)
@@ -294,6 +302,34 @@ const MicPanel = ({
             </div>
             <div className="mt-2"><Meter pct={micActive ? levelPct(level) : 0} /></div>
           </div>
+
+          {onDifficultyChange && (
+            <div>
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <span id="mic-difficulty" className="text-white/70">{t('mic.difficulty')}</span>
+                <span aria-hidden="true" data-difficulty-level="" className="text-white font-semibold">{t(`difficulty.${difficulty}`)}</span>
+              </div>
+              {/* (left to right in every language: easiest to hardest, the track's fill with it) */}
+              <input
+                type="range" min="0" max={DIFFICULTIES.length - 1} step="1" value={DIFFICULTIES.indexOf(difficulty)}
+                onChange={e => onDifficultyChange(DIFFICULTIES[Number(e.target.value)] ?? DEFAULT_DIFFICULTY)}
+                dir="ltr"
+                aria-labelledby="mic-difficulty"
+                aria-valuetext={t(`difficulty.${difficulty}`)}
+                aria-describedby="mic-difficulty-hint"
+                data-difficulty-slider=""
+                className="range mt-1"
+                style={{ '--v': `${(DIFFICULTIES.indexOf(difficulty) / (DIFFICULTIES.length - 1)) * 100}%`, '--accent': 'var(--color-neon-green)' }}
+              />
+              {/* A mark per level, under where the thumb stops (its centre stays 8 px from the ends) */}
+              <div dir="ltr" aria-hidden="true" className="flex justify-between px-1.5 -mt-0.5">
+                {DIFFICULTIES.map(d => <span key={d} className={`w-1 h-1 rounded-full ${d === difficulty ? 'bg-white' : 'bg-white/30'}`} />)}
+              </div>
+              <p id="mic-difficulty-hint" className="mt-1.5 text-xs text-white/45 leading-snug">
+                {t('mic.difficultyHint', { n: TOLERANCE[difficulty].toLocaleString(i18n.language) })}
+              </p>
+            </div>
+          )}
 
           {onSaveRecordingsChange && (
             <div>

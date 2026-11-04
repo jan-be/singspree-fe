@@ -4,6 +4,7 @@ import AppIcon from "./AppIcon";
 import { MAX_SCORE, STAR_THRESHOLDS } from "../logic/scoreScale";
 import { CARD_WIDTH, CARD_HEIGHT, WORDMARK_ASPECT, waveform, type MelodyNote } from "../logic/shareImage";
 import { achievementInfo } from "../logic/achievements";
+import type { Difficulty } from "../logic/difficulty";
 import type { SongNames } from "../logic/lyricsScripts";
 import type { Translate } from "../types/i18n";
 
@@ -20,8 +21,8 @@ import type { Translate } from "../types/i18n";
  * picture is scaled). Glows and drop shadows are asked for with data-glow
  * and painted on the canvas under the card.
  *
- * Top to bottom: the art with your rank stuck on it, the song, your score
- * over the song's melody as a progress bar with the stars on their
+ * Top to bottom: the art with your rank stuck on it, the song, your score at
+ * its level over the song's melody as a progress bar with the stars on their
  * thresholds, what the song earned you (a new best, achievements), the
  * others, and the way in (QR code and link). With three
  * or more singers everything is a little smaller so the leaderboard fits;
@@ -38,6 +39,8 @@ export interface ShareCardSinger {
   score: number;
   rank: number;
   part?: number | null;
+  /** the level the score is at */
+  difficulty?: Difficulty | null;
   stars?: number;
   newBest?: boolean;
   achievements?: string[] | null;
@@ -359,6 +362,11 @@ const ShareCardImage = React.forwardRef<HTMLDivElement, ShareCardImageProps>(fun
         <span data-fit="name" data-fit-max={dense ? 24 : 27} data-fit-min="20" data-fit-lines="1" data-fit-lh="1.2" dir="auto" style={{ fontSize: 27, fontWeight: 800, lineHeight: 1.2, color: hsl(hue, 78), overflowWrap: "anywhere", wordBreak: "break-word" }}>
           {me.username}
         </span>
+        {me.difficulty && (
+          <span data-difficulty={me.difficulty} style={{ fontSize: 15, fontWeight: 800, letterSpacing: spaced(t(`difficulty.${me.difficulty}`), "0.08em"), textTransform: "uppercase", whiteSpace: "nowrap", color: "#ead0ff", border: "1.5px solid rgba(180,74,255,0.75)", borderRadius: 999, padding: "3px 12px", flexShrink: 0 }}>
+            {t(`difficulty.${me.difficulty}`)}
+          </span>
+        )}
       </div>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 12 }}>
         <span data-glow={perfect ? "rgba(255,190,30,0.7)" : hsl(hue, 58, 0.6)} data-glow-blur="34" data-glow-text data-anim="score" data-score={me.score} style={{
@@ -420,6 +428,11 @@ const ShareCardImage = React.forwardRef<HTMLDivElement, ShareCardImageProps>(fun
                   {p.part && (
                     <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: spaced(t('party.duetP1'), "0.06em"), textTransform: "uppercase", color: "#ead0ff", border: "1.5px solid rgba(180,74,255,0.65)", borderRadius: 999, padding: "2px 9px", flexShrink: 0 }}>
                       {p.part === 2 ? t('party.duetP2') : t('party.duetP1')}
+                    </span>
+                  )}
+                  {p.difficulty && (
+                    <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: spaced(t(`difficulty.${p.difficulty}`), "0.06em"), textTransform: "uppercase", whiteSpace: "nowrap", color: "#ead0ff", border: "1.5px solid rgba(180,74,255,0.65)", borderRadius: 999, padding: "2px 9px", flexShrink: 0 }}>
+                      {t(`difficulty.${p.difficulty}`)}
                     </span>
                   )}
                   <MiniStars stars={p.stars ?? 0} gold={`${uid}-g${p.rank}`} />
