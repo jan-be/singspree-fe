@@ -16,12 +16,12 @@ const WrapperPage = (props: WrapperPageProps) => {
   return (
     <div className="flex flex-col min-h-screen overflow-x-clip">
       <nav className="bg-ink/70 backdrop-blur-md border-b border-white/[0.06] relative z-40">
-        <div className="max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+        <div className="max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-2 sm:gap-4">
           <Link to="/" className="flex items-center no-underline transition-colors">
             <Wordmark height={38} className="-my-1.5" />
           </Link>
-          {/* relative: the anchor of a navAction's drop-down */}
-          <div className="relative flex items-center gap-2 sm:gap-3">
+          {/* relative: the anchor of a navAction's drop-down; flex-1: a navAction can take up the room that is left */}
+          <div className="relative flex flex-1 min-w-0 items-center justify-end gap-2 sm:gap-3">
             {props.navActions}
             <AdminLink />
             <AccountMenu />
