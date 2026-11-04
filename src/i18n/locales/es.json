@@ -417,6 +417,26 @@
     "close": "Cerrar",
     "failed": "No se pudo enviar. Inténtalo de nuevo."
   },
+  "android": {
+    "title": "SingSpree para Android",
+    "intro": "La app para Android está en una prueba cerrada en Google Play. Google solo publica una app nueva para todos cuando 12 personas han seguido en la prueba durante 14 días, y aún nos faltan unas cuantas. ¿Nos ayudas?",
+    "step1": "Déjanos la dirección de la cuenta de Google de tu teléfono.",
+    "step2": "La añadimos a la prueba a mano, lo que puede tardar un día, y te enviamos el enlace por correo.",
+    "step3": "Abre el enlace, hazte tester, instala la app y consérvala 14 días.",
+    "email": "Dirección de tu cuenta de Google",
+    "join": "Añadirme como tester",
+    "done": "¡Gracias! Escribiremos a {{email}} en cuanto estés en la lista.",
+    "privacy": "Usamos la dirección solo para esta prueba y la borramos cuando termine.",
+    "already": "¿Ya estás en la lista?",
+    "open": "Abrir la prueba en Google Play"
+  },
+  "ios": {
+    "title": "SingSpree para iOS",
+    "intro": "Todavía no hay app para iPhone y iPad. Si te interesa, déjanos tu dirección y te escribiremos el día que esté disponible.",
+    "interested": "Me interesa",
+    "done": "¡Gracias! Escribiremos a {{email}} el día que la app esté disponible.",
+    "privacy": "Usamos la dirección solo para ese correo y después la borramos."
+  },
   "share": {
     "shareScore": "Compartir puntuación",
     "iJustSang": "Acabo de cantar",

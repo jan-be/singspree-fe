@@ -421,6 +421,26 @@
     "close": "Schließen",
     "failed": "Senden fehlgeschlagen. Bitte versuch es noch einmal."
   },
+  "android": {
+    "title": "SingSpree für Android",
+    "intro": "Die Android-App läuft als geschlossener Test bei Google Play. Google gibt eine neue App erst für alle frei, wenn 12 Personen 14 Tage lang im Test geblieben sind, und uns fehlen noch ein paar. Hilfst du mit?",
+    "step1": "Gib die Adresse des Google-Kontos auf deinem Handy an.",
+    "step2": "Wir tragen sie von Hand in den Test ein, das kann einen Tag dauern, und schicken dir den Link per E-Mail.",
+    "step3": "Öffne den Link, werde Tester, installiere die App und behalte sie 14 Tage.",
+    "email": "Adresse deines Google-Kontos",
+    "join": "Als Tester eintragen",
+    "done": "Danke! Wir schreiben an {{email}}, sobald du auf der Liste stehst.",
+    "privacy": "Wir nutzen die Adresse nur für diesen Test und löschen sie, wenn er vorbei ist.",
+    "already": "Schon auf der Liste?",
+    "open": "Test bei Google Play öffnen"
+  },
+  "ios": {
+    "title": "SingSpree für iOS",
+    "intro": "Für iPhone und iPad gibt es noch keine App. Wenn du Interesse hast, hinterlass deine Adresse, und wir schreiben dir, sobald es sie gibt.",
+    "interested": "Ich hätte Interesse",
+    "done": "Danke! Wir schreiben an {{email}}, sobald es die App gibt.",
+    "privacy": "Wir nutzen die Adresse nur für diese eine E-Mail und löschen sie danach."
+  },
   "share": {
     "shareScore": "Score teilen",
     "iJustSang": "Ich habe gerade gesungen",
@@ -797,8 +817,8 @@
       "counts": {
         "overview_one": "{{count}} Party läuft",
         "overview_other": "{{count}} Partys laufen",
-        "inbox_one": "{{count}} Meldung wartet",
-        "inbox_other": "{{count}} Meldungen warten",
+        "inbox_one": "{{count}} wartet",
+        "inbox_other": "{{count}} warten",
         "charts_one": "{{count}} Job läuft oder wartet",
         "charts_other": "{{count}} Jobs laufen oder warten"
       }
@@ -1276,6 +1296,31 @@
         "resolved": "„{{title}}“ als erledigt markiert.",
         "dismissed": "„{{title}}“ verworfen.",
         "open": "„{{title}}“ wieder geöffnet."
+      }
+    },
+    "testers": {
+      "title": "Android-Tester",
+      "hint": "Wer auf der Seite /android die App testen möchte. Kopiere die Adressen, füge sie in der Play Console in die E-Mail-Liste des geschlossenen Tests ein und speichere. Drücke dann bei jeder Hinzugefügt: Das schickt ihr den Link, über den sie sich anmeldet. Für Googles 12 zählen nur die Angemeldeten, und sie müssen 14 Tage dabeibleiben. Wenn der Test vorbei ist, entferne alle: Das verspricht die Datenschutzerklärung.",
+      "status": {
+        "waiting": "Wartend",
+        "added": "Hinzugefügt"
+      },
+      "copy": "Adressen kopieren",
+      "copied_one": "{{count}} Adresse kopiert",
+      "copied_other": "{{count}} Adressen kopiert",
+      "added": "Hinzugefügt",
+      "remove": "Entfernen",
+      "removeConfirm": "{{email}} vergessen?",
+      "removed": "{{email}} vergessen.",
+      "mailed": "{{email}} ist hinzugefügt, die E-Mail ist raus.",
+      "notMailed": "{{email}} ist hinzugefügt, aber es ging keine E-Mail raus (Testadresse oder hier kein Mail-Schlüssel).",
+      "wasAdded": "hinzugefügt {{time}}"
+    },
+    "ios": {
+      "title": "iOS-App",
+      "hint": "Adressen von der Seite /ios, für den Tag, an dem es eine App gibt. Von hier geht nichts raus. Wenn die App da ist, schreib ihnen einmal, jeweils in ihrer Sprache, und entferne sie dann: Das verspricht die Datenschutzerklärung, auch falls die App nie kommt.",
+      "status": {
+        "waiting": "Interessiert"
       }
     },
     "feedback": {

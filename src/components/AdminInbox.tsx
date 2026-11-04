@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Avatar from './Avatar';
+import AdminAppSignups from './AdminAppSignups';
 import AdminFeedback from './AdminFeedback';
 import { btn, Section, Badge, Thumb, Hint, Loading, FilterButtons, list, useAgo, useName, type AdminActions } from './AdminParts';
 import { formatTime } from '../logic/songRegions';
@@ -11,8 +12,9 @@ import type { AdminAvatarReport, AdminSongReport, AvatarReportStatus, SongReport
 
 /**
  * /admin's inbox: what people sent the admins. Song reports and reported
- * profile pictures, each settled with a button here, and the answers to "How
- * do you like SingSpree?" (AdminFeedback.tsx).
+ * profile pictures, each settled with a button here, the addresses left for
+ * the Android and iOS apps (AdminAppSignups.tsx) and the answers to "How do you
+ * like SingSpree?" (AdminFeedback.tsx).
  */
 
 /** A list of reports as the tab holds it: the rows so far, and the count per status */
@@ -127,7 +129,9 @@ const AvatarReportRow = ({ report: r, busy, onRemove, onReview }: {
  * which the page reads every few seconds; when one differs from the list's,
  * that list is read again, so new reports show up by themselves.
  */
-const AdminInbox = ({ openReports, openAvatarReports, actions }: { openReports: number | undefined; openAvatarReports: number | undefined; actions: AdminActions }) => {
+const AdminInbox = ({ openReports, openAvatarReports, waitingTesters, iosSignups, actions }: {
+  openReports: number | undefined; openAvatarReports: number | undefined; waitingTesters: number | undefined; iosSignups: number | undefined; actions: AdminActions;
+}) => {
   const { t } = useTranslation();
   const { busy, run, say, fail } = actions;
 
@@ -235,6 +239,10 @@ const AdminInbox = ({ openReports, openAvatarReports, actions }: { openReports: 
           )}
         {avatarReports?.hasMore && <button type="button" disabled={busy} onClick={() => moreAvatarReports(avatarReports)} className={`${btn.quiet} mt-3`}>{t('admin.showMore')}</button>}
       </Section>
+
+      <AdminAppSignups platform="android" count={waitingTesters} actions={actions} />
+
+      <AdminAppSignups platform="ios" count={iosSignups} actions={actions} />
 
       <AdminFeedback onError={fail} />
     </>

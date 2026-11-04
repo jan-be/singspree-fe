@@ -417,6 +417,26 @@
     "close": "Kapat",
     "failed": "Gönderilemedi. Lütfen tekrar dene."
   },
+  "android": {
+    "title": "Android için SingSpree",
+    "intro": "Android uygulaması Google Play’de kapalı testte. Google yeni bir uygulamayı ancak 12 kişi 14 gün boyunca testte kaldıktan sonra herkese açıyor ve birkaç kişiye daha ihtiyacımız var. Yardım eder misiniz?",
+    "step1": "Telefonunuzdaki Google hesabının adresini bırakın.",
+    "step2": "Adresi teste elle ekleyip bağlantıyı e-postayla göndeririz; bu bir gün sürebilir.",
+    "step3": "Bağlantıyı açın, test kullanıcısı olun, uygulamayı yükleyin ve 14 gün boyunca silmeyin.",
+    "email": "Google hesabınızın adresi",
+    "join": "Beni test kullanıcısı olarak ekle",
+    "done": "Teşekkürler! Listeye eklenir eklenmez {{email}} adresine yazacağız.",
+    "privacy": "Adresi yalnızca bu test için kullanır, test bitince sileriz.",
+    "already": "Zaten listede misiniz?",
+    "open": "Testi Google Play’de aç"
+  },
+  "ios": {
+    "title": "iOS için SingSpree",
+    "intro": "iPhone ve iPad için henüz bir uygulama yok. İlgileniyorsanız adresinizi bırakın, çıktığı gün size e-posta gönderelim.",
+    "interested": "İlgilenirim",
+    "done": "Teşekkürler! Uygulama çıktığı gün {{email}} adresine yazacağız.",
+    "privacy": "Adresi yalnızca bu e-posta için kullanır, ardından sileriz."
+  },
   "share": {
     "shareScore": "Puanı Paylaş",
     "iJustSang": "Az önce söyledim",

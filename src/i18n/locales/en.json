@@ -421,6 +421,26 @@
     "close": "Close",
     "failed": "Could not send. Please try again."
   },
+  "android": {
+    "title": "SingSpree for Android",
+    "intro": "The Android app is in a closed test on Google Play. Google releases a new app to everyone only after 12 people have stayed in its test for 14 days, and we still need a few more. Would you help?",
+    "step1": "Leave the address of the Google account on your phone.",
+    "step2": "We add it to the test by hand, which can take a day, and email you the link.",
+    "step3": "Open the link, become a tester, install the app and keep it for 14 days.",
+    "email": "Your Google account's address",
+    "join": "Add me as a tester",
+    "done": "Thank you! We'll write to {{email}} as soon as you're on the list.",
+    "privacy": "We use the address only for this test and delete it when the test is over.",
+    "already": "Already on the list?",
+    "open": "Open the test on Google Play"
+  },
+  "ios": {
+    "title": "SingSpree for iOS",
+    "intro": "There is no app for iPhone and iPad yet. If you'd be interested, leave your address and we'll email you the day it's available.",
+    "interested": "I'd be interested",
+    "done": "Thank you! We'll write to {{email}} the day the app is available.",
+    "privacy": "We use the address only for that one email and delete it afterwards."
+  },
   "share": {
     "shareScore": "Share Score",
     "iJustSang": "I just sang",
@@ -797,8 +817,8 @@
       "counts": {
         "overview_one": "{{count}} party running",
         "overview_other": "{{count}} parties running",
-        "inbox_one": "{{count}} report waiting",
-        "inbox_other": "{{count}} reports waiting",
+        "inbox_one": "{{count}} waiting",
+        "inbox_other": "{{count}} waiting",
         "charts_one": "{{count}} job running or waiting",
         "charts_other": "{{count}} jobs running or waiting"
       }
@@ -1276,6 +1296,31 @@
         "resolved": "“{{title}}” marked resolved.",
         "dismissed": "“{{title}}” dismissed.",
         "open": "“{{title}}” reopened."
+      }
+    },
+    "testers": {
+      "title": "Android testers",
+      "hint": "People who asked on the /android page to test the app. Copy the addresses, paste them into the closed test's email list in Play Console and save. Then press Added on each: that mails them the link they opt in through. Only those who opted in count towards Google's 12, and they must stay in for 14 days. When the test is over, remove everyone: the privacy policy promises that.",
+      "status": {
+        "waiting": "Waiting",
+        "added": "Added"
+      },
+      "copy": "Copy addresses",
+      "copied_one": "{{count}} address copied",
+      "copied_other": "{{count}} addresses copied",
+      "added": "Added",
+      "remove": "Remove",
+      "removeConfirm": "Forget {{email}}?",
+      "removed": "{{email}} forgotten.",
+      "mailed": "{{email}} is added, and the mail went out.",
+      "notMailed": "{{email}} is added, but no mail went out (a test address, or no mail key here).",
+      "wasAdded": "added {{time}}"
+    },
+    "ios": {
+      "title": "iOS app",
+      "hint": "Addresses left on the /ios page, for the day there is an app. Nothing is sent from here. When the app is out, write to them once, each in their language, and then remove them: the privacy policy promises that, also if the app never comes.",
+      "status": {
+        "waiting": "Interested"
       }
     },
     "feedback": {

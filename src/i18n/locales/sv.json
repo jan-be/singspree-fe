@@ -417,6 +417,26 @@
     "close": "Stäng",
     "failed": "Det gick inte att skicka. Försök igen."
   },
+  "android": {
+    "title": "SingSpree för Android",
+    "intro": "Android-appen är i ett slutet test på Google Play. Google släpper en ny app för alla först när 12 personer har stannat i testet i 14 dagar, och vi behöver några till. Vill du hjälpa till?",
+    "step1": "Lämna adressen till Google-kontot på din telefon.",
+    "step2": "Vi lägger till den i testet för hand, vilket kan ta en dag, och mejlar dig länken.",
+    "step3": "Öppna länken, bli testare, installera appen och behåll den i 14 dagar.",
+    "email": "Adressen till ditt Google-konto",
+    "join": "Lägg till mig som testare",
+    "done": "Tack! Vi skriver till {{email}} så snart du är med på listan.",
+    "privacy": "Vi använder adressen bara för det här testet och raderar den när testet är över.",
+    "already": "Redan med på listan?",
+    "open": "Öppna testet på Google Play"
+  },
+  "ios": {
+    "title": "SingSpree för iOS",
+    "intro": "Det finns ingen app för iPhone och iPad än. Om du är intresserad, lämna din adress så mejlar vi dig den dag den finns.",
+    "interested": "Jag är intresserad",
+    "done": "Tack! Vi skriver till {{email}} den dag appen finns.",
+    "privacy": "Vi använder adressen bara till det mejlet och raderar den sedan."
+  },
   "share": {
     "shareScore": "Dela poäng",
     "iJustSang": "Jag sjöng just",

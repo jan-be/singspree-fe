@@ -119,7 +119,7 @@ const AdminConsole = ({ myId, tab }: { myId: number; tab: Tab }) => {
   }, [fail]);
   const actions: AdminActions = useMemo(() => ({ busy, run, say: setMsg, fail }), [busy, run, fail]);
 
-  const waiting = overview ? overview.reportsOpen + overview.avatarReportsOpen : 0;
+  const waiting = overview ? overview.reportsOpen + overview.avatarReportsOpen + overview.androidTestersWaiting : 0;
   const counts: Partial<Record<Tab, TabCount>> = {
     overview: overview?.partiesRunning ? { n: overview.partiesRunning } : undefined,
     inbox: waiting ? { n: waiting, urgent: true } : undefined,
@@ -146,7 +146,7 @@ const AdminConsole = ({ myId, tab }: { myId: number; tab: Tab }) => {
         {tab === 'overview' && <AdminOverviewTab overview={overview} reload={loadOverview} actions={actions} />}
         {tab === 'trends' && <AdminTrends />}
         {tab === 'visitors' && <AdminVisitors onError={fail} />}
-        {tab === 'inbox' && <AdminInbox openReports={overview?.reportsOpen} openAvatarReports={overview?.avatarReportsOpen} actions={actions} />}
+        {tab === 'inbox' && <AdminInbox openReports={overview?.reportsOpen} openAvatarReports={overview?.avatarReportsOpen} waitingTesters={overview?.androidTestersWaiting} iosSignups={overview?.iosSignups} actions={actions} />}
         {tab === 'charts' && <AdminChartJobs active={overview?.chartJobsActive} />}
         {tab === 'accounts' && <AdminAccounts myId={myId} actions={actions} />}
       </div>

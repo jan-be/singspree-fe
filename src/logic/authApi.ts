@@ -97,6 +97,8 @@ export interface ScoreRow {
   songId: string;
   score: number;
   stars: number;
+  /** the level it was sung at */
+  difficulty?: Difficulty | null;
   sungAt: string;
   /** history rows only */
   isDuet?: boolean;
@@ -291,6 +293,9 @@ export interface AdminOverview {
   secondsWeek: number;
   reportsOpen: number;
   avatarReportsOpen: number;
+  androidTestersWaiting: number;
+  /** addresses left on the /ios page */
+  iosSignups: number;
   chartJobsActive: number;
   partiesRunning: number;
   playersOnline: number;
@@ -417,6 +422,19 @@ export interface AdminSongReport {
   title: string | null;
   videoId: string | null;
   openForSong: number;
+}
+
+export type AppPlatform = 'android' | 'ios';
+export type AppSignupStatus = 'waiting' | 'added';
+
+/** An address left for one of the apps (backend appSignups.ts) */
+export interface AdminAppSignup {
+  id: number;
+  platform: AppPlatform;
+  email: string;
+  lang: string | null;
+  createdAt: string;
+  addedAt: string | null;
 }
 
 /** What the browser knew when it was asked for feedback (backend feedback.ts FeedbackContext) */
@@ -670,6 +688,8 @@ export const submitGapCorrection = (songId: string, gap: number) => call<{ gap: 
 /** What is wrong with a song: { kinds, comment?, context?, nickname?, partyId?, sessionId? } (anyone, guests too). */
 export const reportSong = (songId: string, report: SongReportRequest) => post<{ id: number; merged: boolean }>(`/songs/${encodeURIComponent(songId)}/reports`, report);
 /** Stars (and later a comment) for SingSpree: { id, token } to change the answer with */
+/** Leaves an address for one of the apps (the /android and /ios pages) */
+export const signUpForApp = (platform: AppPlatform, email: string, lang: string) => post('/app-signups', { platform, email, lang });
 export const sendFeedback = (feedback: FeedbackRequest) => post<{ id: number; token: string }>('/feedback', { ...feedback, guestId: getGuestId() });
 
 export const passkeysSupported = () => browserSupportsWebAuthn();
@@ -769,6 +789,12 @@ export const adminReviewReport = (id: number, status: SongReportStatus, note?: s
 /** How people like SingSpree in the last `days` (0: all): { data: answers, hasMore, summary } */
 export const getAdminFeedback = (days = 0, filter: FeedbackFilter = 'all', offset = 0, limit = 20) =>
   get<Paged<AdminFeedback> & { summary: FeedbackSummary }>(`/admin/feedback?days=${days}&filter=${filter}&offset=${offset}&limit=${limit}`);
+/** The addresses left for an app: { data, counts: { waiting, added } } */
+export const getAdminAppSignups = (platform: AppPlatform, status: AppSignupStatus) =>
+  get<{ data: AdminAppSignup[]; counts: Record<AppSignupStatus, number> }>(`/admin/app-signups?platform=${platform}&status=${status}`);
+/** An Android tester is on the list in Play Console: mails them the test's link; `mailed` false when no mail could go out (a test address, no mail key) */
+export const adminAppSignupAdded = (id: number) => post<{ mailed: boolean }>(`/admin/app-signups/${id}/added`);
+export const adminRemoveAppSignup = (id: number) => call('DELETE', `/admin/app-signups/${id}`);
 /** Reported profile pictures: open (default) | removed | dismissed | all. */
 export const getAdminAvatarReports = (status: AvatarReportStatus | 'all' = 'open', offset = 0, limit = 20) =>
   get<ReportsPage<AdminAvatarReport, AvatarReportStatus>>(`/admin/avatar-reports?status=${status}&offset=${offset}&limit=${limit}`);

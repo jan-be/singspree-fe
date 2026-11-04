@@ -1,3 +1,5 @@
+import en from '../i18n/locales/en.json';
+import AndroidContent from '../pages/compliance/content/AndroidContent';
 import ContactContent from '../pages/compliance/content/ContactContent';
 import PrivacyPolicyContent from '../pages/compliance/content/PrivacyPolicyContent';
 import TermsOfServiceContent from '../pages/compliance/content/TermsOfServiceContent';
@@ -8,15 +10,16 @@ import type { ComponentType } from 'react';
  * crawler gets the real content instead of the app shell.
  *
  * The backend prerenders everything that depends on the catalogue (the home
- * pages and the 28,000 song pages); these three are the frontend's own, so
+ * pages and the 28,000 song pages); these are the frontend's own, so
  * they are generated here, from the same components people see. Add a page
  * here and nginx needs no change: it serves whatever was generated for the
  * matching URL and 404s a crawler when nothing was.
  *
  * An entry may set `noindex: true` to keep its page out of search results
- * (crawlers still read it and follow its links). The three below are indexable:
- * who runs the site and its terms are what search engines look for on a new
- * domain, and the backend's English home page links them.
+ * (crawlers still read it and follow its links). Contact, privacy and terms are
+ * indexable: who runs the site and its terms are what search engines look for
+ * on a new domain, and the backend's English home page links them. /android
+ * is there for the previews of shared links, only as long as the test runs.
  */
 export const STATIC_PAGES: { path: string; title: string; description: string; Content: ComponentType; noindex?: boolean }[] = [
   {
@@ -36,5 +39,12 @@ export const STATIC_PAGES: { path: string; title: string; description: string; C
     title: 'Terms of Service | SingSpree',
     description: 'The terms for using SingSpree, the free online karaoke app with synced lyrics and pitch scoring.',
     Content: TermsOfServiceContent,
+  },
+  {
+    path: '/android',
+    title: 'SingSpree for Android',
+    description: 'Help test the SingSpree karaoke app for Android: join the closed test on Google Play.',
+    Content: () => <AndroidContent text={key => en.android[key]} />,
+    noindex: true,
   },
 ];

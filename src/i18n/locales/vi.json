@@ -415,6 +415,26 @@
     "close": "Đóng",
     "failed": "Không gửi được. Vui lòng thử lại."
   },
+  "android": {
+    "title": "SingSpree cho Android",
+    "intro": "Ứng dụng Android đang trong đợt thử nghiệm kín trên Google Play. Google chỉ phát hành ứng dụng mới cho mọi người sau khi 12 người ở lại thử nghiệm trong 14 ngày, và chúng tôi vẫn còn thiếu vài người. Bạn giúp nhé?",
+    "step1": "Để lại địa chỉ tài khoản Google trên điện thoại của bạn.",
+    "step2": "Chúng tôi thêm thủ công vào đợt thử nghiệm, có thể mất một ngày, rồi gửi liên kết qua email.",
+    "step3": "Mở liên kết, trở thành người thử nghiệm, cài ứng dụng và giữ trong 14 ngày.",
+    "email": "Địa chỉ tài khoản Google của bạn",
+    "join": "Thêm tôi làm người thử nghiệm",
+    "done": "Cảm ơn bạn! Chúng tôi sẽ viết đến {{email}} ngay khi bạn có tên trong danh sách.",
+    "privacy": "Chúng tôi chỉ dùng địa chỉ này cho đợt thử nghiệm và xóa khi kết thúc.",
+    "already": "Đã có tên trong danh sách?",
+    "open": "Mở thử nghiệm trên Google Play"
+  },
+  "ios": {
+    "title": "SingSpree cho iOS",
+    "intro": "Hiện chưa có ứng dụng cho iPhone và iPad. Nếu bạn quan tâm, hãy để lại địa chỉ và chúng tôi sẽ gửi email vào ngày ứng dụng ra mắt.",
+    "interested": "Tôi quan tâm",
+    "done": "Cảm ơn bạn! Chúng tôi sẽ viết đến {{email}} vào ngày ứng dụng ra mắt.",
+    "privacy": "Chúng tôi chỉ dùng địa chỉ này cho email đó và xóa sau khi gửi."
+  },
   "share": {
     "shareScore": "Chia sẻ điểm",
     "iJustSang": "Tôi vừa hát",

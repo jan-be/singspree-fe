@@ -417,6 +417,26 @@
     "close": "Sluiten",
     "failed": "Versturen mislukt. Probeer het opnieuw."
   },
+  "android": {
+    "title": "SingSpree voor Android",
+    "intro": "De Android-app zit in een besloten test op Google Play. Google geeft een nieuwe app pas voor iedereen vrij als 12 mensen 14 dagen in de test zijn gebleven, en we hebben er nog een paar nodig. Help je mee?",
+    "step1": "Laat het adres achter van het Google-account op je telefoon.",
+    "step2": "We voegen het met de hand toe aan de test, dat kan een dag duren, en mailen je de link.",
+    "step3": "Open de link, word tester, installeer de app en houd hem 14 dagen.",
+    "email": "Adres van je Google-account",
+    "join": "Voeg me toe als tester",
+    "done": "Bedankt! We schrijven naar {{email}} zodra je op de lijst staat.",
+    "privacy": "We gebruiken het adres alleen voor deze test en verwijderen het als de test voorbij is.",
+    "already": "Sta je al op de lijst?",
+    "open": "Open de test op Google Play"
+  },
+  "ios": {
+    "title": "SingSpree voor iOS",
+    "intro": "Er is nog geen app voor iPhone en iPad. Heb je interesse, laat dan je adres achter en we mailen je zodra hij er is.",
+    "interested": "Ik heb interesse",
+    "done": "Bedankt! We schrijven naar {{email}} zodra de app er is.",
+    "privacy": "We gebruiken het adres alleen voor die ene e-mail en verwijderen het daarna."
+  },
   "share": {
     "shareScore": "Score delen",
     "iJustSang": "Ik zong net",

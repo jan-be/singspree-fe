@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Route, Routes, Navigate, useParams, useLocation } from "react-router-dom";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import i18n, { supportedLanguages } from "./i18n/i18n";
+import AndroidPage from "./pages/AndroidPage";
+import IosPage from "./pages/IosPage";
 import ContactPage from "./pages/compliance/ContactPage";
 import PrivacyPolicyPage from "./pages/compliance/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/compliance/TermsOfServicePage";
@@ -114,6 +116,8 @@ const SongRoute = () => {
 const MyRouter = () =>
   <Router>
     <Routes>
+      <Route path="/android" element={<Page title="SingSpree for Android"><AndroidPage /></Page>} />
+      <Route path="/ios" element={<Page title="SingSpree for iOS"><IosPage /></Page>} />
       <Route path="/contact" element={<Page title="Contact | SingSpree"><ContactPage /></Page>} />
       <Route path="/privacy-policy" element={<Page title="Privacy Policy | SingSpree"><PrivacyPolicyPage /></Page>} />
       <Route path="/tos" element={<Page title="Terms of Service | SingSpree"><TermsOfServicePage /></Page>} />
