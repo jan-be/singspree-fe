@@ -31,6 +31,8 @@ const SINGSPREE_ROOT = path.resolve(ROOT, '..');
 // The backend's checkout next to this one (named singpro-be before the rename)
 const BE_ROOT = ['singspree-be', 'singpro-be'].map(n => path.resolve(SINGSPREE_ROOT, n)).find(existsSync)
   ?? path.resolve(SINGSPREE_ROOT, 'singspree-be');
+// iris.mp3 and iris2.mp3, sung recordings kept outside the repos
+const RECORDINGS_DIR = path.resolve(SINGSPREE_ROOT, 'claude-generated', 'singpro-perf');
 const MODEL_PATH = path.resolve(ROOT, 'public', 'model.onnx');
 
 // --- Shared helpers ---
@@ -270,7 +272,7 @@ describe('Pitch accuracy: iris.mp3', () => {
   let stats: RecordingStats;
 
   beforeAll(async () => {
-    const mp3 = path.resolve(SINGSPREE_ROOT, 'iris.mp3');
+    const mp3 = path.resolve(RECORDINGS_DIR, 'iris.mp3');
     expect(existsSync(mp3), `iris.mp3 not found at ${mp3}`).toBe(true);
     const audio16k = decodeMp3ToFloat32(mp3, SAMPLE_RATE);
     stats = await analyzeRecording('iris.mp3', audio16k, lyricData, session);
@@ -302,7 +304,7 @@ describe('Pitch accuracy: iris2.mp3', () => {
   let stats: RecordingStats;
 
   beforeAll(async () => {
-    const mp3 = path.resolve(SINGSPREE_ROOT, 'iris2.mp3');
+    const mp3 = path.resolve(RECORDINGS_DIR, 'iris2.mp3');
     expect(existsSync(mp3), `iris2.mp3 not found at ${mp3}`).toBe(true);
     const audio16k = decodeMp3ToFloat32(mp3, SAMPLE_RATE);
     stats = await analyzeRecording('iris2.mp3', audio16k, lyricData, session);
@@ -346,7 +348,7 @@ describe('Sample size benchmark: inference time + accuracy', () => {
   const END_SEC = 45;
 
   beforeAll(async () => {
-    const mp3 = path.resolve(SINGSPREE_ROOT, 'iris2.mp3');
+    const mp3 = path.resolve(RECORDINGS_DIR, 'iris2.mp3');
     expect(existsSync(mp3), `iris2.mp3 not found at ${mp3}`).toBe(true);
     audio16k = decodeMp3ToFloat32(mp3, SAMPLE_RATE);
 
@@ -433,6 +435,72 @@ describe('Sample size benchmark: inference time + accuracy', () => {
   }
 });
 
+// --- Accuracy at different window sizes against lyrics ---
+
+describe('Sample size accuracy against lyrics', () => {
+  const WINDOW_SIZES_ACCURACY = [1280, 960, 640];
+
+  for (const winSize of WINDOW_SIZES_ACCURACY) {
+    it(`window=${winSize}: octave-adjusted accuracy against Iris lyrics`, async () => {
+      const mp3 = path.resolve(RECORDINGS_DIR, 'iris2.mp3');
+      const audio16k = decodeMp3ToFloat32(mp3, SAMPLE_RATE);
+      const hopSize = Math.max(winSize >> 2, 160); // proportional hop, min 10ms
+
+      const counts = { totalNotes: 0, detected: 0, correctOctave: 0 };
+      const numWindows = Math.floor((audio16k.length - winSize) / hopSize);
+
+      for (let w = 0; w < numWindows; w++) {
+        const start = w * hopSize;
+        const chunk = audio16k.slice(start, start + winSize);
+
+        let sumSq = 0;
+        for (let i = 0; i < winSize; i++) sumSq += chunk[i] * chunk[i];
+        const volume = Math.sqrt(sumSq / winSize);
+
+        let note = 0;
+        if (volume >= TEST_SILENCE_THRESHOLD) {
+          const pitchHz = await detectPitch(session, chunk);
+          if (pitchHz > 0) note = Math.round(hzToSemitone(pitchHz));
+        }
+
+        // Map window center to tick
+        const sec = (start + winSize / 2) / SAMPLE_RATE;
+        const tick = Math.floor(secSinceStartToTickFloat(lyricData, sec));
+        if (tick < 0 || tick >= lyricData.lyricRefs.length) continue;
+
+        const ref = lyricData.lyricRefs[tick];
+        if (!ref || ref.isSilent) continue;
+        const syllable = lyricData.lyricLines[ref.lineIndex]?.[ref.syllableIndex];
+        if (!syllable || syllable.isBreak) continue;
+
+        counts.totalNotes++;
+        if (note !== 0) {
+          counts.detected++;
+          const diff = syllable.tone - note;
+          const octAdj = Math.round(diff / 12) * 12;
+          if (Math.abs(note + octAdj - syllable.tone) <= 1) counts.correctOctave++;
+        }
+      }
+
+      const detRate = counts.detected / counts.totalNotes;
+      const octAcc = counts.correctOctave / counts.totalNotes;
+      const detAcc = counts.detected > 0 ? counts.correctOctave / counts.detected : 0;
+
+      console.log(`  Window ${winSize} (${(winSize / SAMPLE_RATE * 1000).toFixed(0)}ms, hop ${hopSize}):`);
+      console.log(`    Detection: ${counts.detected}/${counts.totalNotes} (${(detRate*100).toFixed(1)}%)`);
+      console.log(`    Oct-adj accuracy: ${counts.correctOctave}/${counts.totalNotes} (${(octAcc*100).toFixed(1)}%)`);
+      console.log(`    Of detected: ${counts.correctOctave}/${counts.detected} (${(detAcc*100).toFixed(1)}%)`);
+
+      // Minimum bar: all tested sizes (≥640) should detect something
+      expect(counts.detected).toBeGreaterThan(0);
+      // 1280 and 960 should maintain high accuracy
+      if (winSize >= 960) {
+        expect(octAcc).toBeGreaterThan(0.05);
+      }
+    }, 300000);
+  }
+});
+
 // --- Gain invariance tests ---
 // Verify that swift-f0 ONNX model produces the same pitch regardless of
 // audio amplitude. This confirms the model is gain-invariant and that
@@ -444,7 +512,7 @@ describe('Gain invariance: ONNX model pitch consistency', () => {
   let audio16k: Float32Array;
 
   beforeAll(async () => {
-    const mp3 = path.resolve(SINGSPREE_ROOT, 'iris2.mp3');
+    const mp3 = path.resolve(RECORDINGS_DIR, 'iris2.mp3');
     expect(existsSync(mp3), `iris2.mp3 not found at ${mp3}`).toBe(true);
     audio16k = decodeMp3ToFloat32(mp3, SAMPLE_RATE);
 
