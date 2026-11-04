@@ -6,7 +6,9 @@ import type { MelodyNote } from './shareImage';
  * Takes: the recordings of your singing you keep (backend takes.ts,
  * routes/takes.ts). The microphone panel's "Save recordings" switch, on
  * unless turned off, decides whether this browser records at all: off, it
- * neither records nor uploads anything. On, each song you sing is uploaded
+ * neither records nor uploads any audio. (The pitch the scoring runs on goes to
+ * the server either way, which keeps it with the score: backend playSamples.ts.)
+ * On, each song you sing is uploaded
  * with your guest id or account and the play it belongs to, so your profile
  * can play it back over the song's backing track, and the score screen can
  * make a short video of it to share.
