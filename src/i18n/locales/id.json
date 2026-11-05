@@ -588,7 +588,16 @@
       "email_invalid": "Itu tidak tampak seperti alamat email",
       "code_invalid": "Kode salah",
       "code_expired": "Kode sudah kedaluwarsa, minta yang baru",
-      "mail_failed": "Email tidak dapat dikirim, coba lagi nanti"
+      "mail_failed": "Email tidak dapat dikirim, coba lagi nanti",
+      "email_same": "Itu sudah alamatmu",
+      "email_taken": "Akun lain memakai alamat itu",
+      "google_expired": "Terlalu lama, silakan coba lagi",
+      "google_denied": "Masuk dengan Google dibatalkan",
+      "google_failed": "Gagal masuk dengan Google, silakan coba lagi",
+      "google_unverified": "Google belum memverifikasi alamat akun ini",
+      "google_address": "Sudah ada akun dengan alamat ini. Masuk dengan kode, lalu hubungkan Google di pengaturan",
+      "google_elsewhere": "Akun Google ini sudah terhubung ke akun lain",
+      "google_needed": "Tambahkan alamat e-mail terlebih dahulu"
     },
     "email": "Alamat email",
     "emailHint": "Hanya untuk masuk. Tanpa buletin.",
@@ -611,7 +620,9 @@
     "oneButtonHint": "Pakai passkey atau kata sandi kalau ada; kalau tidak, kami kirim kode lewat email.",
     "title": "Masuk atau daftar",
     "sendCodeInstead": "Kirim kode saja",
-    "agreeTerms": "Dengan membuat akun, kamu menyetujui <tos>Ketentuan Layanan</tos> dan <privacy>Kebijakan Privasi</privacy>."
+    "agreeTerms": "Dengan membuat akun, kamu menyetujui <tos>Ketentuan Layanan</tos> dan <privacy>Kebijakan Privasi</privacy>.",
+    "or": "atau",
+    "continueWithGoogle": "Lanjutkan dengan Google"
   },
   "profile": {
     "myProfile": "Profil saya",
@@ -805,7 +816,20 @@
     "rustPartyPage": "Halaman pesta Rust",
     "rustPartyPageHint": "Membuka pesta di versi baru halaman pesta yang ditulis dengan Rust. Ini masih uji coba: memuat sekitar 2 MB lebih banyak, belum punya fitur terbaru (misalnya kamera dari mode influencer), dan pembaca layar tidak bisa membacanya. Matikan di sini kalau ada yang tidak berfungsi.",
     "voicesOnSpeakers": "Suara di speaker",
-    "voicesOnSpeakersHint": "Menambahkan sakelar ke kartu QR pesta: ponsel setiap penyanyi mengirim mikrofonnya ke layar host, yang memutarnya lewat speaker. Paling baik di Wi-Fi yang sama dengan speaker berkabel (Bluetooth menambah jeda)."
+    "voicesOnSpeakersHint": "Menambahkan sakelar ke kartu QR pesta: ponsel setiap penyanyi mengirim mikrofonnya ke layar host, yang memutarnya lewat speaker. Paling baik di Wi-Fi yang sama dengan speaker berkabel (Bluetooth menambah jeda).",
+    "noEmail": "Belum ada alamat",
+    "changeEmail": "Ubah",
+    "newEmail": "Alamat e-mail baru",
+    "emailHint": "Kami mengirim kode ke alamat baru. Alamat lamamu diberi tahu tentang perubahan ini, dan perangkat lainmu akan keluar.",
+    "sendCode": "Kirim kode",
+    "confirmEmail": "Konfirmasi",
+    "emailChanged": "Alamatmu telah diubah.",
+    "googleConnected": "Google terhubung. Sekarang kamu bisa masuk dengan Google.",
+    "googleOn": "Terhubung",
+    "googleOff": "Tidak terhubung",
+    "googleConnect": "Hubungkan",
+    "googleDisconnect": "Putuskan",
+    "copyInvite": "Salin tautan"
   },
   "camera": {
     "title": "Kamera",

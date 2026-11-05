@@ -8,6 +8,7 @@ import { useAuth } from '../logic/AuthContext';
 import {
   lookupEmail, startEmailCode, verifyEmailCode, loginPassword, loginPasskey, registerPasskey, uploadAvatar,
   passkeysSupported, passkeyAutofillSupported, isCancelled, thrownField,
+  getSignInProviders, startGoogle, getGoogleSignup, finishGoogleSignup,
 } from '../logic/authApi';
 import { staysAfterSignIn, uploadSignupPicture } from '../logic/signupPicture';
 import type { Me } from '../logic/authApi';
@@ -37,6 +38,16 @@ const PasskeyIcon = ({ size = 18 }) => (
   </svg>
 );
 
+/** Google's own mark, in its own colours (their branding rules want it as it is) */
+const GoogleLogo = () => (
+  <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+    <path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+  </svg>
+);
+
 const inputClass = 'field h-12 px-4';
 // The six digits: big and spaced; the extra left padding makes up for the spacing after the last digit
 const codeInputClass = 'field h-14 pl-[calc(1rem+0.4em)] pr-4 text-center font-mono text-2xl font-semibold tracking-[0.4em]';
@@ -56,8 +67,15 @@ const looksLikeEmail = (s: string) =>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.trim
  * in or, for a new address, asks for a display name and creates the account.
  * A profile picture can be picked next to the name: held here until the
  * account exists, then uploaded (logic/signupPicture.ts). Links from the mail
- * (/login?email=…&code=…) verify by themselves; a new account is offered a
+ * (/login?email=…&code=…) fill in the code and wait for the button: opened by
+ * itself, a link someone else sent would sign this browser in to their
+ * account and hand them what it sang as a guest. A new account is offered a
  * passkey before leaving.
+ *
+ * Or Google, where the server has it (backend googleSignIn.ts): the browser
+ * goes there and comes back to the page it was headed for, or here at
+ * ?google=name when that person needs a display name first, or at
+ * ?google_error=… when it did not work.
  */
 const AuthPage = () => {
   const { t, i18n } = useTranslation();
@@ -68,14 +86,19 @@ const AuthPage = () => {
   const next = nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/';
 
   const supported = passkeysSupported();
-  const [step, setStep] = useState(params.get('code') ? 'code' : 'start'); // start | password | code | name | passkey
+  const googleName = params.get('google') === 'name'; // back from Google, with no account yet
+  const [step, setStep] = useState(params.get('code') ? 'code' : googleName ? 'name' : 'start'); // start | password | code | name | passkey
   const [email, setEmail] = useState(params.get('email') ?? '');
   const [username, setUsername] = useState('');
   const [code, setCode] = useState(params.get('code') ?? '');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() => {
+    const google = params.get('google_error');
+    return google ? t(`auth.errors.google_${google}`, { defaultValue: t('auth.errors.google_failed') }) : null;
+  });
   const [notice, setNotice] = useState<string | null>(null);
+  const [googleOffered, setGoogleOffered] = useState(false);
   const [devCode, setDevCode] = useState<string | null>(null);
   // The new account's picture, picked next to the name: { blob, url } until the account exists
   const [picture, setPicture] = useState<{ blob: Blob; url: string } | null>(null);
@@ -102,6 +125,16 @@ const AuthPage = () => {
     setError(null); setBusy(true);
     try { await fn(); } catch (e) { fail(e); } finally { setBusy(false); }
   };
+
+  useEffect(() => { getSignInProviders().then(p => setGoogleOffered(p.google)).catch(() => {}); }, []);
+
+  // Back from Google without an account: the address it vouches for and a name to start from
+  useEffect(() => {
+    if (!googleName) return;
+    getGoogleSignup()
+      .then(signup => { setEmail(signup.email); setUsername(signup.name); })
+      .catch(e => { setStep('start'); fail(e); });
+  }, [googleName]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Let the browser offer saved passkeys inside the e-mail field
   useEffect(() => {
@@ -154,11 +187,20 @@ const AuthPage = () => {
     });
   };
 
-  // Opened from the link in the mail: verify straight away
-  const autoVerified = useRef(false);
-  useEffect(() => {
-    if (!autoVerified.current && params.get('email') && params.get('code')) { autoVerified.current = true; verify(); }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  /** The name step's button: makes the account the address or Google stands for */
+  const createAccount = (name: string) => {
+    if (!googleName) { verify(name); return; }
+    run(async () => {
+      try {
+        const r = await finishGoogleSignup(name);
+        const { user, failed } = await uploadSignupPicture(r.user, picture?.blob ?? null, uploadAvatar);
+        done(user, true, Boolean(failed));
+      } catch (err) {
+        if (thrownField(err, 'code') === 'username_taken' || thrownField(err, 'code') === 'username_invalid') { setError(errorMessage(t, err)); return; }
+        throw err;
+      }
+    });
+  };
 
   const title = step === 'passkey' ? (supported ? t('auth.passkeyOfferTitle') : t('auth.welcome', { name: me?.username ?? username.trim() })) : (step === 'name' ? t('auth.createAccount') : t('auth.title'));
   const errorLine = error && <div className="rounded-xl bg-red-500/10 border border-red-500/25 px-3.5 py-2.5 text-red-300 text-sm text-center" role="alert">{error}</div>;
@@ -192,6 +234,16 @@ const AuthPage = () => {
                 <button type="submit" disabled={busy || !looksLikeEmail(email)} className={primaryClass}>
                   {busy ? t('auth.working') : t('auth.continue')}
                 </button>
+                {googleOffered && (
+                  <>
+                    <div className="flex items-center gap-3 text-xs text-white/45" aria-hidden="true">
+                      <span className="h-px flex-1 bg-white/10" />{t('auth.or')}<span className="h-px flex-1 bg-white/10" />
+                    </div>
+                    <button type="button" onClick={() => run(() => startGoogle({ next }))} disabled={busy} data-google-signin="" className="btn btn-lg w-full bg-white text-[#1f1f1f] hover:bg-white/90 hover:text-[#1f1f1f]">
+                      <GoogleLogo />{t('auth.continueWithGoogle')}
+                    </button>
+                  </>
+                )}
               </form>
             )}
 
@@ -240,7 +292,7 @@ const AuthPage = () => {
 
             {/* ── Name: a new address (or a taken name) ── */}
             {step === 'name' && (
-              <form onSubmit={(e) => { e.preventDefault(); if (username.trim()) verify(username.trim()); }} className="space-y-4 mt-4">
+              <form onSubmit={(e) => { e.preventDefault(); if (username.trim()) createAccount(username.trim()); }} className="space-y-4 mt-4">
                 <p className="text-sm text-white/65 text-center break-words">{t('auth.noAccountForEmail', { email: email.trim() })}</p>
                 <div>
                   <label htmlFor="auth-username" className={labelClass}>{t('auth.displayName')}</label>

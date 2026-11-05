@@ -116,12 +116,14 @@ const fetchPage = async (query: string, offset: number): Promise<{ songs: Browse
 
 // ── HeroWall ───────────────────────────────────────────────────────────
 // The wall the neon sign hangs on, as in the app icon: brick courses across
-// the whole width, lit by the sign itself (pink from the S, cyan from "Spree")
-// and fading into the page at the edges. Static SVG, painted once (no blur,
-// no animation, no CSS mask). The light's colours are index.css's --wall-*,
-// which a season changes; its decorations hang in front of the bricks.
+// the width, up to a full HD screen's (wider ones keep the wall around the
+// sign, not bricks out to their far edges), lit by the sign itself (pink from
+// the S, cyan from "Spree") and fading into the page at the edges, the sides
+// to nothing. Static SVG, painted once (no blur, no animation, no CSS mask).
+// The light's colours are index.css's --wall-*, which a season changes; its
+// decorations hang in front of the bricks.
 const HeroWall = ({ decor: Decor }: { decor?: React.ComponentType }) => (
-  <div className="absolute -top-10 bottom-0 left-1/2 -translate-x-1/2 w-screen -z-10 pointer-events-none" aria-hidden="true">
+  <div className="absolute -top-10 bottom-0 left-1/2 -translate-x-1/2 w-screen max-w-[1920px] -z-10 pointer-events-none" aria-hidden="true">
   <svg
     className="block w-full h-full"
     aria-hidden="true"
@@ -146,8 +148,15 @@ const HeroWall = ({ decor: Decor }: { decor?: React.ComponentType }) => (
         <stop offset="0.55" stopColor="#fff" stopOpacity="0.7" />
         <stop offset="1" stopColor="#fff" stopOpacity="0" />
       </radialGradient>
+      <linearGradient id="hero-wall-sides">
+        <stop offset="0" stopColor="#000" />
+        <stop offset="0.14" stopColor="#000" stopOpacity="0" />
+        <stop offset="0.86" stopColor="#000" stopOpacity="0" />
+        <stop offset="1" stopColor="#000" />
+      </linearGradient>
       <mask id="hero-wall-mask">
         <rect width="100%" height="100%" fill="url(#hero-wall-fade)" />
+        <rect width="100%" height="100%" fill="url(#hero-wall-sides)" />
       </mask>
       <pattern id="hero-wall-bricks" width="88" height="44" patternUnits="userSpaceOnUse" x="50%">
         <path d="M0 1H88M0 23H88M22 1V23M66 23V45" stroke="#0d0a24" strokeWidth="2.5" strokeOpacity="0.75" fill="none" />
@@ -186,7 +195,7 @@ const SongCard = ({ song, position, context }: { song: BrowseSong; position: num
       onClick={picked}
       className="group block rounded-2xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
     >
-      <div className="relative aspect-video overflow-hidden rounded-2xl bg-white/[0.04] ring-1 ring-inset ring-white/[0.1] transition-[box-shadow,transform] duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_18px_40px_-16px_rgba(var(--hot-glow),0.5)] group-hover:ring-white/20 group-focus-visible:-translate-y-0.5 group-focus-visible:shadow-[0_18px_40px_-16px_rgba(var(--hot-glow),0.5)]">
+      <div className="relative aspect-video overflow-hidden rounded-2xl bg-white/[0.04] ring-1 ring-inset ring-white/[0.1] transition-shadow duration-300 group-hover:shadow-[0_18px_40px_-16px_rgba(var(--hot-glow),0.5)] group-hover:ring-white/20 group-focus-visible:shadow-[0_18px_40px_-16px_rgba(var(--hot-glow),0.5)]">
         {song.videoId ? (
           <img
             src={`https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg`}

@@ -590,7 +590,16 @@
       "email_invalid": "Bu bir e-posta adresine benzemiyor",
       "code_invalid": "Yanlış kod",
       "code_expired": "Kodun süresi doldu, yenisini iste",
-      "mail_failed": "E-posta gönderilemedi, lütfen daha sonra tekrar dene"
+      "mail_failed": "E-posta gönderilemedi, lütfen daha sonra tekrar dene",
+      "email_same": "Bu zaten adresiniz",
+      "email_taken": "Bu adresi başka bir hesap kullanıyor",
+      "google_expired": "Çok uzun sürdü, lütfen tekrar deneyin",
+      "google_denied": "Google ile giriş iptal edildi",
+      "google_failed": "Google ile giriş yapılamadı, lütfen tekrar deneyin",
+      "google_unverified": "Google bu hesabın adresini doğrulamamış",
+      "google_address": "Bu adresi zaten bir hesap kullanıyor. Kodla giriş yapın, ardından ayarlarınızdan Google’ı bağlayın",
+      "google_elsewhere": "Bu Google hesabı zaten başka bir hesaba bağlı",
+      "google_needed": "Önce bir e-posta adresi ekleyin"
     },
     "email": "E-posta adresi",
     "emailHint": "Yalnızca giriş için. Bülten yok.",
@@ -613,7 +622,9 @@
     "oneButtonHint": "Geçiş anahtarın veya şifren varsa onunla, yoksa sana bir kod göndeririz.",
     "title": "Giriş yap veya kaydol",
     "sendCodeInstead": "Bunun yerine kod gönder",
-    "agreeTerms": "Hesap oluşturarak <tos>Hizmet Koşulları</tos> ve <privacy>Gizlilik Politikası</privacy>’nı kabul etmiş olursun."
+    "agreeTerms": "Hesap oluşturarak <tos>Hizmet Koşulları</tos> ve <privacy>Gizlilik Politikası</privacy>’nı kabul etmiş olursun.",
+    "or": "veya",
+    "continueWithGoogle": "Google ile devam et"
   },
   "profile": {
     "myProfile": "Profilim",
@@ -810,7 +821,20 @@
     "rustPartyPage": "Rust parti sayfası",
     "rustPartyPageHint": "Partileri, Rust ile yazılmış yeni bir parti sayfası sürümünde açar. Bu bir deneme: yaklaşık 2 MB daha fazla yükler, en yeni özellikler henüz yok (örneğin Influencer modunun kamerası) ve ekran okuyucular onu okuyamaz. Bir şey çalışmazsa buradan kapat.",
     "voicesOnSpeakers": "Sesler hoparlörlerde",
-    "voicesOnSpeakersHint": "Partinin QR kartına bir anahtar ekler: her şarkıcının telefonu mikrofonunu sunucunun ekranına gönderir, o da hoparlörlerden çalar. En iyi aynı Wi-Fi'de ve kablolu hoparlörlerle çalışır (Bluetooth gecikme ekler)."
+    "voicesOnSpeakersHint": "Partinin QR kartına bir anahtar ekler: her şarkıcının telefonu mikrofonunu sunucunun ekranına gönderir, o da hoparlörlerden çalar. En iyi aynı Wi-Fi'de ve kablolu hoparlörlerle çalışır (Bluetooth gecikme ekler).",
+    "noEmail": "Henüz adres yok",
+    "changeEmail": "Değiştir",
+    "newEmail": "Yeni e-posta adresi",
+    "emailHint": "Yeni adrese bir kod göndeririz. Eski adresiniz değişiklikten haberdar edilir ve diğer cihazlarınızdan çıkış yapılır.",
+    "sendCode": "Kod gönder",
+    "confirmEmail": "Onayla",
+    "emailChanged": "Adresiniz değiştirildi.",
+    "googleConnected": "Google bağlandı. Artık onunla giriş yapabilirsiniz.",
+    "googleOn": "Bağlı",
+    "googleOff": "Bağlı değil",
+    "googleConnect": "Bağla",
+    "googleDisconnect": "Bağlantıyı kes",
+    "copyInvite": "Bağlantıyı kopyala"
   },
   "camera": {
     "title": "Kamera",

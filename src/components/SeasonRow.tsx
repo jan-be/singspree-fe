@@ -28,7 +28,7 @@ const SeasonCard = ({ song, position, seasonId, folded }: { song: SeasonSong; po
       onClick={() => trackPick('season', { songId: song.songId, position, season: seasonId })}
       className={`group block w-[180px] sm:w-auto flex-shrink-0 snap-start rounded-xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70 ${folded ? foldClass(position) : ''}`}
     >
-      <div className="relative aspect-video overflow-hidden rounded-xl bg-white/[0.04] ring-1 ring-inset ring-white/[0.1] transition-[box-shadow,transform] duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_14px_32px_-14px_rgba(var(--hot-glow),0.6)] group-focus-visible:-translate-y-0.5">
+      <div className="relative aspect-video overflow-hidden rounded-xl bg-white/[0.04] ring-1 ring-inset ring-white/[0.1] transition-shadow duration-300 group-hover:shadow-[0_14px_32px_-14px_rgba(var(--hot-glow),0.6)]">
         <img
           src={`https://i.ytimg.com/vi/${song.videoId}/mqdefault.jpg`}
           alt={`${names.artist} - ${names.title}`}

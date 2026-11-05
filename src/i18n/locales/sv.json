@@ -590,7 +590,16 @@
       "email_invalid": "Det ser inte ut som en e-postadress",
       "code_invalid": "Fel kod",
       "code_expired": "Koden har gått ut, be om en ny",
-      "mail_failed": "Mejlet kunde inte skickas, försök igen senare"
+      "mail_failed": "Mejlet kunde inte skickas, försök igen senare",
+      "email_same": "Det är redan din adress",
+      "email_taken": "Ett annat konto använder den adressen",
+      "google_expired": "Det tog för lång tid, försök igen",
+      "google_denied": "Inloggningen med Google avbröts",
+      "google_failed": "Det gick inte att logga in med Google, försök igen",
+      "google_unverified": "Google har inte verifierat adressen för det här kontot",
+      "google_address": "Ett konto använder redan den här adressen. Logga in med en kod och anslut sedan Google i dina inställningar",
+      "google_elsewhere": "Det här Google-kontot är redan anslutet till ett annat konto",
+      "google_needed": "Lägg till en e-postadress först"
     },
     "email": "E-postadress",
     "emailHint": "Används bara för att logga in. Inga nyhetsbrev.",
@@ -613,7 +622,9 @@
     "oneButtonHint": "Med nyckel eller lösenord om du har det, annars mejlar vi dig en kod.",
     "title": "Logga in eller skapa konto",
     "sendCodeInstead": "Skicka en kod i stället",
-    "agreeTerms": "Genom att skapa ett konto godkänner du <tos>användarvillkoren</tos> och <privacy>integritetspolicyn</privacy>."
+    "agreeTerms": "Genom att skapa ett konto godkänner du <tos>användarvillkoren</tos> och <privacy>integritetspolicyn</privacy>.",
+    "or": "eller",
+    "continueWithGoogle": "Fortsätt med Google"
   },
   "profile": {
     "myProfile": "Min profil",
@@ -810,7 +821,20 @@
     "rustPartyPage": "Festsida i Rust",
     "rustPartyPageHint": "Öppnar fester i en ny version av festsidan, skriven i Rust. Det är ett test: den laddar ungefär 2 MB mer, har inte de nyaste funktionerna än (som kameran i influencerläget) och skärmläsare kan inte läsa den. Stäng av den här om något inte fungerar.",
     "voicesOnSpeakers": "Röster i högtalarna",
-    "voicesOnSpeakersHint": "Lägger till en brytare på festens QR-kort: varje sångares telefon skickar då sin mikrofon till värdens skärm, som spelar den i högtalarna. Fungerar bäst på samma wifi med trådbundna högtalare (Bluetooth fördröjer)."
+    "voicesOnSpeakersHint": "Lägger till en brytare på festens QR-kort: varje sångares telefon skickar då sin mikrofon till värdens skärm, som spelar den i högtalarna. Fungerar bäst på samma wifi med trådbundna högtalare (Bluetooth fördröjer).",
+    "noEmail": "Ingen adress än",
+    "changeEmail": "Ändra",
+    "newEmail": "Ny e-postadress",
+    "emailHint": "Vi skickar en kod till den nya adressen. Din gamla adress får veta om ändringen och dina andra enheter loggas ut.",
+    "sendCode": "Skicka kod",
+    "confirmEmail": "Bekräfta",
+    "emailChanged": "Din adress har ändrats.",
+    "googleConnected": "Google är anslutet. Nu kan du logga in med det.",
+    "googleOn": "Ansluten",
+    "googleOff": "Inte ansluten",
+    "googleConnect": "Anslut",
+    "googleDisconnect": "Koppla från",
+    "copyInvite": "Kopiera länk"
   },
   "camera": {
     "title": "Kamera",

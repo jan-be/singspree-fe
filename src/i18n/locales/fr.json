@@ -590,7 +590,16 @@
       "email_invalid": "Cela ne ressemble pas à une adresse e-mail",
       "code_invalid": "Code incorrect",
       "code_expired": "Ce code a expiré, demandez-en un nouveau",
-      "mail_failed": "L’e-mail n’a pas pu être envoyé, réessayez plus tard"
+      "mail_failed": "L’e-mail n’a pas pu être envoyé, réessayez plus tard",
+      "email_same": "C’est déjà votre adresse",
+      "email_taken": "Un autre compte utilise cette adresse",
+      "google_expired": "Cela a pris trop de temps, veuillez réessayer",
+      "google_denied": "La connexion avec Google a été annulée",
+      "google_failed": "La connexion avec Google a échoué, veuillez réessayer",
+      "google_unverified": "Google n’a pas vérifié l’adresse de ce compte",
+      "google_address": "Un compte utilise déjà cette adresse. Connectez-vous avec un code, puis associez Google dans vos paramètres",
+      "google_elsewhere": "Ce compte Google est déjà associé à un autre compte",
+      "google_needed": "Ajoutez d’abord une adresse e-mail"
     },
     "email": "Adresse e-mail",
     "emailHint": "Uniquement pour vous connecter. Pas de newsletter.",
@@ -613,7 +622,9 @@
     "oneButtonHint": "Par passkey ou mot de passe si vous en avez, sinon nous vous envoyons un code.",
     "title": "Se connecter ou s’inscrire",
     "sendCodeInstead": "M’envoyer un code à la place",
-    "agreeTerms": "En créant un compte, vous acceptez les <tos>Conditions d’utilisation</tos> et la <privacy>Politique de confidentialité</privacy>."
+    "agreeTerms": "En créant un compte, vous acceptez les <tos>Conditions d’utilisation</tos> et la <privacy>Politique de confidentialité</privacy>.",
+    "or": "ou",
+    "continueWithGoogle": "Continuer avec Google"
   },
   "profile": {
     "myProfile": "Mon profil",
@@ -810,7 +821,20 @@
     "rustPartyPage": "Page de fête en Rust",
     "rustPartyPageHint": "Ouvre les fêtes dans une nouvelle version de la page de fête, écrite en Rust. C'est un essai : elle charge environ 2 Mo de plus, n'a pas encore les dernières fonctions (comme la caméra du mode influenceur) et les lecteurs d'écran ne peuvent pas la lire. Désactivez-la ici si quelque chose ne fonctionne pas.",
     "voicesOnSpeakers": "Voix dans les enceintes",
-    "voicesOnSpeakersHint": "Ajoute un interrupteur à la carte QR de la soirée : le téléphone de chaque chanteur envoie alors son micro à l'écran de l'hôte, qui le diffuse dans les enceintes. Idéal sur un même Wi-Fi avec des enceintes filaires (le Bluetooth ajoute du retard)."
+    "voicesOnSpeakersHint": "Ajoute un interrupteur à la carte QR de la soirée : le téléphone de chaque chanteur envoie alors son micro à l'écran de l'hôte, qui le diffuse dans les enceintes. Idéal sur un même Wi-Fi avec des enceintes filaires (le Bluetooth ajoute du retard).",
+    "noEmail": "Pas encore d’adresse",
+    "changeEmail": "Modifier",
+    "newEmail": "Nouvelle adresse e-mail",
+    "emailHint": "Nous envoyons un code à la nouvelle adresse. Votre ancienne adresse est informée du changement et vos autres appareils sont déconnectés.",
+    "sendCode": "Envoyer le code",
+    "confirmEmail": "Confirmer",
+    "emailChanged": "Votre adresse a été modifiée.",
+    "googleConnected": "Google est associé. Vous pouvez maintenant vous connecter avec.",
+    "googleOn": "Associé",
+    "googleOff": "Non associé",
+    "googleConnect": "Associer",
+    "googleDisconnect": "Dissocier",
+    "copyInvite": "Copier le lien"
   },
   "camera": {
     "title": "Caméra",

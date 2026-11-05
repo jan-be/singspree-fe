@@ -3185,6 +3185,15 @@ const PartyPage = () => {
           setRefused(true);
           return;
         }
+        // The name is someone else's seat (it stays theirs while they are away):
+        // back to the join page, which asks for another one
+        if (jsonObj.data?.code === 'name_taken') {
+          clearPartySession();
+          connRef.current?.close();
+          try { wss.close(); } catch { /* */ }
+          navigate(`/join/${partyIdRef.current}?taken=${encodeURIComponent(currentUserNameRef.current ?? '')}`, { replace: true });
+          return;
+        }
         // If the server says the party doesn't exist (stale session after 5-min
         // timeout), clear the session and bounce home instead of getting stuck
         // on a "waiting for host" screen.

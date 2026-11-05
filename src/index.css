@@ -294,6 +294,19 @@
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 24px 60px -16px rgba(5, 2, 20, 0.75);
     color: #f0f0f8;
   }
+  /* One that scrolls: the bar stays clear of the rounded corners, on no track of its own */
+  .pop::-webkit-scrollbar { width: 8px; }
+  .pop::-webkit-scrollbar-track { background: transparent; margin-block: 0.875rem; }
+  .pop::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+    border-radius: 9999px;
+  }
+  /* Firefox has no ::-webkit-scrollbar (and scrollbar-color would switch it off in Chrome) */
+  @supports not selector(::-webkit-scrollbar) {
+    .pop { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.22) transparent; }
+  }
   .pop-label {
     font-size: 0.6875rem;
     font-weight: 600;

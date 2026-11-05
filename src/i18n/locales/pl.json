@@ -594,7 +594,16 @@
       "email_invalid": "To nie wygląda na adres e-mail",
       "code_invalid": "Błędny kod",
       "code_expired": "Ten kod wygasł, poproś o nowy",
-      "mail_failed": "Nie udało się wysłać e-maila, spróbuj później"
+      "mail_failed": "Nie udało się wysłać e-maila, spróbuj później",
+      "email_same": "To już jest Twój adres",
+      "email_taken": "Inne konto używa tego adresu",
+      "google_expired": "To trwało zbyt długo, spróbuj ponownie",
+      "google_denied": "Logowanie przez Google zostało anulowane",
+      "google_failed": "Nie udało się zalogować przez Google, spróbuj ponownie",
+      "google_unverified": "Google nie potwierdził adresu tego konta",
+      "google_address": "Konto z tym adresem już istnieje. Zaloguj się kodem, a potem połącz Google w ustawieniach",
+      "google_elsewhere": "To konto Google jest już połączone z innym kontem",
+      "google_needed": "Najpierw dodaj adres e-mail"
     },
     "email": "Adres e-mail",
     "emailHint": "Tylko do logowania. Bez newsletterów.",
@@ -617,7 +626,9 @@
     "oneButtonHint": "Kluczem dostępu lub hasłem, jeśli je masz; inaczej wyślemy ci kod.",
     "title": "Zaloguj się lub załóż konto",
     "sendCodeInstead": "Wyślij mi kod zamiast tego",
-    "agreeTerms": "Zakładając konto, akceptujesz <tos>Warunki korzystania</tos> i <privacy>Politykę prywatności</privacy>."
+    "agreeTerms": "Zakładając konto, akceptujesz <tos>Warunki korzystania</tos> i <privacy>Politykę prywatności</privacy>.",
+    "or": "lub",
+    "continueWithGoogle": "Kontynuuj z Google"
   },
   "profile": {
     "myProfile": "Mój profil",
@@ -820,7 +831,20 @@
     "rustPartyPage": "Strona imprezy w Rust",
     "rustPartyPageHint": "Otwiera imprezy w nowej wersji strony imprezy, napisanej w Rust. To test: wczytuje około 2 MB więcej, nie ma jeszcze najnowszych funkcji (np. kamery z trybu influencera), a czytniki ekranu nie potrafią jej odczytać. Wyłącz ją tutaj, jeśli coś nie działa.",
     "voicesOnSpeakers": "Głosy w głośnikach",
-    "voicesOnSpeakersHint": "Dodaje przełącznik do karty QR imprezy: telefon każdego śpiewającego wysyła wtedy mikrofon do ekranu gospodarza, który odtwarza go przez głośniki. Najlepiej działa w jednej sieci Wi-Fi z głośnikami na kablu (Bluetooth opóźnia)."
+    "voicesOnSpeakersHint": "Dodaje przełącznik do karty QR imprezy: telefon każdego śpiewającego wysyła wtedy mikrofon do ekranu gospodarza, który odtwarza go przez głośniki. Najlepiej działa w jednej sieci Wi-Fi z głośnikami na kablu (Bluetooth opóźnia).",
+    "noEmail": "Brak adresu",
+    "changeEmail": "Zmień",
+    "newEmail": "Nowy adres e-mail",
+    "emailHint": "Wyślemy kod na nowy adres. Stary adres otrzyma informację o zmianie, a Twoje inne urządzenia zostaną wylogowane.",
+    "sendCode": "Wyślij kod",
+    "confirmEmail": "Potwierdź",
+    "emailChanged": "Twój adres został zmieniony.",
+    "googleConnected": "Google jest połączone. Możesz się teraz nim logować.",
+    "googleOn": "Połączono",
+    "googleOff": "Nie połączono",
+    "googleConnect": "Połącz",
+    "googleDisconnect": "Rozłącz",
+    "copyInvite": "Kopiuj link"
   },
   "camera": {
     "title": "Kamera",

@@ -49,6 +49,12 @@ const PrivacyPolicyContent = () => (
         <p>SingSpree embeds content from the following third-party services, which may collect data independently:</p>
         <ul className="list-disc pl-5 space-y-2 marker:text-white/30">
           <li>
+            <strong className="text-white font-semibold">Sign-in with Google (optional):</strong> If you choose to continue with Google, Google tells us your Google account's ID, e-mail address and name, and we store that ID and address with your account so you can sign in with it again. We never see your Google password. You can disconnect it in your settings at any time. Google handles the sign-in under{" "}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-[#ff8ae6] hover:text-white underline underline-offset-4 decoration-white/25 hover:decoration-white/60 transition-colors">
+              Google's Privacy Policy
+            </a>.
+          </li>
+          <li>
             <strong className="text-white font-semibold">YouTube (Google):</strong> Song videos are embedded with the YouTube IFrame Player API in YouTube's{" "}
             <strong className="text-white font-semibold">privacy-enhanced mode</strong> (served from youtube-nocookie.com), which does{" "}
             <strong className="text-white font-semibold">not set cookies</strong> on your device and does not use your viewing to personalise your YouTube experience. Song thumbnails are loaded from YouTube's image servers (i.ytimg.com), which also set no cookies. Loading the player or a thumbnail still transfers technical request data such as your IP address to Google, which processes it according to{" "}

@@ -590,7 +590,16 @@
       "email_invalid": "Dat lijkt geen e-mailadres",
       "code_invalid": "Verkeerde code",
       "code_expired": "Die code is verlopen, vraag een nieuwe aan",
-      "mail_failed": "De e-mail kon niet worden verstuurd, probeer het later opnieuw"
+      "mail_failed": "De e-mail kon niet worden verstuurd, probeer het later opnieuw",
+      "email_same": "Dat is al je adres",
+      "email_taken": "Een ander account gebruikt dat adres",
+      "google_expired": "Dat duurde te lang, probeer het opnieuw",
+      "google_denied": "Inloggen met Google is geannuleerd",
+      "google_failed": "Inloggen met Google is niet gelukt, probeer het opnieuw",
+      "google_unverified": "Google heeft het adres van dit account niet bevestigd",
+      "google_address": "Een account gebruikt dit adres al. Log in met een code en koppel Google daarna in je instellingen",
+      "google_elsewhere": "Dit Google-account is al aan een ander account gekoppeld",
+      "google_needed": "Voeg eerst een e-mailadres toe"
     },
     "email": "E-mailadres",
     "emailHint": "Alleen om in te loggen. Geen nieuwsbrieven.",
@@ -613,7 +622,9 @@
     "oneButtonHint": "Passkey of wachtwoord als je die hebt, anders mailen we je een code.",
     "title": "Inloggen of registreren",
     "sendCodeInstead": "Stuur me liever een code",
-    "agreeTerms": "Door een account aan te maken, ga je akkoord met de <tos>Servicevoorwaarden</tos> en het <privacy>Privacybeleid</privacy>."
+    "agreeTerms": "Door een account aan te maken, ga je akkoord met de <tos>Servicevoorwaarden</tos> en het <privacy>Privacybeleid</privacy>.",
+    "or": "of",
+    "continueWithGoogle": "Doorgaan met Google"
   },
   "profile": {
     "myProfile": "Mijn profiel",
@@ -810,7 +821,20 @@
     "rustPartyPage": "Rust-feestpagina",
     "rustPartyPageHint": "Opent feesten in een nieuwe versie van de feestpagina, geschreven in Rust. Het is een test: hij laadt zo'n 2 MB meer, heeft de nieuwste functies nog niet (zoals de camera van de influencermodus) en schermlezers kunnen hem niet lezen. Zet hem hier uit als iets niet werkt.",
     "voicesOnSpeakers": "Stemmen via de speakers",
-    "voicesOnSpeakersHint": "Voegt een schakelaar toe aan de QR-kaart van de party: elke telefoon stuurt dan zijn microfoon naar het scherm van de host, dat hem via de speakers afspeelt. Werkt het best op hetzelfde wifi met bekabelde speakers (bluetooth vertraagt)."
+    "voicesOnSpeakersHint": "Voegt een schakelaar toe aan de QR-kaart van de party: elke telefoon stuurt dan zijn microfoon naar het scherm van de host, dat hem via de speakers afspeelt. Werkt het best op hetzelfde wifi met bekabelde speakers (bluetooth vertraagt).",
+    "noEmail": "Nog geen adres",
+    "changeEmail": "Wijzigen",
+    "newEmail": "Nieuw e-mailadres",
+    "emailHint": "We sturen een code naar het nieuwe adres. Je oude adres krijgt bericht van de wijziging en je andere apparaten worden uitgelogd.",
+    "sendCode": "Code versturen",
+    "confirmEmail": "Bevestigen",
+    "emailChanged": "Je adres is gewijzigd.",
+    "googleConnected": "Google is gekoppeld. Je kunt er nu mee inloggen.",
+    "googleOn": "Gekoppeld",
+    "googleOff": "Niet gekoppeld",
+    "googleConnect": "Koppelen",
+    "googleDisconnect": "Ontkoppelen",
+    "copyInvite": "Link kopiëren"
   },
   "camera": {
     "title": "Camera",

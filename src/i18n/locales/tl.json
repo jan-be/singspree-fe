@@ -590,7 +590,16 @@
       "email_invalid": "Hindi mukhang email address iyan",
       "code_invalid": "Maling code",
       "code_expired": "Nag-expire na ang code, humingi ng bago",
-      "mail_failed": "Hindi maipadala ang email, subukan ulit mamaya"
+      "mail_failed": "Hindi maipadala ang email, subukan ulit mamaya",
+      "email_same": "Iyan na ang address mo",
+      "email_taken": "May ibang account na gumagamit ng address na iyan",
+      "google_expired": "Masyadong natagalan, pakisubukang muli",
+      "google_denied": "Kinansela ang pag-sign in gamit ang Google",
+      "google_failed": "Hindi naka-sign in gamit ang Google, pakisubukang muli",
+      "google_unverified": "Hindi pa bineripika ng Google ang address ng account na ito",
+      "google_address": "May account na gumagamit ng address na ito. Mag-sign in gamit ang code, tapos ikonekta ang Google sa iyong settings",
+      "google_elsewhere": "Nakakonekta na ang Google account na ito sa ibang account",
+      "google_needed": "Magdagdag muna ng e-mail address"
     },
     "email": "Email address",
     "emailHint": "Para lang sa pag-sign in. Walang newsletter.",
@@ -613,7 +622,9 @@
     "oneButtonHint": "Passkey o password kung meron ka; kung wala, magpapadala kami ng code.",
     "title": "Mag-sign in o mag-sign up",
     "sendCodeInstead": "Padalhan na lang ako ng code",
-    "agreeTerms": "Sa paggawa ng account, sumasang-ayon ka sa <tos>Mga Tuntunin ng Serbisyo</tos> at sa <privacy>Patakaran sa Privacy</privacy>."
+    "agreeTerms": "Sa paggawa ng account, sumasang-ayon ka sa <tos>Mga Tuntunin ng Serbisyo</tos> at sa <privacy>Patakaran sa Privacy</privacy>.",
+    "or": "o",
+    "continueWithGoogle": "Magpatuloy sa Google"
   },
   "profile": {
     "myProfile": "Profile ko",
@@ -810,7 +821,20 @@
     "rustPartyPage": "Rust party page",
     "rustPartyPageHint": "Binubuksan ang mga party sa bagong bersyon ng party page na isinulat sa Rust. Pagsubok pa lang ito: mga 2 MB na mas malaki ang nilo-load, wala pa ang pinakabagong features (gaya ng camera ng influencer mode), at hindi ito nababasa ng mga screen reader. I-off ito rito kung may hindi gumagana.",
     "voicesOnSpeakers": "Mga boses sa speaker",
-    "voicesOnSpeakersHint": "Nagdadagdag ng switch sa QR card ng party: ipapadala ng phone ng bawat kumakanta ang mikropono nito sa screen ng host, na nagpapatugtog nito sa speaker. Pinakamaganda kung iisang Wi-Fi at naka-cable ang speaker (may delay ang Bluetooth)."
+    "voicesOnSpeakersHint": "Nagdadagdag ng switch sa QR card ng party: ipapadala ng phone ng bawat kumakanta ang mikropono nito sa screen ng host, na nagpapatugtog nito sa speaker. Pinakamaganda kung iisang Wi-Fi at naka-cable ang speaker (may delay ang Bluetooth).",
+    "noEmail": "Wala pang address",
+    "changeEmail": "Palitan",
+    "newEmail": "Bagong e-mail address",
+    "emailHint": "Magpapadala kami ng code sa bagong address. Aabisuhan ang luma mong address tungkol sa pagbabago, at masa-sign out ang iba mong device.",
+    "sendCode": "Ipadala ang code",
+    "confirmEmail": "Kumpirmahin",
+    "emailChanged": "Nabago na ang address mo.",
+    "googleConnected": "Nakakonekta na ang Google. Maaari ka nang mag-sign in gamit ito.",
+    "googleOn": "Nakakonekta",
+    "googleOff": "Hindi nakakonekta",
+    "googleConnect": "Ikonekta",
+    "googleDisconnect": "Idiskonekta",
+    "copyInvite": "Kopyahin ang link"
   },
   "camera": {
     "title": "Camera",

@@ -588,7 +588,16 @@
       "email_invalid": "这看起来不像电子邮箱地址",
       "code_invalid": "验证码错误",
       "code_expired": "验证码已过期，请重新获取",
-      "mail_failed": "邮件发送失败，请稍后重试"
+      "mail_failed": "邮件发送失败，请稍后重试",
+      "email_same": "这已经是你的地址",
+      "email_taken": "其他账户正在使用该地址",
+      "google_expired": "用时过长，请重试",
+      "google_denied": "Google 登录已取消",
+      "google_failed": "Google 登录失败，请重试",
+      "google_unverified": "Google 尚未验证此账户的地址",
+      "google_address": "已有账户使用此地址。请先用验证码登录，再到设置中关联 Google",
+      "google_elsewhere": "此 Google 账户已关联到其他账户",
+      "google_needed": "请先添加电子邮箱地址"
     },
     "email": "电子邮箱",
     "emailHint": "仅用于登录，不发送任何广告邮件。",
@@ -611,7 +620,9 @@
     "oneButtonHint": "有通行密钥或密码就用它，否则我们给你发验证码。",
     "title": "登录或注册",
     "sendCodeInstead": "改为发送验证码",
-    "agreeTerms": "创建账号即表示你同意<tos>服务条款</tos>和<privacy>隐私政策</privacy>。"
+    "agreeTerms": "创建账号即表示你同意<tos>服务条款</tos>和<privacy>隐私政策</privacy>。",
+    "or": "或",
+    "continueWithGoogle": "使用 Google 继续"
   },
   "profile": {
     "myProfile": "我的主页",
@@ -805,7 +816,20 @@
     "rustPartyPage": "Rust 版派对页面",
     "rustPartyPageHint": "在用 Rust 编写的新版派对页面中打开派对。这是测试版：多加载约 2 MB，还没有最新的功能（比如网红模式的摄像头），读屏软件也无法读取。如果有什么不正常，可以在这里关闭。",
     "voicesOnSpeakers": "声音走音箱",
-    "voicesOnSpeakersHint": "在派对的二维码卡片上加一个开关：每位歌手的手机会把麦克风声音发到主持人的屏幕上，由它通过音箱播放。同一个 Wi-Fi、用有线音箱效果最好（蓝牙会有延迟）。"
+    "voicesOnSpeakersHint": "在派对的二维码卡片上加一个开关：每位歌手的手机会把麦克风声音发到主持人的屏幕上，由它通过音箱播放。同一个 Wi-Fi、用有线音箱效果最好（蓝牙会有延迟）。",
+    "noEmail": "暂无地址",
+    "changeEmail": "更改",
+    "newEmail": "新电子邮箱地址",
+    "emailHint": "我们会向新地址发送验证码。旧地址会收到更改通知，你的其他设备将退出登录。",
+    "sendCode": "发送验证码",
+    "confirmEmail": "确认",
+    "emailChanged": "地址已更改。",
+    "googleConnected": "Google 已关联，现在可以用它登录。",
+    "googleOn": "已关联",
+    "googleOff": "未关联",
+    "googleConnect": "关联",
+    "googleDisconnect": "取消关联",
+    "copyInvite": "复制链接"
   },
   "camera": {
     "title": "摄像头",

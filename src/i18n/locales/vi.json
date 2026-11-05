@@ -588,7 +588,16 @@
       "email_invalid": "Đây không giống một địa chỉ email",
       "code_invalid": "Mã sai",
       "code_expired": "Mã đã hết hạn, hãy yêu cầu mã mới",
-      "mail_failed": "Không gửi được email, vui lòng thử lại sau"
+      "mail_failed": "Không gửi được email, vui lòng thử lại sau",
+      "email_same": "Đó đã là địa chỉ của bạn",
+      "email_taken": "Một tài khoản khác đang dùng địa chỉ đó",
+      "google_expired": "Quá lâu rồi, vui lòng thử lại",
+      "google_denied": "Đăng nhập bằng Google đã bị hủy",
+      "google_failed": "Không đăng nhập được bằng Google, vui lòng thử lại",
+      "google_unverified": "Google chưa xác minh địa chỉ của tài khoản này",
+      "google_address": "Đã có tài khoản dùng địa chỉ này. Hãy đăng nhập bằng mã rồi kết nối Google trong phần cài đặt",
+      "google_elsewhere": "Tài khoản Google này đã được kết nối với một tài khoản khác",
+      "google_needed": "Hãy thêm địa chỉ e-mail trước"
     },
     "email": "Địa chỉ email",
     "emailHint": "Chỉ dùng để đăng nhập. Không có bản tin.",
@@ -611,7 +620,9 @@
     "oneButtonHint": "Bằng khóa truy cập hoặc mật khẩu nếu có; nếu không, chúng tôi gửi mã cho bạn.",
     "title": "Đăng nhập hoặc đăng ký",
     "sendCodeInstead": "Gửi mã cho tôi thay vào đó",
-    "agreeTerms": "Khi tạo tài khoản, bạn đồng ý với <tos>Điều khoản dịch vụ</tos> và <privacy>Chính sách quyền riêng tư</privacy>."
+    "agreeTerms": "Khi tạo tài khoản, bạn đồng ý với <tos>Điều khoản dịch vụ</tos> và <privacy>Chính sách quyền riêng tư</privacy>.",
+    "or": "hoặc",
+    "continueWithGoogle": "Tiếp tục với Google"
   },
   "profile": {
     "myProfile": "Trang của tôi",
@@ -805,7 +816,20 @@
     "rustPartyPage": "Trang tiệc bằng Rust",
     "rustPartyPageHint": "Mở các bữa tiệc trong phiên bản mới của trang tiệc, được viết bằng Rust. Đây là bản thử nghiệm: trang tải thêm khoảng 2 MB, chưa có các tính năng mới nhất (như camera của chế độ influencer) và trình đọc màn hình không đọc được. Hãy tắt ở đây nếu có gì không hoạt động.",
     "voicesOnSpeakers": "Giọng hát qua loa",
-    "voicesOnSpeakersHint": "Thêm một công tắc vào thẻ QR của bữa tiệc: điện thoại của mỗi người hát sẽ gửi micro tới màn hình của chủ phòng, nơi phát ra loa. Tốt nhất khi dùng chung Wi-Fi và loa có dây (Bluetooth gây trễ)."
+    "voicesOnSpeakersHint": "Thêm một công tắc vào thẻ QR của bữa tiệc: điện thoại của mỗi người hát sẽ gửi micro tới màn hình của chủ phòng, nơi phát ra loa. Tốt nhất khi dùng chung Wi-Fi và loa có dây (Bluetooth gây trễ).",
+    "noEmail": "Chưa có địa chỉ",
+    "changeEmail": "Đổi",
+    "newEmail": "Địa chỉ e-mail mới",
+    "emailHint": "Chúng tôi gửi mã đến địa chỉ mới. Địa chỉ cũ sẽ được báo về thay đổi này và các thiết bị khác của bạn sẽ bị đăng xuất.",
+    "sendCode": "Gửi mã",
+    "confirmEmail": "Xác nhận",
+    "emailChanged": "Địa chỉ của bạn đã được đổi.",
+    "googleConnected": "Đã kết nối Google. Giờ bạn có thể đăng nhập bằng Google.",
+    "googleOn": "Đã kết nối",
+    "googleOff": "Chưa kết nối",
+    "googleConnect": "Kết nối",
+    "googleDisconnect": "Ngắt kết nối",
+    "copyInvite": "Sao chép liên kết"
   },
   "camera": {
     "title": "Camera",

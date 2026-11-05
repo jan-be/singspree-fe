@@ -62,6 +62,8 @@ export interface Me extends PublicUser {
   /** the party switch for the singers' voices on the host's speakers (experimental, on for admins until chosen; SettingsPage, usePartyVoices.ts) */
   voicesOnSpeakers: boolean;
   passkeys: Passkey[];
+  /** the Google account that signs in here, with its address, or null */
+  google: { email: string | null } | null;
 }
 
 /** What an address can sign in with (POST /auth/lookup) */
@@ -666,6 +668,28 @@ export const updateAccount = (changes: { username?: string; newPassword?: string
   call<{ user: Me }>('PATCH', '/auth/me', changes).then(j => j.user);
 export const deleteAccount = () => call('DELETE', '/auth/me');
 export const deletePasskey = (id: string) => call<{ passkeys: Passkey[] }>('DELETE', `/auth/passkeys/${encodeURIComponent(id)}`).then(j => j.passkeys);
+
+/** Mail a code to the address this account should have from now on. Resolves like startEmailCode. */
+export const startEmailChange = (email: string, lang: string) => post<EmailCodeSent>('/auth/email/change/start', { email, lang });
+/** The code came through: it is the account's address now, the old one is told, other sessions end. */
+export const verifyEmailChange = (email: string, code: string, lang: string) => post<{ user: Me }>('/auth/email/change/verify', { email, code, lang }).then(j => j.user);
+
+/** Whether this server has sign-in with Google */
+export const getSignInProviders = () => get<{ google: boolean }>('/auth/providers');
+/**
+ * Off to Google. `next`: the page to end up on; `link`: connect it to the
+ * signed-in account (from the settings) instead of signing in.
+ */
+export const startGoogle = async ({ next, link = false }: { next: string; link?: boolean }) => {
+  const { url } = await post<{ url: string }>('/auth/google/start', { next, link, guestId: getGuestId() });
+  window.location.assign(url);
+};
+/** The Google account that came back without an account here yet */
+export const getGoogleSignup = () => get<{ email: string; name: string }>('/auth/google/pending');
+/** Create that account under a display name */
+export const finishGoogleSignup = (username: string) =>
+  post<{ user: Me; created: boolean }>('/auth/google/finish', { username, guestId: getGuestId() });
+export const disconnectGoogle = () => call<{ user: Me }>('DELETE', '/auth/google').then(j => j.user);
 /** Upload a profile picture (a square WebP or JPEG Blob, logic/avatarImage.ts). Resolves to its path (logic/avatar.ts). */
 export const uploadAvatar = (blob: Blob) => call<{ avatar: string }>('PUT', '/me/avatar', blob).then(j => j.avatar);
 export const removeAvatar = () => call('DELETE', '/me/avatar');

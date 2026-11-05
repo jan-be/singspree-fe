@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSongNames } from "../logic/useSongNames";
 import WrapperPage from "./WrapperPage";
@@ -22,6 +22,8 @@ const JoinPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [username, setUsername] = useState("");
+  // The party page came back here: the server refused this name (it is someone else's seat)
+  const refusedName = useSearchParams()[0].get('taken');
 
   // Into the party: the current song's page, or the waiting page when nothing plays yet
   const join = useCallback((name: string) => {
@@ -52,7 +54,7 @@ const JoinPage = () => {
   // Signed in: no name to ask for, straight into the party under the account
   // name, unless that name is already singing here (the host, on their big
   // screen): then this device is asked for a name of its own
-  const accountNameTaken = !!user?.username && !!party && nameTaken(user.username);
+  const accountNameTaken = !!user?.username && !!party && (nameTaken(user.username) || refusedName === user.username);
   const autoJoined = useRef(false);
   useEffect(() => {
     if (loading || authLoading || error || !party || closed || !user?.username || accountNameTaken || autoJoined.current) return;
@@ -81,7 +83,7 @@ const JoinPage = () => {
 
   const typedNameTaken = username.trim() !== '' && nameTaken(username);
   // the name that is singing here already: the one typed, else the account's
-  const takenName = typedNameTaken ? username.trim() : accountNameTaken ? user?.username : undefined;
+  const takenName = typedNameTaken ? username.trim() : accountNameTaken ? user?.username : refusedName && username.trim() === '' ? refusedName : undefined;
 
   const handleJoin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

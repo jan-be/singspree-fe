@@ -588,7 +588,16 @@
       "email_invalid": "這看起來不像電子郵件地址",
       "code_invalid": "驗證碼錯誤",
       "code_expired": "驗證碼已過期，請重新索取",
-      "mail_failed": "無法寄出郵件，請稍後再試"
+      "mail_failed": "無法寄出郵件，請稍後再試",
+      "email_same": "這已經是你的地址",
+      "email_taken": "其他帳戶正在使用該地址",
+      "google_expired": "耗時過長，請再試一次",
+      "google_denied": "Google 登入已取消",
+      "google_failed": "Google 登入失敗，請再試一次",
+      "google_unverified": "Google 尚未驗證此帳戶的地址",
+      "google_address": "已有帳戶使用此地址。請先用驗證碼登入，再到設定中連結 Google",
+      "google_elsewhere": "此 Google 帳戶已連結到其他帳戶",
+      "google_needed": "請先新增電子郵件地址"
     },
     "email": "電子郵件",
     "emailHint": "僅用於登入，不會寄送廣告信。",
@@ -611,7 +620,9 @@
     "oneButtonHint": "有密碼金鑰或密碼就用它，否則我們寄驗證碼給你。",
     "title": "登入或註冊",
     "sendCodeInstead": "改寄驗證碼給我",
-    "agreeTerms": "建立帳號即表示你同意<tos>服務條款</tos>和<privacy>隱私權政策</privacy>。"
+    "agreeTerms": "建立帳號即表示你同意<tos>服務條款</tos>和<privacy>隱私權政策</privacy>。",
+    "or": "或",
+    "continueWithGoogle": "使用 Google 繼續"
   },
   "profile": {
     "myProfile": "我的頁面",
@@ -805,7 +816,20 @@
     "rustPartyPage": "Rust 版派對頁面",
     "rustPartyPageHint": "在用 Rust 撰寫的新版派對頁面中開啟派對。這是測試版：多載入約 2 MB，還沒有最新的功能（例如網紅模式的相機），螢幕閱讀器也無法讀取。如果有什麼不正常，可以在這裡關閉。",
     "voicesOnSpeakers": "聲音走喇叭",
-    "voicesOnSpeakersHint": "在派對的 QR 卡片上加一個開關：每位歌手的手機會把麥克風聲音傳到主持人的螢幕，由它透過喇叭播放。同一個 Wi-Fi、用有線喇叭效果最好（藍牙會有延遲）。"
+    "voicesOnSpeakersHint": "在派對的 QR 卡片上加一個開關：每位歌手的手機會把麥克風聲音傳到主持人的螢幕，由它透過喇叭播放。同一個 Wi-Fi、用有線喇叭效果最好（藍牙會有延遲）。",
+    "noEmail": "尚無地址",
+    "changeEmail": "變更",
+    "newEmail": "新電子郵件地址",
+    "emailHint": "我們會向新地址傳送驗證碼。舊地址會收到變更通知，你的其他裝置將會登出。",
+    "sendCode": "傳送驗證碼",
+    "confirmEmail": "確認",
+    "emailChanged": "地址已變更。",
+    "googleConnected": "Google 已連結，現在可以用它登入。",
+    "googleOn": "已連結",
+    "googleOff": "未連結",
+    "googleConnect": "連結",
+    "googleDisconnect": "取消連結",
+    "copyInvite": "複製連結"
   },
   "camera": {
     "title": "相機",

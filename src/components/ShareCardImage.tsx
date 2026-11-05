@@ -456,7 +456,7 @@ const ShareCardImage = React.forwardRef<HTMLDivElement, ShareCardImageProps>(fun
       {/* The way in: a code for the song, the name, and what it is */}
       <div style={{ width: "100%", display: "flex", alignItems: "center", gap: 22, textAlign: "left", flexShrink: 0 }}>
         <div data-glow="rgba(0,0,0,0.45)" data-glow-blur="24" data-glow-y="8" style={{ background: "#fff", borderRadius: 16, padding: 9, flexShrink: 0 }}>
-          <QRCodeSVG value={songUrl} size={dense ? 98 : 110} level="M" marginSize={0} bgColor="#ffffff" fgColor="#0b0a1a" style={{ display: "block" }} />
+          <QRCodeSVG value={songUrl} size={dense ? 98 : 110} level="M" marginSize={0} bgColor="#ffffff" fgColor="#0b0a1a" style={{ display: "block" }} className="[&_path]:[shape-rendering:geometricPrecision]" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: dense ? 22 : 24, fontWeight: 800, lineHeight: 1.2 }}>{t('share.beatMyScore')}</div>

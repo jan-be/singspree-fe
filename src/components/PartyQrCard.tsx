@@ -1,7 +1,7 @@
 import React, { useId } from "react";
 import { useTranslation } from "react-i18next";
-import { QRCodeSVG } from "qrcode.react";
 import Avatar from "./Avatar";
+import QrCode from "./QrCode";
 import { LockIcon } from "./Icons";
 import { playerHue, type PlayerColors } from "../logic/playerColor";
 import type { AvatarPaths } from "../logic/avatar";
@@ -54,7 +54,7 @@ const PartyQrCard = ({ qrUrl, joinUrl, linkUrl, joiningOpen = true, controls = f
   const code = (
     <>
       <div className="relative">
-        <QRCodeSVG value={qrUrl} size={168} className={joiningOpen ? undefined : 'opacity-[0.12]'} />
+        <QrCode value={qrUrl} size={168} className={joiningOpen ? undefined : 'opacity-[0.12]'} />
         {!joiningOpen && (
           <span className="absolute inset-0 grid place-items-center text-ink"><LockIcon size={46} strokeWidth={1.8} /></span>
         )}

@@ -590,7 +590,16 @@
       "email_invalid": "Isso não parece um e-mail",
       "code_invalid": "Código errado",
       "code_expired": "Esse código expirou, peça um novo",
-      "mail_failed": "Não foi possível enviar o e-mail, tente de novo mais tarde"
+      "mail_failed": "Não foi possível enviar o e-mail, tente de novo mais tarde",
+      "email_same": "Esse já é o seu endereço",
+      "email_taken": "Outra conta usa esse endereço",
+      "google_expired": "Demorou demais, tente novamente",
+      "google_denied": "O login com o Google foi cancelado",
+      "google_failed": "Não foi possível entrar com o Google, tente novamente",
+      "google_unverified": "O Google não verificou o endereço desta conta",
+      "google_address": "Já existe uma conta com este endereço. Entre com um código e conecte o Google nas suas configurações",
+      "google_elsewhere": "Esta conta do Google já está conectada a outra conta",
+      "google_needed": "Adicione primeiro um endereço de e-mail"
     },
     "email": "E-mail",
     "emailHint": "Usado só para entrar. Sem newsletters.",
@@ -613,7 +622,9 @@
     "oneButtonHint": "Com passkey ou senha, se tiver; senão, enviamos um código por e-mail.",
     "title": "Entrar ou cadastrar-se",
     "sendCodeInstead": "Prefiro receber um código",
-    "agreeTerms": "Ao criar uma conta, você concorda com os <tos>Termos de Serviço</tos> e a <privacy>Política de Privacidade</privacy>."
+    "agreeTerms": "Ao criar uma conta, você concorda com os <tos>Termos de Serviço</tos> e a <privacy>Política de Privacidade</privacy>.",
+    "or": "ou",
+    "continueWithGoogle": "Continuar com o Google"
   },
   "profile": {
     "myProfile": "Meu perfil",
@@ -810,7 +821,20 @@
     "rustPartyPage": "Página de festa em Rust",
     "rustPartyPageHint": "Abre as festas numa nova versão da página de festa, escrita em Rust. É um teste: carrega cerca de 2 MB a mais, ainda não tem os recursos mais novos (como a câmera do modo influencer) e leitores de tela não conseguem lê-la. Desative aqui se algo não funcionar.",
     "voicesOnSpeakers": "Vozes nos alto-falantes",
-    "voicesOnSpeakersHint": "Adiciona um botão ao cartão QR da festa: o celular de cada cantor envia o microfone para a tela do anfitrião, que toca nos alto-falantes. Funciona melhor no mesmo Wi-Fi e com alto-falantes com fio (o Bluetooth atrasa)."
+    "voicesOnSpeakersHint": "Adiciona um botão ao cartão QR da festa: o celular de cada cantor envia o microfone para a tela do anfitrião, que toca nos alto-falantes. Funciona melhor no mesmo Wi-Fi e com alto-falantes com fio (o Bluetooth atrasa).",
+    "noEmail": "Ainda sem endereço",
+    "changeEmail": "Alterar",
+    "newEmail": "Novo endereço de e-mail",
+    "emailHint": "Enviamos um código para o novo endereço. Seu endereço antigo será avisado da alteração, e seus outros dispositivos serão desconectados.",
+    "sendCode": "Enviar código",
+    "confirmEmail": "Confirmar",
+    "emailChanged": "Seu endereço foi alterado.",
+    "googleConnected": "O Google está conectado. Agora você pode entrar com ele.",
+    "googleOn": "Conectado",
+    "googleOff": "Não conectado",
+    "googleConnect": "Conectar",
+    "googleDisconnect": "Desconectar",
+    "copyInvite": "Copiar link"
   },
   "camera": {
     "title": "Câmera",

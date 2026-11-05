@@ -594,7 +594,16 @@
       "email_invalid": "That does not look like an e-mail address",
       "code_invalid": "Wrong code",
       "code_expired": "That code has expired, request a new one",
-      "mail_failed": "The e-mail could not be sent, please try again later"
+      "mail_failed": "The e-mail could not be sent, please try again later",
+      "email_same": "That already is your address",
+      "email_taken": "Another account uses that address",
+      "google_expired": "That took too long, please try again",
+      "google_denied": "Signing in with Google was cancelled",
+      "google_failed": "Signing in with Google did not work, please try again",
+      "google_unverified": "Google has not verified the address of this account",
+      "google_address": "An account already uses this address. Sign in with a code, then connect Google in your settings",
+      "google_elsewhere": "This Google account is already connected to another account",
+      "google_needed": "Add an e-mail address first"
     },
     "email": "E-mail address",
     "emailHint": "Only used to sign you in. No newsletters.",
@@ -617,7 +626,9 @@
     "oneButtonHint": "Passkey or password if you have one, otherwise we mail you a code.",
     "title": "Sign in or sign up",
     "sendCodeInstead": "Send me a code instead",
-    "agreeTerms": "By creating an account, you agree to the <tos>Terms of Service</tos> and the <privacy>Privacy Policy</privacy>."
+    "agreeTerms": "By creating an account, you agree to the <tos>Terms of Service</tos> and the <privacy>Privacy Policy</privacy>.",
+    "or": "or",
+    "continueWithGoogle": "Continue with Google"
   },
   "profile": {
     "myProfile": "My profile",
@@ -1429,7 +1440,20 @@
     "rustPartyPage": "Rust party page",
     "rustPartyPageHint": "Opens parties in a new version of the party page, written in Rust. It's a test: it loads about 2 MB more, it doesn't have the newest features yet (like the camera of influencer mode), and screen readers can't read it. Turn it off here if something doesn't work.",
     "voicesOnSpeakers": "Voices on the speakers",
-    "voicesOnSpeakersHint": "Adds a switch to the party's QR card: every singer's phone then sends its microphone to the host's screen, which plays it through the speakers. Works best on one Wi-Fi with wired speakers (Bluetooth adds a delay)."
+    "voicesOnSpeakersHint": "Adds a switch to the party's QR card: every singer's phone then sends its microphone to the host's screen, which plays it through the speakers. Works best on one Wi-Fi with wired speakers (Bluetooth adds a delay).",
+    "noEmail": "No address yet",
+    "changeEmail": "Change",
+    "newEmail": "New e-mail address",
+    "emailHint": "We send a code to the new address. Your old address is told about the change, and your other devices are signed out.",
+    "sendCode": "Send code",
+    "confirmEmail": "Confirm",
+    "emailChanged": "Your address is changed.",
+    "googleConnected": "Google is connected. You can sign in with it now.",
+    "googleOn": "Connected",
+    "googleOff": "Not connected",
+    "googleConnect": "Connect",
+    "googleDisconnect": "Disconnect",
+    "copyInvite": "Copy link"
   },
   "camera": {
     "title": "Camera",

@@ -13,7 +13,7 @@ import { fullscreenSupported, isFullscreen, toggleFullscreen } from "../logic/fu
 import AppIcon from "./AppIcon";
 import Wordmark from "./Wordmark";
 import { Link } from "react-router-dom";
-import { QRCodeSVG } from "qrcode.react";
+import QrCode from "./QrCode";
 import PartyQrCard, { type PartyQrCardProps } from "./PartyQrCard";
 import { partyJoinUrl } from "../logic/referrer";
 
@@ -373,11 +373,11 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
                 <div className="relative" ref={!isPhone ? qrRef : undefined}>
                   <button
                     onClick={() => setQrOpen(p => !p)}
-                    className="relative block bg-white rounded-lg p-[3px] cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                    className="relative block bg-white rounded-lg p-[3px] cursor-pointer hover:ring-2 hover:ring-white/60 transition-shadow"
                     title={joiningOpen ? t('party.enlargeQr') : t('party.joiningClosed')}
                     aria-expanded={qrOpen}
                   >
-                    <QRCodeSVG value={urls.qr} size={26} className={joiningOpen ? undefined : 'opacity-20'} />
+                    <QrCode value={urls.qr} size={26} className={joiningOpen ? undefined : 'opacity-20'} />
                     {/* joining closed: the code says so before anyone scans it */}
                     {!joiningOpen && <span className="absolute inset-0 grid place-items-center text-ink"><LockIcon size={16} strokeWidth={2.4} /></span>}
                   </button>

@@ -590,7 +590,16 @@
       "email_invalid": "Non sembra un indirizzo e-mail",
       "code_invalid": "Codice errato",
       "code_expired": "Il codice è scaduto, richiedine uno nuovo",
-      "mail_failed": "Impossibile inviare l’e-mail, riprova più tardi"
+      "mail_failed": "Impossibile inviare l’e-mail, riprova più tardi",
+      "email_same": "Questo è già il tuo indirizzo",
+      "email_taken": "Un altro account usa questo indirizzo",
+      "google_expired": "Ci è voluto troppo tempo, riprova",
+      "google_denied": "L’accesso con Google è stato annullato",
+      "google_failed": "Accesso con Google non riuscito, riprova",
+      "google_unverified": "Google non ha verificato l’indirizzo di questo account",
+      "google_address": "Un account usa già questo indirizzo. Accedi con un codice, poi collega Google nelle impostazioni",
+      "google_elsewhere": "Questo account Google è già collegato a un altro account",
+      "google_needed": "Aggiungi prima un indirizzo e-mail"
     },
     "email": "Indirizzo e-mail",
     "emailHint": "Serve solo per accedere. Niente newsletter.",
@@ -613,7 +622,9 @@
     "oneButtonHint": "Con passkey o password se le hai, altrimenti ti inviamo un codice.",
     "title": "Accedi o registrati",
     "sendCodeInstead": "Inviami un codice invece",
-    "agreeTerms": "Creando un account accetti i <tos>Termini di servizio</tos> e l’<privacy>Informativa sulla privacy</privacy>."
+    "agreeTerms": "Creando un account accetti i <tos>Termini di servizio</tos> e l’<privacy>Informativa sulla privacy</privacy>.",
+    "or": "oppure",
+    "continueWithGoogle": "Continua con Google"
   },
   "profile": {
     "myProfile": "Il mio profilo",
@@ -810,7 +821,20 @@
     "rustPartyPage": "Pagina della festa in Rust",
     "rustPartyPageHint": "Apre le feste in una nuova versione della pagina della festa, scritta in Rust. È una prova: carica circa 2 MB in più, non ha ancora le funzioni più recenti (come la fotocamera della modalità influencer) e gli screen reader non riescono a leggerla. Disattivala qui se qualcosa non funziona.",
     "voicesOnSpeakers": "Voci negli altoparlanti",
-    "voicesOnSpeakersHint": "Aggiunge un interruttore alla scheda QR della festa: il telefono di ogni cantante invia il suo microfono allo schermo dell'host, che lo riproduce dagli altoparlanti. Funziona meglio sulla stessa rete Wi-Fi e con altoparlanti via cavo (il Bluetooth aggiunge ritardo)."
+    "voicesOnSpeakersHint": "Aggiunge un interruttore alla scheda QR della festa: il telefono di ogni cantante invia il suo microfono allo schermo dell'host, che lo riproduce dagli altoparlanti. Funziona meglio sulla stessa rete Wi-Fi e con altoparlanti via cavo (il Bluetooth aggiunge ritardo).",
+    "noEmail": "Nessun indirizzo",
+    "changeEmail": "Cambia",
+    "newEmail": "Nuovo indirizzo e-mail",
+    "emailHint": "Inviamo un codice al nuovo indirizzo. Il vecchio indirizzo viene informato della modifica e gli altri dispositivi vengono disconnessi.",
+    "sendCode": "Invia codice",
+    "confirmEmail": "Conferma",
+    "emailChanged": "Il tuo indirizzo è stato cambiato.",
+    "googleConnected": "Google è collegato. Ora puoi accedere con Google.",
+    "googleOn": "Collegato",
+    "googleOff": "Non collegato",
+    "googleConnect": "Collega",
+    "googleDisconnect": "Scollega",
+    "copyInvite": "Copia link"
   },
   "camera": {
     "title": "Fotocamera",

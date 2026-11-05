@@ -9,7 +9,7 @@ import Avatar from '../components/Avatar';
 import { useAvatarEditor } from '../components/AvatarEditor';
 import ReportPicture from '../components/ReportPicture';
 import { LockIcon, DuetIcon as FriendsIcon } from '../components/Icons';
-import { Section, TrashIcon, btn, headerCard, input, listBox, rowBox, sm, stageLight, useDate, useSecondClick, type Note } from '../components/ProfileParts';
+import { HEADER_PICTURE, PageHeader, Section, TrashIcon, btn, hint, input, label as fieldLabel, listBox, panel, rowBox, sm, useDate, useSecondClick, type Note } from '../components/ProfileParts';
 import { useNotifications } from '../logic/NotificationsContext';
 import { statsVisibilityOf, isPrivateProfile } from '../logic/statsPrivacy';
 import { useAuth } from '../logic/AuthContext';
@@ -48,9 +48,9 @@ type ListedSong = Pick<ScoreRow, 'songId' | 'title' | 'artist' | 'videoId' | 'di
 // ── Pieces ─────────────────────────────────────────────────────────────
 
 const StatTile = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div className="rounded-2xl bg-panel border border-white/10 px-3 py-3.5 text-center min-w-0">
+  <div className={`${panel} px-3 py-3.5 text-center min-w-0`}>
     <div className="text-2xl font-semibold tracking-[-0.02em] tabular-nums leading-tight text-white truncate">{value}</div>
-    <div className="text-xs text-white/55 mt-1 truncate">{label}</div>
+    <div className={`${hint} mt-1 truncate`}>{label}</div>
   </div>
 );
 
@@ -74,21 +74,21 @@ const SongRow = ({ row, date, actions = null }: { row: ListedSong; date?: string
       : <div className="w-16 h-9 rounded-lg bg-white/[0.06] flex-shrink-0" />}
     <div className="flex-1 min-w-0">
       <div className="text-sm font-medium text-white truncate">{row.title ?? row.songId}</div>
-      <div className="text-xs text-white/50 truncate">
+      <div className={`${hint} truncate`}>
         {row.artist}
         {row.part ? <span className="text-hot/85"> · {row.part === 2 ? t('party.duetP2') : t('party.duetP1')}</span> : null}
-        {stoppedAt !== null ? <span className="text-white/70" title={t('profile.stoppedHint')}> · {t('profile.stoppedAt', { percent: completionText(stoppedAt, i18n.language) })}</span> : null}
-        {date ? <span className="text-white/35"> · {date}</span> : null}
+        {stoppedAt !== null ? <span title={t('profile.stoppedHint')}> · {t('profile.stoppedAt', { percent: completionText(stoppedAt, i18n.language) })}</span> : null}
+        {date ? <span> · {date}</span> : null}
       </div>
     </div>
     {row.score == null ? (
-      <div className="text-xs text-white/40 flex-shrink-0">{t('profile.notScored')}</div>
+      <div className={`${hint} flex-shrink-0`}>{t('profile.notScored')}</div>
     ) : (
       <div className="flex flex-col items-end gap-0.5 flex-shrink-0" title={partial ? t('profile.stoppedHint') : undefined}>
-        <div className={`font-mono font-medium text-sm tabular-nums leading-tight ${partial ? 'text-white/60' : 'text-white'}`}>{row.score.toLocaleString()}</div>
+        <div className={`font-medium text-sm tabular-nums leading-tight ${partial ? 'text-white/60' : 'text-white'}`}>{row.score.toLocaleString()}</div>
         {!partial && <StarRating stars={row.stars ?? starsFor(row.score)} size={12} />}
         {/* under the stars: beside the score it leaves a title next to your own buttons no room on a phone */}
-        <DifficultyTag level={row.difficulty} />
+        <DifficultyTag level={row.difficulty} large />
       </div>
     )}
   </Link>
@@ -429,29 +429,29 @@ const AchievementCard = ({ item, date }: { item: ProfileAchievement; date: strin
   const showProgress = !done && item.progress != null;
   return (
     <li
-      className={`flex items-start gap-3 rounded-2xl border px-3.5 py-3 ${done ? 'bg-panel bg-[linear-gradient(135deg,rgba(255,92,214,0.11),rgba(192,75,255,0.04)_55%,transparent)] border-white/10' : 'bg-white/[0.025] border-white/[0.06]'}`}
+      className={`flex items-start gap-3 rounded-2xl border px-4 py-3 ${done ? 'bg-panel border-white/10' : 'bg-white/[0.025] border-white/[0.06]'}`}
       title={done ? t('achievements.unlockedOn', { date }) : t('achievements.locked')}
     >
       <span
         aria-hidden="true"
-        className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-xl ${done ? 'bg-gradient-to-br from-hot/30 to-neon-purple/25 ring-1 ring-inset ring-white/15' : 'bg-white/[0.06] grayscale opacity-40'}`}
+        className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-xl ${done ? 'bg-hot/20' : 'bg-white/[0.06] grayscale opacity-40'}`}
       >
         {info.icon}
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
-          <span className={`text-sm font-semibold tracking-[-0.01em] truncate ${done ? 'text-white' : 'text-white/55'}`}>{info.name}</span>
-          {done && <span className="text-[11px] text-white/40 flex-shrink-0">{date}</span>}
-          {showProgress && <span className="text-[11px] tabular-nums text-white/45 flex-shrink-0">{progressText(item, i18n.language)}</span>}
+          <span className={`text-sm font-semibold truncate ${done ? 'text-white' : 'text-white/60'}`}>{info.name}</span>
+          {done && <span className={`${hint} flex-shrink-0`}>{date}</span>}
+          {showProgress && <span className={`${hint} tabular-nums flex-shrink-0`}>{progressText(item, i18n.language)}</span>}
         </div>
-        <div className={`text-[11px] truncate ${done ? 'text-hot/80' : 'text-white/35'}`}>♪ {creditLine(info)}</div>
-        <div className={`text-xs mt-0.5 ${done ? 'text-white/65' : 'text-white/40'}`}>
+        <div className={`text-xs truncate ${done ? 'text-hot' : 'text-white/40'}`}>♪ {creditLine(info)}</div>
+        <div className={`text-xs mt-0.5 ${done ? 'text-white/60' : 'text-white/40'}`}>
           {!done && <span className="sr-only">{t('achievements.locked')}: </span>}
           {t(`achievements.desc.${item.key}`)}
         </div>
         {showProgress && (
           <div className="h-1 rounded-full bg-white/10 mt-2 overflow-hidden" aria-hidden="true">
-            <div className="h-full rounded-full bg-gradient-to-r from-[#ff5cd6] to-[#c04bff]" style={{ width: `${Math.round(fraction(item) * 100)}%` }} />
+            <div className="h-full rounded-full bg-hot" style={{ width: `${Math.round(fraction(item) * 100)}%` }} />
           </div>
         )}
       </div>
@@ -475,10 +475,10 @@ const AchievementsSection = ({ items, isMe, username }: { items: AchievementItem
     <Section
       id="achievements"
       title={t('achievements.title')}
-      aside={<span className="text-xs text-white/45 tabular-nums">{t('achievements.count', { unlocked, total: all.length })}</span>}
+      aside={<span className={`${hint} tabular-nums`}>{t('achievements.count', { unlocked, total: all.length })}</span>}
     >
       {unlocked === 0 && !expanded && (
-        <p className="text-sm text-white/50 mb-3">{isMe ? t('achievements.none') : t('achievements.noneOther', { username })}</p>
+        <p className="text-sm text-white/60 mb-3">{isMe ? t('achievements.none') : t('achievements.noneOther', { username })}</p>
       )}
       {shown.length > 0 && (
         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -532,7 +532,7 @@ const FriendsSection = () => {
   );
 
   return (
-    <Section id="friends" title={t('friends.title')} aside={<span className="text-xs text-white/45">{t('friends.count', { count: data.friends.length })}</span>}>
+    <Section id="friends" title={t('friends.title')} aside={<span className={hint}>{t('friends.count', { count: data.friends.length })}</span>}>
       <div className="relative">
         <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/45 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
@@ -542,13 +542,13 @@ const FriendsSection = () => {
           value={q}
           onChange={e => setQ(e.target.value)}
           placeholder={t('friends.search')}
-          className={`${input} h-11 pl-10`}
+          className={`${input} pl-10`}
           autoComplete="off"
         />
       </div>
       {results && (
         <ul className={`mt-2 ${listBox}`}>
-          {results.length === 0 && <li className="px-4 py-3 text-sm text-white/45">{t('friends.noResults')}</li>}
+          {results.length === 0 && <li className="px-4 py-3 text-sm text-white/60">{t('friends.noResults')}</li>}
           {results.map(r => (
             <li key={r.username} className={rowBox}>
               {nameLink(r.username, r.avatar)}
@@ -560,13 +560,13 @@ const FriendsSection = () => {
 
       {suggested.length > 0 && (
         <div className="mt-5">
-          <div className="pop-label mb-2">{t('profile.suggestions')}</div>
+          <div className={`${fieldLabel} mb-2`}>{t('profile.suggestions')}</div>
           <ul className={listBox}>
             {suggested.map(s => (
               <li key={s.username} className={rowBox}>
                 {nameLink(s.username, s.avatar)}
                 <div className="flex items-center gap-3 flex-shrink-0">
-                  <span className="text-xs text-white/50 hidden sm:inline">{t('profile.songsTogether', { count: s.songsTogether })}</span>
+                  <span className={`${hint} hidden sm:inline`}>{t('profile.songsTogether', { count: s.songsTogether })}</span>
                   <FriendButton username={s.username} relation={null} onChange={changed(s.username)} compact />
                 </div>
               </li>
@@ -577,7 +577,7 @@ const FriendsSection = () => {
 
       {(data.incoming.length > 0 || data.outgoing.length > 0) && (
         <div className="mt-5">
-          <div className="pop-label mb-2">{t('friends.requests')}</div>
+          <div className={`${fieldLabel} mb-2`}>{t('friends.requests')}</div>
           <ul className={listBox}>
             {data.incoming.map(r => (
               <li key={`in-${r.username}`} className={`${rowBox} bg-hot/[0.06]`}>
@@ -597,7 +597,7 @@ const FriendsSection = () => {
 
       <div className="mt-5">
         {data.friends.length === 0
-          ? <p className="text-sm text-white/50">{t('friends.none')}</p>
+          ? <p className="text-sm text-white/60">{t('friends.none')}</p>
           : (
             <ul className={listBox}>
               {data.friends.map(f => (
@@ -606,11 +606,11 @@ const FriendsSection = () => {
                   <div className="flex items-center gap-3 flex-shrink-0">
                     {/* A friend who keeps their stats private comes without numbers */}
                     {f.private ? (
-                      <span className="inline-flex items-center gap-1 text-xs text-white/45" title={t('privacy.profileTitle')}><LockIcon size={12} />{t('privacy.private')}</span>
+                      <span className={`inline-flex items-center gap-1 ${hint}`} title={t('privacy.profileTitle')}><LockIcon size={12} />{t('privacy.private')}</span>
                     ) : (
                       <>
-                        <span className="text-xs text-white/50 hidden sm:inline">{t('profile.songsSung')}: <span className="text-white tabular-nums">{f.songsSung}</span></span>
-                        <span className="text-xs text-white/70 tabular-nums"><span className="text-yellow-400">★</span> {f.totalStars}</span>
+                        <span className={`${hint} hidden sm:inline`}>{t('profile.songsSung')}: <span className="text-white tabular-nums">{f.songsSung}</span></span>
+                        <span className={`${hint} tabular-nums`}><span className="text-yellow-400">★</span> {f.totalStars}</span>
                       </>
                     )}
                     <FriendButton username={f.username} relation="friends" onChange={changed(f.username)} compact />
@@ -637,25 +637,21 @@ const PrivateProfile = ({ data, onRelation }: { data: PrivateProfileData; onRela
   const { user } = data;
   return (
     <WrapperPage>
-      <div className={headerCard}>
-        <div className={stageLight} aria-hidden="true" />
-        <Avatar username={user.username} src={user.avatar} size={72} className="text-3xl relative" />
-        <div className="relative flex-1 min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-[-0.02em] text-white truncate">{user.username}</h1>
-          <div className="text-sm text-white/55 mt-0.5">{t('profile.memberSince', { date: fmt(user.createdAt) })}</div>
-          {user.avatar && <ReportPicture path={user.avatar} where={{ place: 'profile' }} className="mt-1.5" />}
-        </div>
-        <div className="relative w-full pl-[88px] sm:w-auto sm:pl-0 sm:flex-shrink-0">
-          <FriendButton username={user.username} relation={data.relation} onChange={onRelation} />
-        </div>
-      </div>
+      <PageHeader
+        picture={<Avatar username={user.username} src={user.avatar} size={HEADER_PICTURE} />}
+        title={user.username}
+        action={<FriendButton username={user.username} relation={data.relation} onChange={onRelation} />}
+      >
+        <div className="text-sm text-white/60 mt-0.5">{t('profile.memberSince', { date: fmt(user.createdAt) })}</div>
+        {user.avatar && <ReportPicture path={user.avatar} where={{ place: 'profile' }} className="mt-1.5" />}
+      </PageHeader>
 
-      <div className="mt-3 sm:mt-4 rounded-2xl bg-panel border border-white/10 px-6 py-10 text-center">
+      <div className={`mt-4 ${panel} px-6 py-10 text-center`}>
         <span aria-hidden="true" className="mx-auto w-12 h-12 rounded-full grid place-items-center bg-white/[0.07] ring-1 ring-inset ring-white/10 text-white/70">
           {data.friendsOnly ? <FriendsIcon size={20} /> : <LockIcon size={20} />}
         </span>
-        <h2 className="mt-4 text-lg font-semibold tracking-[-0.02em] text-white">{t(data.friendsOnly ? 'privacy.friendsOnlyTitle' : 'privacy.profileTitle')}</h2>
-        <p className="mt-1 text-sm text-white/55 max-w-sm mx-auto">{t(data.friendsOnly ? 'privacy.friendsOnlyText' : 'privacy.profileText', { username: user.username })}</p>
+        <h2 className="mt-4 text-lg font-semibold text-white">{t(data.friendsOnly ? 'privacy.friendsOnlyTitle' : 'privacy.profileTitle')}</h2>
+        <p className="mt-1 text-sm text-white/60 max-w-sm mx-auto">{t(data.friendsOnly ? 'privacy.friendsOnlyText' : 'privacy.profileText', { username: user.username })}</p>
       </div>
     </WrapperPage>
   );
@@ -776,48 +772,46 @@ const ProfilePage = () => {
   return (
     <WrapperPage>
       {/* Header */}
-      <div className={headerCard}>
-        <div className={stageLight} aria-hidden="true" />
-        {isMe ? (
+      <PageHeader
+        title={data.user.username}
+        picture={isMe ? (
           // Your own: the picture opens the picker, the camera says so
           <button type="button" onClick={editor.choose} disabled={editor.busy} className="relative rounded-full flex-shrink-0 group" aria-label={data.user.avatar ? t('avatar.change') : t('avatar.add')} title={data.user.avatar ? t('avatar.change') : t('avatar.add')}>
-            <Avatar username={data.user.username} src={data.user.avatar} size={72} className="text-3xl transition-opacity group-hover:opacity-85" />
-            <span aria-hidden="true" className="absolute -right-0.5 -bottom-0.5 w-7 h-7 rounded-full fill-hot grid place-items-center ring-2 ring-panel">
+            <Avatar username={data.user.username} src={data.user.avatar} size={HEADER_PICTURE} className="transition-opacity group-hover:opacity-85" />
+            <span aria-hidden="true" className="absolute -right-0.5 -bottom-0.5 w-7 h-7 rounded-full fill-hot shadow-none grid place-items-center ring-2 ring-panel">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
             </span>
           </button>
         ) : (
-          <Avatar username={data.user.username} src={data.user.avatar} size={72} className="text-3xl relative" />
+          <Avatar username={data.user.username} src={data.user.avatar} size={HEADER_PICTURE} />
         )}
-        <div className="relative flex-1 min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-[-0.02em] text-white truncate">{data.user.username}</h1>
-          {/* a phone breaks the line between the facts, not inside one */}
-          <div className="text-sm text-white/55 mt-0.5">
-            {facts.map((f, i) => <React.Fragment key={i}>{i > 0 && ' · '}<span className="whitespace-nowrap">{f}</span></React.Fragment>)}
-          </div>
-          {hasScores && <div className="mt-1.5"><StarRating stars={Math.min(3, Math.round((stats.averageBest / 10000) * 3))} size={18} label={`${stats.averageBest}`} /></div>}
+        action={isMe
+          ? <Link to="/settings" className={btn.quiet} data-settings-link=""><GearIcon />{t('settings.title')}</Link>
+          : <FriendButton username={data.user.username} relation={data.relation} onChange={(relation) => setData(d => d && { ...d, relation })} />}
+      >
+        {/* a phone breaks the line between the facts, not inside one */}
+        <div className="text-sm text-white/60 mt-0.5">
+          {facts.map((f, i) => <React.Fragment key={i}>{i > 0 && ' · '}<span className="whitespace-nowrap">{f}</span></React.Fragment>)}
+        </div>
+        {/* One row, so the header stays the size of the settings' */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 empty:hidden">
+          {hasScores && <StarRating stars={Math.min(3, Math.round((stats.averageBest / 10000) * 3))} size={18} label={`${stats.averageBest}`} />}
           {/* Someone else's picture can be reported to the admins (guests too) */}
-          {!isMe && data.user.avatar && <ReportPicture path={data.user.avatar} where={{ place: 'profile' }} className="mt-1.5" />}
-          {/* Your picture changed from here, or why not */}
-          {isMe && avatarNote && <p className={`text-xs mt-1.5 ${avatarNote.error ? 'text-red-300' : 'text-emerald-200'}`} role={avatarNote.error ? 'alert' : 'status'}>{avatarNote.text}</p>}
+          {!isMe && data.user.avatar && <ReportPicture path={data.user.avatar} where={{ place: 'profile' }} />}
           {/* Your stats kept private, or to friends: who else sees what follows */}
           {isMe && statsVisibilityOf(user) !== 'public' && (
-            <Link to="/settings#privacy" title={t(statsVisibilityOf(user) === 'friends' ? 'privacy.onlyFriends' : 'privacy.onlyYou')} className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-semibold text-white/75 no-underline hover:bg-white/15 hover:text-white transition-colors">
+            <Link to="/settings#privacy" title={t(statsVisibilityOf(user) === 'friends' ? 'privacy.onlyFriends' : 'privacy.onlyYou')} className={`inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-0.5 ${hint} no-underline hover:bg-white/15 hover:text-white transition-colors`}>
               {statsVisibilityOf(user) === 'friends' ? <><FriendsIcon size={12} />{t('privacy.friends')}</> : <><LockIcon size={12} />{t('privacy.private')}</>}
             </Link>
           )}
         </div>
-        {/* On a phone the button gets its own row under the name, so the name keeps the width */}
-        <div className="relative w-full pl-[88px] sm:w-auto sm:pl-0 sm:flex-shrink-0">
-          {isMe
-            ? <Link to="/settings" className={btn.quiet} data-settings-link=""><GearIcon />{t('settings.title')}</Link>
-            : <FriendButton username={data.user.username} relation={data.relation} onChange={(relation) => setData(d => d && { ...d, relation })} />}
-        </div>
-      </div>
+        {/* Your picture changed from here, or why not */}
+        {isMe && avatarNote && <p className={`text-xs mt-1.5 ${avatarNote.error ? 'text-red-300' : 'text-emerald-200'}`} role={avatarNote.error ? 'alert' : 'status'}>{avatarNote.text}</p>}
+      </PageHeader>
 
       {/* Numbers */}
       {!stats ? null : hasScores ? (
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 mt-3 sm:mt-4">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 mt-4">
           <StatTile label={t('profile.songsSung')} value={stats.songsSung} />
           <StatTile label={t('profile.totalStars')} value={<><span className="text-yellow-400">★</span> {stats.totalStars}</>} />
           <StatTile label={t('profile.fiveStars')} value={stats.fiveStars} />
@@ -826,21 +820,21 @@ const ProfilePage = () => {
           <StatTile label={t('friends.title')} value={stats.friends} />
         </div>
       ) : kind === 'played' ? (
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-3 sm:mt-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-4">
           <StatTile label={t('profile.played')} value={played} />
           <StatTile label={t('profile.parties')} value={stats.parties ?? 0} />
           <StatTile label={t('friends.title')} value={stats.friends} />
         </div>
       ) : (
-        <div className="mt-3 sm:mt-4 rounded-2xl bg-panel border border-white/10 px-5 py-6 sm:px-7 text-center">
+        <div className={`mt-4 ${panel} px-6 py-6 text-center`}>
           {isMe ? (
             <>
-              <div className="text-base font-semibold text-white">{t('profile.emptyTitle')}</div>
-              <p className="text-sm text-white/55 mt-1 max-w-md mx-auto">{t('profile.emptyText')}</p>
+              <div className="text-sm font-semibold text-white">{t('profile.emptyTitle')}</div>
+              <p className="text-sm text-white/60 mt-1 max-w-md mx-auto">{t('profile.emptyText')}</p>
               <Link to="/" className={`${btn.primary} mt-4`}>{t('profile.pickSong')}</Link>
             </>
           ) : (
-            <p className="text-sm text-white/55">{t('profile.emptyOther', { username: data.user.username })}</p>
+            <p className="text-sm text-white/60">{t('profile.emptyOther', { username: data.user.username })}</p>
           )}
         </div>
       )}
@@ -868,7 +862,7 @@ const ProfilePage = () => {
       {/* Played, nothing scored yet: the songs, and how scores come about */}
       {playedRows.length > 0 && recentRows.length === 0 && (kind === 'played' || (!stats && bestRows.length === 0)) && (
         <Section title={t('profile.playedRecently')}>
-          <p className="text-sm text-white/50 mb-3">
+          <p className="text-sm text-white/60 mb-3">
             {isMe ? t('profile.playedHint', { button: t('party.joinSinging') }) : stats ? t('profile.noScoresOther', { username: data.user.username }) : null}
           </p>
           <div className={listBox}>

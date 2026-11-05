@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import WrapperPage from './WrapperPage';
 import Avatar from '../components/Avatar';
 import { useAvatarEditor } from '../components/AvatarEditor';
 import { GlobeIcon, LockIcon, MicIcon, DuetIcon as FriendsIcon } from '../components/Icons';
-import { Section, TrashIcon, btn, headerCard, input, sm, stageLight, useDate, useSecondClick, type Note } from '../components/ProfileParts';
+import { HEADER_PICTURE, PageHeader, Section, TrashIcon, btn, hint, input, label, name as settingName, panelBox, sm, useDate, useSecondClick, type Note } from '../components/ProfileParts';
 import { PRIVACY_SECTIONS, STATS_VISIBILITY, privacyOf } from '../logic/statsPrivacy';
 import { useAuth } from '../logic/AuthContext';
 import { renamePartySession } from '../logic/partySession';
-import { registerPasskey, deletePasskey, updateAccount, deleteAccount, isCancelled } from '../logic/authApi';
+import {
+  registerPasskey, deletePasskey, updateAccount, deleteAccount, isCancelled, startEmailChange, verifyEmailChange,
+  getSignInProviders, startGoogle, disconnectGoogle,
+} from '../logic/authApi';
 import { appDomain } from '../GlobalConsts';
 import { deleteAllTakes, loadSaveRecordings, storeSaveRecordings } from '../logic/takes';
 import { errorMessage } from './AuthPage';
@@ -71,9 +74,9 @@ const PrivacySection = () => {
 
   return (
     <Section id="privacy" title={t('privacy.title')}>
-      <div className="rounded-2xl bg-panel border border-white/10 p-5 sm:p-6">
+      <div className={panelBox}>
         <div className="flex items-center justify-between gap-3 mb-3 min-h-5">
-          <div className="pop-label">{t('privacy.whoSees')}</div>
+          <div className={label}>{t('privacy.whoSees')}</div>
           {note && <span role={note.error ? 'alert' : 'status'} className={`text-xs ${note.error ? 'text-red-300' : 'text-emerald-200'}`}>{note.text}</span>}
         </div>
         {/* Each part of the profile on its own: everyone, friends, or you alone */}
@@ -81,8 +84,8 @@ const PrivacySection = () => {
           {PRIVACY_SECTIONS.map(({ key }) => (
             <div key={key} data-privacy-section={key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 py-3 first:pt-1 last:pb-1">
               <div className="min-w-0">
-                <div id={`privacy-${key}`} className="text-sm font-semibold text-white">{t(SECTION_LABELS[key])}</div>
-                <div className="text-xs text-white/55 mt-0.5">{t(`privacy.sectionHint.${key}`)}</div>
+                <div id={`privacy-${key}`} className={settingName}>{t(SECTION_LABELS[key])}</div>
+                <div className={`${hint} mt-0.5`}>{t(`privacy.sectionHint.${key}`)}</div>
               </div>
               <div role="radiogroup" aria-labelledby={`privacy-${key}`} className="inline-flex self-start sm:self-auto flex-shrink-0 rounded-full bg-white/[0.06] border border-white/10 p-0.5">
                 {STATS_VISIBILITY.map(v => {
@@ -90,7 +93,7 @@ const PrivacySection = () => {
                   const on = settings[key] === v;
                   return (
                     <label key={v} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-white/70 ${
-                      on ? 'fill-hot text-white' : 'text-white/65 hover:text-white'} ${busy ? 'opacity-60' : 'cursor-pointer'}`}>
+                      on ? 'fill-hot shadow-none text-white' : 'text-white/60 hover:text-white'} ${busy ? 'opacity-60' : 'cursor-pointer'}`}>
                       <input type="radio" name={`privacy-${key}`} value={v} checked={on} disabled={busy} onChange={() => choose(key, v)} className="sr-only" />
                       <Icon size={13} />{t(`privacy.${v}`)}
                     </label>
@@ -100,13 +103,13 @@ const PrivacySection = () => {
             </div>
           ))}
         </div>
-        <p className="text-xs text-white/45 mt-3">{t('privacy.partyNote')}</p>
+        <p className={`${hint} mt-3`}>{t('privacy.partyNote')}</p>
 
         {/* This browser's switch, the same as the microphone panel's */}
         <div className="mt-5 pt-4 border-t border-white/10 flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <div id="settings-save-recordings" className="text-sm font-semibold text-white">{t('mic.saveRecordings')}</div>
-            <p id="settings-save-recordings-hint" className="text-xs text-white/55 mt-0.5">{t('settings.saveRecordingsHint')}</p>
+            <div id="settings-save-recordings" className={settingName}>{t('mic.saveRecordings')}</div>
+            <p id="settings-save-recordings-hint" className={`${hint} mt-0.5`}>{t('settings.saveRecordingsHint')}</p>
           </div>
           <button
             type="button"
@@ -122,7 +125,7 @@ const PrivacySection = () => {
 
         <div className="mt-5 pt-4 border-t border-white/10">
           <div className="flex items-start justify-between gap-3">
-            <p className="text-xs text-white/55">{t('privacy.recordingsHint', { setting: t('mic.saveRecordings'), best: t('profile.bestSongs'), recent: t('profile.recent') })}</p>
+            <p className={hint}>{t('privacy.recordingsHint', { setting: t('mic.saveRecordings'), best: t('profile.bestSongs'), recent: t('profile.recent') })}</p>
             {takesNote && <span role={takesNote.error ? 'alert' : 'status'} className={`text-xs flex-shrink-0 ${takesNote.error ? 'text-red-300' : 'text-emerald-200'}`}>{takesNote.text}</span>}
           </div>
           <button type="button" onClick={() => confirmAll.press(deleteRecordings)} disabled={busy} data-delete-all-takes="" aria-pressed={confirmAll.armed}
@@ -146,18 +149,113 @@ const PictureRow = ({ user, editor, note }: { user: Me; editor: AvatarEditor; no
   const { t } = useTranslation();
   return (
     <div className="flex items-center gap-4">
-      <Avatar username={user.username} src={user.avatar} size={56} className="text-2xl" />
+      <Avatar username={user.username} src={user.avatar} size={56} />
       <div className="min-w-0 flex-1">
-        <div className="pop-label">{t('avatar.title')}</div>
+        <div className={label}>{t('avatar.title')}</div>
         <div className="flex flex-wrap gap-2 mt-2">
           <button type="button" disabled={editor.busy} onClick={editor.choose} className={sm(user.avatar ? btn.quiet : btn.primary)}>
             {user.avatar ? t('avatar.change') : t('avatar.add')}
           </button>
           {user.avatar && <button type="button" disabled={editor.busy} onClick={editor.remove} className={sm(btn.danger)}>{t('avatar.remove')}</button>}
         </div>
-        <p className="text-xs text-white/45 mt-1.5">{t('avatar.hint')}</p>
+        <p className={`${hint} mt-1.5`}>{t('avatar.hint')}</p>
         {note && <p className={`text-xs mt-1.5 ${note.error ? 'text-red-300' : 'text-emerald-200'}`} role={note.error ? 'alert' : undefined}>{note.text}</p>}
       </div>
+    </div>
+  );
+};
+
+const rowTop = 'pt-6 border-t border-white/[0.07]';
+/** A note under a row: what worked, or what did not */
+const RowNote = ({ note }: { note: Note | null }) => (note
+  ? <p className={`text-xs mt-1.5 ${note.error ? 'text-red-300' : 'text-emerald-200'}`} role={note.error ? 'alert' : 'status'}>{note.text}</p>
+  : null);
+
+/**
+ * Your address, and changing it: the new one counts once the code mailed to it
+ * is typed in here. The old one hears of it, and other devices are signed out.
+ */
+const EmailRow = ({ user }: { user: Me }) => {
+  const { t, i18n } = useTranslation();
+  const { setUser } = useAuth();
+  const [step, setStep] = useState<'shown' | 'address' | 'code'>('shown');
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [devCode, setDevCode] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<Note | null>(null);
+  const run = async (fn: () => Promise<void>) => {
+    setBusy(true); setNote(null);
+    try { await fn(); } catch (e) { setNote({ text: errorMessage(t, e), error: true }); } finally { setBusy(false); }
+  };
+  const back = () => { setStep('shown'); setEmail(''); setCode(''); setDevCode(null); setNote(null); };
+  const cancel = <button type="button" onClick={back} disabled={busy} className={btn.quiet}>{t('avatar.cancel')}</button>;
+  return (
+    <div className={rowTop} data-email-row="">
+      <div className={label}>{t('auth.email')}</div>
+      {step === 'shown' && (
+        <div className="flex items-center justify-between gap-3 mt-1">
+          <div className="text-sm text-white truncate">{user.email ?? t('settings.noEmail')}</div>
+          <button type="button" onClick={() => { setNote(null); setStep('address'); }} className={sm(btn.quiet)}>{t('settings.changeEmail')}</button>
+        </div>
+      )}
+      {step === 'address' && (
+        <form className="mt-1.5" onSubmit={e => { e.preventDefault(); run(async () => { setDevCode((await startEmailChange(email.trim(), i18n.language)).devCode ?? null); setStep('code'); }); }}>
+          <div className="flex flex-wrap gap-2">
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('settings.newEmail')} aria-label={t('settings.newEmail')} autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false} maxLength={254} autoFocus className={`${input} flex-1 min-w-48`} />
+            <button type="submit" disabled={busy || !email.trim()} className={btn.quiet}>{t('settings.sendCode')}</button>
+            {cancel}
+          </div>
+          <p className={`${hint} mt-1.5`}>{t('settings.emailHint')}</p>
+        </form>
+      )}
+      {step === 'code' && (
+        <form className="mt-1.5" onSubmit={e => { e.preventDefault(); run(async () => { const updated = await verifyEmailChange(email.trim(), code, i18n.language); setUser(updated); back(); setNote({ text: t('settings.emailChanged') }); }); }}>
+          <p className="text-sm text-white">{t('auth.codeSentTo', { email: email.trim() })}</p>
+          {devCode && <p className="text-xs text-amber-300/80 mt-1">{t('auth.devCode', { code: devCode })}</p>}
+          <div className="flex flex-wrap gap-2 mt-2">
+            <input type="text" value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder={t('auth.code')} aria-label={t('auth.code')} inputMode="numeric" autoComplete="one-time-code" maxLength={6} autoFocus className={`${input} flex-1 min-w-32 font-mono tracking-[0.3em]`} />
+            <button type="submit" disabled={busy || code.length !== 6} className={btn.quiet}>{t('settings.confirmEmail')}</button>
+            {cancel}
+          </div>
+        </form>
+      )}
+      <RowNote note={note} />
+    </div>
+  );
+};
+
+/** The Google account that signs in here, where the server has that (backend googleSignIn.ts) */
+const GoogleRow = ({ user }: { user: Me }) => {
+  const { t } = useTranslation();
+  const { setUser } = useAuth();
+  const [offered, setOffered] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const [note, setNote] = useState<Note | null>(null);
+  useEffect(() => { getSignInProviders().then(p => setOffered(p.google)).catch(() => {}); }, []);
+  // Back from Google: how it went, once, and off the address
+  useEffect(() => {
+    const why = params.get('google_error');
+    if (!why && !params.get('google')) return;
+    setNote(why ? { text: t(`auth.errors.google_${why}`, { defaultValue: t('auth.errors.google_failed') }), error: true } : { text: t('settings.googleConnected') });
+    setParams(p => { const n = new URLSearchParams(p); n.delete('google'); n.delete('google_error'); return n; }, { replace: true });
+  }, [params, setParams, t]);
+  if (!offered && !user.google) return null;
+  const run = async (fn: () => Promise<void>) => {
+    setBusy(true); setNote(null);
+    try { await fn(); } catch (e) { setNote({ text: errorMessage(t, e), error: true }); } finally { setBusy(false); }
+  };
+  return (
+    <div className={rowTop} data-google-row="">
+      <div className={label}>Google</div>
+      <div className="flex items-center justify-between gap-3 mt-1">
+        <div className={`text-sm truncate ${user.google ? 'text-white' : 'text-white/60'}`}>{user.google ? (user.google.email ?? t('settings.googleOn')) : t('settings.googleOff')}</div>
+        {user.google
+          ? <button type="button" disabled={busy} onClick={() => run(async () => { setUser(await disconnectGoogle()); })} className={sm(btn.danger)}>{t('settings.googleDisconnect')}</button>
+          : <button type="button" disabled={busy} onClick={() => run(() => startGoogle({ next: '/settings', link: true }))} className={sm(btn.quiet)}>{t('settings.googleConnect')}</button>}
+      </div>
+      <RowNote note={note} />
     </div>
   );
 };
@@ -201,40 +299,32 @@ const AccountSection = ({ user, editor, avatarNote }: { user: Me; editor: Avatar
 
   return (
     <Section id="account" title={t('profile.account')} aside={<button type="button" onClick={async () => { await logout(); navigate('/'); }} className={sm(btn.quiet)}>{t('auth.signOut')}</button>}>
-      <div className="rounded-2xl bg-panel border border-white/10 p-5 sm:p-6 space-y-6">
+      <div className={`${panelBox} space-y-6`}>
         <PictureRow user={user} editor={editor} note={avatarNote} />
 
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 pt-6 border-t border-white/[0.07]">
-          <div className="min-w-0">
-            <div className="pop-label">{t('auth.email')}</div>
-            <div className="text-sm text-white truncate mt-1">{user.email}</div>
-          </div>
-          <div className="sm:text-right">
-            <button type="button" onClick={copyInvite} className={btn.primary}>{t('profile.inviteLink')}</button>
-            <div className="text-xs text-white/45 mt-1.5">{t('profile.inviteHint')}</div>
-          </div>
-        </div>
-
-        <form className="space-y-2 pt-6 border-t border-white/[0.07]" onSubmit={rename}>
-          <div className="pop-label">{t('auth.displayName')}</div>
+        <form className={`space-y-2 ${rowTop}`} onSubmit={rename}>
+          <div className={label}>{t('auth.displayName')}</div>
           <div className="flex gap-2">
             <input type="text" value={name} onChange={e => setName(e.target.value)} autoComplete="nickname" autoCapitalize="none" spellCheck={false} maxLength={20} className={input} />
             <button type="submit" disabled={busy || !name.trim() || name.trim() === user.username} className={btn.quiet}>{t('profile.save')}</button>
           </div>
-          <p className="text-xs text-white/45">{t('auth.usernameHint')}</p>
+          <p className={hint}>{t('auth.usernameHint')}</p>
         </form>
 
-        <div className="pt-6 border-t border-white/[0.07]">
-          <div className="pop-label mb-2">{t('profile.passkeys')}</div>
+        <EmailRow user={user} />
+        <GoogleRow user={user} />
+
+        <div className={rowTop}>
+          <div className={`${label} mb-2`}>{t('profile.passkeys')}</div>
           {user.passkeys.length === 0
-            ? <p className="text-sm text-white/50">{t('profile.noPasskeys')}</p>
+            ? <p className="text-sm text-white/60">{t('profile.noPasskeys')}</p>
             : (
               <ul className="rounded-xl border border-white/10 divide-y divide-white/[0.07] overflow-hidden">
                 {user.passkeys.map(k => (
                   <li key={k.id} className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-sm">
                     <div className="min-w-0">
                       <div className="text-white font-medium truncate">{k.name || t('profile.unnamedPasskey')}{k.backedUp ? ' ☁' : ''}</div>
-                      <div className="text-xs text-white/45">{k.lastUsedAt ? t('profile.lastUsed', { date: fmt(k.lastUsedAt) }) : t('profile.neverUsed')}</div>
+                      <div className={hint}>{k.lastUsedAt ? t('profile.lastUsed', { date: fmt(k.lastUsedAt) }) : t('profile.neverUsed')}</div>
                     </div>
                     <button type="button" disabled={busy} onClick={() => run(async () => { await deletePasskey(k.id); await refresh(); })} className={sm(btn.danger)}>{t('profile.remove')}</button>
                   </li>
@@ -247,20 +337,28 @@ const AccountSection = ({ user, editor, avatarNote }: { user: Me; editor: Avatar
           </form>
         </div>
 
-        <form className="space-y-2 pt-6 border-t border-white/[0.07]" onSubmit={e => { e.preventDefault(); run(async () => { setUser(await updateAccount({ newPassword: next })); setNext(''); setMsg(t('profile.passwordSaved')); }); }}>
-          <div className="pop-label">{user.hasPassword ? t('profile.changePassword') : t('profile.setPassword')}</div>
+        <form className={`space-y-2 ${rowTop}`} onSubmit={e => { e.preventDefault(); run(async () => { setUser(await updateAccount({ newPassword: next })); setNext(''); setMsg(t('profile.passwordSaved')); }); }}>
+          <div className={label}>{user.hasPassword ? t('profile.changePassword') : t('profile.setPassword')}</div>
           <div className="flex gap-2">
             <input type="password" value={next} onChange={e => setNext(e.target.value)} placeholder={t('auth.newPassword')} autoComplete="new-password" minLength={8} className={input} />
             <button type="submit" disabled={busy || next.length < 8} className={btn.quiet}>{t('profile.save')}</button>
           </div>
-          <p className="text-xs text-white/45">{t('auth.passwordHint')}</p>
+          <p className={hint}>{t('auth.passwordHint')}</p>
         </form>
+
+        <div className={`${rowTop} flex flex-wrap items-center justify-between gap-x-6 gap-y-2`}>
+          <div className="min-w-0">
+            <div className={settingName}>{t('profile.inviteLink')}</div>
+            <div className={`${hint} mt-0.5`}>{t('profile.inviteHint')}</div>
+          </div>
+          <button type="button" onClick={copyInvite} className={btn.quiet}>{t('settings.copyInvite')}</button>
+        </div>
 
         {msg && <div className="rounded-xl bg-emerald-400/10 border border-emerald-400/20 px-3.5 py-2.5 text-sm text-emerald-200">{msg}</div>}
         {err && <div className="rounded-xl bg-red-500/10 border border-red-500/25 px-3.5 py-2.5 text-sm text-red-300" role="alert">{err}</div>}
 
         {/* A second click within 3 seconds deletes; meanwhile it says what that does */}
-        <div className="pt-6 border-t border-white/[0.07] flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div className={`${rowTop} flex flex-wrap items-center gap-x-3 gap-y-2`}>
           <button
             type="button"
             disabled={busy}
@@ -268,7 +366,7 @@ const AccountSection = ({ user, editor, avatarNote }: { user: Me; editor: Avatar
             aria-pressed={confirmDelete.armed}
             aria-describedby={confirmDelete.armed ? 'delete-account-warning' : undefined}
             data-delete-account=""
-            className={`btn btn-sm btn-stop ${confirmDelete.armed ? 'animate-pulse' : ''}`}
+            className={`${sm('btn btn-stop')} ${confirmDelete.armed ? 'animate-pulse' : ''}`}
           >
             {confirmDelete.armed ? t('profile.deleteRecordingConfirm') : t('profile.deleteAccount')}
           </button>
@@ -308,8 +406,8 @@ const ExperimentalSwitch = ({ id, icon, on, busy, onToggle, first }: {
   return (
     <div className={`flex items-start justify-between gap-4 pt-3 border-t border-white/[0.07] ${first ? '' : 'mt-3'}`}>
       <div className="min-w-0">
-        <div id={id} className="text-sm font-semibold text-white inline-flex items-center gap-2">{icon}{t(`settings.${key}`)}</div>
-        <p id={`${id}-hint`} className="text-xs text-white/55 mt-1">{t(`settings.${key}Hint`)}</p>
+        <div id={id} className={`${settingName} inline-flex items-center gap-2`}>{icon}{t(`settings.${key}`)}</div>
+        <p id={`${id}-hint`} className={`${hint} mt-0.5`}>{t(`settings.${key}Hint`)}</p>
       </div>
       <button
         type="button"
@@ -354,9 +452,9 @@ const ExperimentalSection = ({ user }: { user: Me }) => {
   };
   return (
     <Section id="experimental" title={t('settings.experimental')}>
-      <div className="rounded-2xl bg-panel border border-white/10 p-5 sm:p-6">
+      <div className={panelBox}>
         <div className="flex items-center justify-between gap-3 mb-3 min-h-5">
-          <p className="text-xs text-white/55">{t('settings.experimentalHint')}</p>
+          <p className={hint}>{t('settings.experimentalHint')}</p>
           {note && <span role={note.error ? 'alert' : 'status'} className={`text-xs flex-shrink-0 ${note.error ? 'text-red-300' : 'text-emerald-200'}`}>{note.text}</span>}
         </div>
         <ExperimentalSwitch id="influencer-mode" icon={<CameraIcon />} on={user.influencerMode} busy={busy}
@@ -397,17 +495,13 @@ const SettingsPage = () => {
 
   return (
     <WrapperPage>
-      <div className={headerCard}>
-        <div className={stageLight} aria-hidden="true" />
-        <Avatar username={user.username} src={user.avatar} size={56} className="text-2xl relative" />
-        <div className="relative flex-1 min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-[-0.02em] text-white truncate">{t('settings.title')}</h1>
-          <div className="text-sm text-white/55 mt-0.5 truncate">{user.username}</div>
-        </div>
-        <div className="relative w-full pl-[72px] sm:w-auto sm:pl-0 sm:flex-shrink-0">
-          <Link to={`/u/${encodeURIComponent(user.username)}`} className={btn.quiet}>{t('settings.viewProfile')}</Link>
-        </div>
-      </div>
+      <PageHeader
+        picture={<Avatar username={user.username} src={user.avatar} size={HEADER_PICTURE} />}
+        title={t('settings.title')}
+        action={<Link to={`/u/${encodeURIComponent(user.username)}`} className={btn.quiet}>{t('settings.viewProfile')}</Link>}
+      >
+        <div className="text-sm text-white/60 mt-0.5 truncate">{user.username}</div>
+      </PageHeader>
 
       <PrivacySection />
       <AccountSection user={user} editor={editor} avatarNote={avatarNote} />

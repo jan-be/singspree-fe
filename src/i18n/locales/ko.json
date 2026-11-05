@@ -588,7 +588,16 @@
       "email_invalid": "이메일 주소 형식이 아닙니다",
       "code_invalid": "코드가 틀렸습니다",
       "code_expired": "코드가 만료되었습니다. 새로 요청하세요",
-      "mail_failed": "이메일을 보낼 수 없습니다. 나중에 다시 시도해 주세요"
+      "mail_failed": "이메일을 보낼 수 없습니다. 나중에 다시 시도해 주세요",
+      "email_same": "이미 사용 중인 내 주소입니다",
+      "email_taken": "다른 계정이 그 주소를 사용 중입니다",
+      "google_expired": "시간이 너무 오래 걸렸습니다. 다시 시도해 주세요",
+      "google_denied": "Google 로그인이 취소되었습니다",
+      "google_failed": "Google로 로그인하지 못했습니다. 다시 시도해 주세요",
+      "google_unverified": "Google에서 이 계정의 주소를 인증하지 않았습니다",
+      "google_address": "이미 이 주소를 사용하는 계정이 있습니다. 코드로 로그인한 뒤 설정에서 Google을 연결하세요",
+      "google_elsewhere": "이 Google 계정은 이미 다른 계정에 연결되어 있습니다",
+      "google_needed": "먼저 이메일 주소를 추가하세요"
     },
     "email": "이메일 주소",
     "emailHint": "로그인에만 사용합니다. 뉴스레터는 없습니다.",
@@ -611,7 +620,9 @@
     "oneButtonHint": "패스키나 비밀번호가 있으면 그걸로, 없으면 코드를 이메일로 보냅니다.",
     "title": "로그인 또는 가입",
     "sendCodeInstead": "대신 코드 받기",
-    "agreeTerms": "계정을 만들면 <tos>서비스 약관</tos>과 <privacy>개인정보 처리방침</privacy>에 동의하게 돼요."
+    "agreeTerms": "계정을 만들면 <tos>서비스 약관</tos>과 <privacy>개인정보 처리방침</privacy>에 동의하게 돼요.",
+    "or": "또는",
+    "continueWithGoogle": "Google로 계속하기"
   },
   "profile": {
     "myProfile": "내 프로필",
@@ -805,7 +816,20 @@
     "rustPartyPage": "Rust 파티 페이지",
     "rustPartyPageHint": "파티를 Rust로 만든 새 버전의 파티 페이지에서 열어요. 테스트 중이에요. 약 2MB를 더 불러오고, 최신 기능(인플루언서 모드의 카메라 등)은 아직 없으며, 화면 낭독기로는 읽을 수 없어요. 잘 안 되면 여기서 꺼 주세요.",
     "voicesOnSpeakers": "목소리를 스피커로",
-    "voicesOnSpeakersHint": "파티 QR 카드에 스위치를 추가해요. 각 가수의 휴대폰이 마이크 소리를 호스트 화면으로 보내고, 호스트 화면이 스피커로 들려줘요. 같은 Wi-Fi와 유선 스피커에서 가장 잘 돼요 (블루투스는 지연이 있어요)."
+    "voicesOnSpeakersHint": "파티 QR 카드에 스위치를 추가해요. 각 가수의 휴대폰이 마이크 소리를 호스트 화면으로 보내고, 호스트 화면이 스피커로 들려줘요. 같은 Wi-Fi와 유선 스피커에서 가장 잘 돼요 (블루투스는 지연이 있어요).",
+    "noEmail": "아직 주소 없음",
+    "changeEmail": "변경",
+    "newEmail": "새 이메일 주소",
+    "emailHint": "새 주소로 코드를 보내드립니다. 이전 주소로 변경 사실이 안내되고 다른 기기는 로그아웃됩니다.",
+    "sendCode": "코드 보내기",
+    "confirmEmail": "확인",
+    "emailChanged": "주소가 변경되었습니다.",
+    "googleConnected": "Google이 연결되었습니다. 이제 Google로 로그인할 수 있습니다.",
+    "googleOn": "연결됨",
+    "googleOff": "연결 안 됨",
+    "googleConnect": "연결",
+    "googleDisconnect": "연결 해제",
+    "copyInvite": "링크 복사"
   },
   "camera": {
     "title": "카메라",

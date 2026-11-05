@@ -594,7 +594,16 @@
       "email_invalid": "Das sieht nicht nach einer E-Mail-Adresse aus",
       "code_invalid": "Falscher Code",
       "code_expired": "Der Code ist abgelaufen, fordere einen neuen an",
-      "mail_failed": "Die E-Mail konnte nicht gesendet werden, bitte später noch einmal versuchen"
+      "mail_failed": "Die E-Mail konnte nicht gesendet werden, bitte später noch einmal versuchen",
+      "email_same": "Das ist bereits deine Adresse",
+      "email_taken": "Ein anderes Konto nutzt diese Adresse",
+      "google_expired": "Das hat zu lange gedauert, bitte versuch es noch einmal",
+      "google_denied": "Die Anmeldung mit Google wurde abgebrochen",
+      "google_failed": "Die Anmeldung mit Google hat nicht geklappt, bitte versuch es noch einmal",
+      "google_unverified": "Google hat die Adresse dieses Kontos nicht bestätigt",
+      "google_address": "Ein Konto nutzt diese Adresse bereits. Melde dich mit einem Code an und verbinde Google dann in deinen Einstellungen",
+      "google_elsewhere": "Dieses Google-Konto ist bereits mit einem anderen Konto verbunden",
+      "google_needed": "Füge zuerst eine E-Mail-Adresse hinzu"
     },
     "email": "E-Mail-Adresse",
     "emailHint": "Nur zum Anmelden. Keine Newsletter.",
@@ -617,7 +626,9 @@
     "oneButtonHint": "Passkey oder Passwort, falls vorhanden, sonst schicken wir dir einen Code.",
     "title": "Anmelden oder registrieren",
     "sendCodeInstead": "Lieber einen Code schicken",
-    "agreeTerms": "Mit dem Erstellen eines Kontos stimmst du den <tos>Nutzungsbedingungen</tos> und der <privacy>Datenschutzerklärung</privacy> zu."
+    "agreeTerms": "Mit dem Erstellen eines Kontos stimmst du den <tos>Nutzungsbedingungen</tos> und der <privacy>Datenschutzerklärung</privacy> zu.",
+    "or": "oder",
+    "continueWithGoogle": "Weiter mit Google"
   },
   "profile": {
     "myProfile": "Mein Profil",
@@ -1429,7 +1440,20 @@
     "rustPartyPage": "Rust-Partyseite",
     "rustPartyPageHint": "Öffnet Partys in einer neuen Version der Partyseite, geschrieben in Rust. Das ist ein Test: Sie lädt etwa 2 MB mehr, hat die neuesten Funktionen noch nicht (etwa die Kamera des Influencer-Modus), und Screenreader können sie nicht lesen. Schalte sie hier aus, wenn etwas nicht funktioniert.",
     "voicesOnSpeakers": "Stimmen über die Lautsprecher",
-    "voicesOnSpeakersHint": "Fügt der QR-Karte der Party einen Schalter hinzu: Jedes Handy schickt dann sein Mikrofon an den Bildschirm des Hosts, der es über die Lautsprecher abspielt. Am besten im selben WLAN und mit Lautsprechern per Kabel (Bluetooth verzögert)."
+    "voicesOnSpeakersHint": "Fügt der QR-Karte der Party einen Schalter hinzu: Jedes Handy schickt dann sein Mikrofon an den Bildschirm des Hosts, der es über die Lautsprecher abspielt. Am besten im selben WLAN und mit Lautsprechern per Kabel (Bluetooth verzögert).",
+    "noEmail": "Noch keine Adresse",
+    "changeEmail": "Ändern",
+    "newEmail": "Neue E-Mail-Adresse",
+    "emailHint": "Wir senden einen Code an die neue Adresse. Deine alte Adresse erfährt von der Änderung, und deine anderen Geräte werden abgemeldet.",
+    "sendCode": "Code senden",
+    "confirmEmail": "Bestätigen",
+    "emailChanged": "Deine Adresse wurde geändert.",
+    "googleConnected": "Google ist verbunden. Du kannst dich jetzt damit anmelden.",
+    "googleOn": "Verbunden",
+    "googleOff": "Nicht verbunden",
+    "googleConnect": "Verbinden",
+    "googleDisconnect": "Trennen",
+    "copyInvite": "Link kopieren"
   },
   "camera": {
     "title": "Kamera",
