@@ -148,7 +148,7 @@ const AdminConsole = ({ myId, tab }: { myId: number; tab: Tab }) => {
         {tab === 'visitors' && <AdminVisitors onError={fail} />}
         {tab === 'inbox' && <AdminInbox openReports={overview?.reportsOpen} openAvatarReports={overview?.avatarReportsOpen} waitingTesters={overview?.androidTestersWaiting} iosSignups={overview?.iosSignups} actions={actions} />}
         {tab === 'charts' && <AdminChartJobs active={overview?.chartJobsActive} />}
-        {tab === 'accounts' && <AdminAccounts myId={myId} actions={actions} />}
+        {tab === 'accounts' && <AdminAccounts myId={myId} overview={overview} actions={actions} />}
       </div>
     </WrapperPage>
   );

@@ -1216,7 +1216,11 @@
       "usersTotal": "Accounts",
       "usersDay": "New today",
       "usersWeek": "New this week",
-      "scoresDay": "Scores saved today"
+      "scoresDay": "Scores saved today",
+      "signInCode": "E-mail code only",
+      "signInPasskey": "Passkey",
+      "signInPassword": "Password",
+      "signInGoogle": "Google"
     },
     "parties": {
       "title": "Running parties",
@@ -1264,6 +1268,7 @@
       "passkeys_one": "{{count}} passkey",
       "passkeys_other": "{{count}} passkeys",
       "password": "password",
+      "google": "Google",
       "makeAdmin": "Make admin",
       "removeAdmin": "Remove admin",
       "makeAdminConfirm": "Make {{username}} an admin? They will see this page and can delete accounts.",

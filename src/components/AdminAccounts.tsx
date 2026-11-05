@@ -2,15 +2,15 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Avatar from './Avatar';
-import { btn, Section, Badge, Loading, list, useAgo, type AdminActions } from './AdminParts';
+import { btn, StatTile, Section, Badge, Loading, list, useAgo, type AdminActions } from './AdminParts';
 import { deviceLabel } from '../logic/deviceLabel';
 import { getAdminUsers, adminSetAdmin, adminRevokeSessions, adminDeleteUser, adminRemoveAvatar } from '../logic/authApi';
-import type { AdminUser } from '../logic/authApi';
+import type { AdminOverview, AdminUser } from '../logic/authApi';
 
 /**
- * /admin's accounts: the newest ones, or those a search finds, each with its
- * numbers and the buttons that go with it (admin or not, sign out
- * everywhere, take the picture down, delete).
+ * /admin's accounts: how many can sign in which way, then the newest ones, or
+ * those a search finds, each with its numbers and the buttons that go with it
+ * (admin or not, sign out everywhere, take the picture down, delete).
  */
 
 /** What the buttons on an account in the list do */
@@ -42,6 +42,7 @@ const UserRow = ({ u, isMe, busy, onAct }: { u: AdminUser; isMe: boolean; busy: 
             {' · '}{t('admin.users.playsAsName', { count: u.playsAsName ?? 0 })}
             {' · '}{t('admin.users.passkeys', { count: u.passkeys })}
             {u.hasPassword ? ` · ${t('admin.users.password')}` : ''}
+            {u.hasGoogle ? ` · ${t('admin.users.google')}` : ''}
             {u.userAgent ? ` · ${deviceLabel(u.userAgent, u.os)}` : ''}
           </div>
         </div>
@@ -58,8 +59,8 @@ const UserRow = ({ u, isMe, busy, onAct }: { u: AdminUser; isMe: boolean; busy: 
   );
 };
 
-/** `myId`: the signed-in admin's account (its row has no buttons) */
-const AdminAccounts = ({ myId, actions }: { myId: number; actions: AdminActions }) => {
+/** `myId`: the signed-in admin's account (its row has no buttons); `overview`: the page's numbers, for the tiles */
+const AdminAccounts = ({ myId, overview, actions }: { myId: number; overview: AdminOverview | null; actions: AdminActions }) => {
   const { t } = useTranslation();
   const { busy, run, say, fail } = actions;
   const [users, setUsers] = useState<{ rows: AdminUser[]; hasMore: boolean; q: string } | null>(null); // { rows, hasMore, q }
@@ -114,25 +115,35 @@ const AdminAccounts = ({ myId, actions }: { myId: number; actions: AdminActions 
   };
 
   return (
-    <Section title={t('admin.users.title')} aside={<span className="text-xs text-white/40">{users?.q ? '' : t('admin.users.newest')}</span>}>
-      <input
-        type="search"
-        value={q}
-        onChange={e => setQ(e.target.value)}
-        placeholder={t('admin.users.search')}
-        className="field h-11 px-4 text-sm"
-        autoComplete="off"
-      />
-      {!users
-        ? <Loading>{t('sections.loading')}</Loading>
-        : (
-          <ul className={`mt-3 ${list}`}>
-            {users.rows.length === 0 && <li className="px-4 py-3 text-sm text-white/45">{t('admin.users.none')}</li>}
-            {users.rows.map(u => <UserRow key={u.id} u={u} isMe={u.id === myId} busy={busy} onAct={act} />)}
-          </ul>
-        )}
-      {users?.hasMore && <button type="button" disabled={busy} onClick={() => moreUsers(users)} className={`${btn.quiet} mt-3`}>{t('admin.showMore')}</button>}
-    </Section>
+    <>
+      {overview && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+          <StatTile label={t('admin.stats.signInCode')} value={overview.usersCodeOnly ?? 0} />
+          <StatTile label={t('admin.stats.signInPasskey')} value={overview.usersPasskey ?? 0} />
+          <StatTile label={t('admin.stats.signInPassword')} value={overview.usersPassword ?? 0} />
+          <StatTile label={t('admin.stats.signInGoogle')} value={overview.usersGoogle ?? 0} />
+        </div>
+      )}
+      <Section title={t('admin.users.title')} aside={<span className="text-xs text-white/40">{users?.q ? '' : t('admin.users.newest')}</span>}>
+        <input
+          type="search"
+          value={q}
+          onChange={e => setQ(e.target.value)}
+          placeholder={t('admin.users.search')}
+          className="field h-11 px-4 text-sm"
+          autoComplete="off"
+        />
+        {!users
+          ? <Loading>{t('sections.loading')}</Loading>
+          : (
+            <ul className={`mt-3 ${list}`}>
+              {users.rows.length === 0 && <li className="px-4 py-3 text-sm text-white/45">{t('admin.users.none')}</li>}
+              {users.rows.map(u => <UserRow key={u.id} u={u} isMe={u.id === myId} busy={busy} onAct={act} />)}
+            </ul>
+          )}
+        {users?.hasMore && <button type="button" disabled={busy} onClick={() => moreUsers(users)} className={`${btn.quiet} mt-3`}>{t('admin.showMore')}</button>}
+      </Section>
+    </>
   );
 };
 

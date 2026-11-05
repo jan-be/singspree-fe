@@ -288,6 +288,12 @@ export interface AdminOverview {
   usersTotal: number;
   usersDay: number;
   usersWeek: number;
+  /** accounts per way of signing in; one account can have several */
+  usersPassword: number;
+  usersPasskey: number;
+  usersGoogle: number;
+  /** neither of those three: they sign in with a mailed code */
+  usersCodeOnly: number;
   playsDay: number;
   playsWeek: number;
   scoresDay: number;
@@ -338,6 +344,7 @@ export interface AdminUser {
   scores: number;
   playsAsName: number;
   passkeys: number;
+  hasGoogle: boolean;
   userAgent: string | null;
   avatar: string | null;
   os: string | null;

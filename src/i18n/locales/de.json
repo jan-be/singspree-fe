@@ -1216,7 +1216,11 @@
       "usersTotal": "Konten",
       "usersDay": "Neu heute",
       "usersWeek": "Neu diese Woche",
-      "scoresDay": "Heute gespeicherte Punkte"
+      "scoresDay": "Heute gespeicherte Punkte",
+      "signInCode": "Nur E-Mail-Code",
+      "signInPasskey": "Passkey",
+      "signInPassword": "Passwort",
+      "signInGoogle": "Google"
     },
     "parties": {
       "title": "Laufende Partys",
@@ -1264,6 +1268,7 @@
       "passkeys_one": "{{count}} Passkey",
       "passkeys_other": "{{count}} Passkeys",
       "password": "Passwort",
+      "google": "Google",
       "makeAdmin": "Zum Admin machen",
       "removeAdmin": "Admin entfernen",
       "makeAdminConfirm": "{{username}} zum Admin machen? Die Person sieht dann diese Seite und kann Konten löschen.",
