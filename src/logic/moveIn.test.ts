@@ -69,6 +69,16 @@ describe('the handoff from singpro.app', () => {
     expect(fetched).toBe(false);
   });
 
+  it('takes nothing from a page reached through a redirect, which keeps the Referer and may bring a fragment of its own', () => {
+    const { location, history } = place(`#handoff=${pack({ l: { singpro_guest: 'attacker' }, t: token })}`);
+    const local = storage();
+    let fetched = false;
+    const moved = takeHandoff({ location, history, referrer: `${OLD_ORIGIN}/`, redirected: true, local, session: storage(), fetchImpl: async () => { fetched = true; } });
+    expect(moved).toBe(null);
+    expect(local.dump()).toEqual({});
+    expect(fetched).toBe(false);
+  });
+
   it("this browser's own values here win over the old site's", () => {
     const { location, history } = place(`#handoff=${pack({ l: { singpro_guest: 'old', singpro_volume: '0.2' } })}`);
     const local = storage({ singspree_guest: 'mine' });

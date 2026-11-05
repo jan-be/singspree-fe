@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import WrapperPage from './WrapperPage';
 import StarRating from '../components/StarRating';
@@ -386,7 +386,7 @@ const FriendButton = ({ username, relation, onChange, compact = false }: { usern
   // In a list row the buttons are the small size; on the profile header the regular one
   const b = compact ? { primary: sm(btn.primary), quiet: sm(btn.quiet), danger: sm(btn.danger) } : btn;
   if (!user) {
-    // ?add=1 sends the request as soon as they are signed in
+    // (back signed in, the button is here: a link alone never sends or accepts a request)
     return <Link to={`/login?next=${encodeURIComponent(`/u/${username}?add=1`)}`} className={b.primary}>{t('friends.add')}</Link>;
   }
   const act = (fn: (username: string) => Promise<Relation>) => async () => {
@@ -673,7 +673,6 @@ const ProfilePage = () => {
   const { t, i18n } = useTranslation();
   const fmt = useDate();
   const { username = '' } = useParams(); // the route's own segment: always there
-  const [params, setParams] = useSearchParams();
   const { user, loading: authLoading, refresh: refreshMe } = useAuth();
   const [data, setData] = useState<Profile | null>(null);
   // Your own picture: the header shows the new one at once, the account menu after /auth/me
@@ -702,14 +701,6 @@ const ProfilePage = () => {
     getProfile(username).then(d => { if (active) setData(d); }).catch(e => { if (active) setError(e); });
     return () => { active = false; };
   }, [username, user?.id]);
-
-  // Invite link (/u/name?add=1): send the friend request as soon as we are signed in
-  useEffect(() => {
-    if (params.get('add') !== '1' || !user || !data || data.isMe) return;
-    setParams(p => { const n = new URLSearchParams(p); n.delete('add'); return n; }, { replace: true });
-    if (data.relation !== null && data.relation !== 'incoming') return; // a request from their side gets accepted
-    requestFriend(data.user.username).then(relation => setData(d => d && { ...d, relation })).catch(() => {});
-  }, [params, user, data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { document.title = `${username} | SingSpree`; }, [username]);
 

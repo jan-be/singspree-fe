@@ -538,7 +538,7 @@
   },
   "voices": {
     "partySwitch": "Giọng ca sĩ qua loa",
-    "partySwitchHint": "Điện thoại của mỗi người hát gửi micro tới màn hình của chủ phòng, nơi phát ra loa. Mỗi người có thể tắt của mình.",
+    "partySwitchHint": "Người hát có thể phát giọng của mình qua loa: mỗi người bật “Giọng tôi qua loa” trong cài đặt micro, và điện thoại sẽ gửi giọng tới màn hình của chủ phòng.",
     "mine": "Giọng tôi qua loa",
     "mineHint": "Tắt: micro của bạn chỉ dùng để chấm điểm.",
     "mineLocal": "Phát qua loa của thiết bị này khi bạn hát.",
@@ -816,7 +816,7 @@
     "rustPartyPage": "Trang tiệc bằng Rust",
     "rustPartyPageHint": "Mở các bữa tiệc trong phiên bản mới của trang tiệc, được viết bằng Rust. Đây là bản thử nghiệm: trang tải thêm khoảng 2 MB, chưa có các tính năng mới nhất (như camera của chế độ influencer) và trình đọc màn hình không đọc được. Hãy tắt ở đây nếu có gì không hoạt động.",
     "voicesOnSpeakers": "Giọng hát qua loa",
-    "voicesOnSpeakersHint": "Thêm một công tắc vào thẻ QR của bữa tiệc: điện thoại của mỗi người hát sẽ gửi micro tới màn hình của chủ phòng, nơi phát ra loa. Tốt nhất khi dùng chung Wi-Fi và loa có dây (Bluetooth gây trễ).",
+    "voicesOnSpeakersHint": "Người hát trong bữa tiệc của bạn có thể phát giọng của mình qua loa: mỗi người bật trong cài đặt micro, và bạn có thể dừng ở thẻ QR của bữa tiệc. Tốt nhất khi dùng chung Wi-Fi và loa có dây (Bluetooth gây trễ).",
     "noEmail": "Chưa có địa chỉ",
     "changeEmail": "Đổi",
     "newEmail": "Địa chỉ e-mail mới",

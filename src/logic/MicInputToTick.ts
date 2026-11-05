@@ -187,7 +187,7 @@ const scoreNotes = (lyricData: ScoringChart, notes: readonly HitNote[], toleranc
  * MusicBars converts Hz → continuous semitone at render time.
  */
 export const applyRemoteNotes = (hitNotesByPlayer: HitNotesByPlayer, notes: Iterable<RemoteNote>): HitNotesByPlayer => {
-  if (!hitNotesByPlayer) hitNotesByPlayer = {};
+  if (!hitNotesByPlayer) hitNotesByPlayer = Object.create(null) as HitNotesByPlayer; // (a name can be "constructor")
   for (const { username, freq, videoTime } of notes) {
     if (!hitNotesByPlayer[username]) hitNotesByPlayer[username] = new PlayerNotes();
     const pData = hitNotesByPlayer[username];

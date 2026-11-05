@@ -540,7 +540,7 @@
   },
   "voices": {
     "partySwitch": "Stemmen van zangers via de speakers",
-    "partySwitchHint": "De telefoon van elke zanger stuurt zijn microfoon naar het scherm van de host, dat hem via de speakers afspeelt. Iedereen kan de eigene uitzetten.",
+    "partySwitchHint": "Zangers kunnen hun stem via de speakers laten horen: iedereen zet ‘Mijn stem via de speakers’ aan in de microfooninstellingen, en de telefoon stuurt hem naar het scherm van de host.",
     "mine": "Mijn stem via de speakers",
     "mineHint": "Uit: je microfoon telt alleen voor je score.",
     "mineLocal": "Speelt via de speakers van dit apparaat terwijl je zingt.",
@@ -821,7 +821,7 @@
     "rustPartyPage": "Rust-feestpagina",
     "rustPartyPageHint": "Opent feesten in een nieuwe versie van de feestpagina, geschreven in Rust. Het is een test: hij laadt zo'n 2 MB meer, heeft de nieuwste functies nog niet (zoals de camera van de influencermodus) en schermlezers kunnen hem niet lezen. Zet hem hier uit als iets niet werkt.",
     "voicesOnSpeakers": "Stemmen via de speakers",
-    "voicesOnSpeakersHint": "Voegt een schakelaar toe aan de QR-kaart van de party: elke telefoon stuurt dan zijn microfoon naar het scherm van de host, dat hem via de speakers afspeelt. Werkt het best op hetzelfde wifi met bekabelde speakers (bluetooth vertraagt).",
+    "voicesOnSpeakersHint": "Zangers op je party's kunnen hun stem via de speakers laten horen: iedereen zet dat aan in de microfooninstellingen, en jij kunt het stoppen op de QR-kaart van de party. Werkt het best op hetzelfde wifi met bekabelde speakers (bluetooth vertraagt).",
     "noEmail": "Nog geen adres",
     "changeEmail": "Wijzigen",
     "newEmail": "Nieuw e-mailadres",

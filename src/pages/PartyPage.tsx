@@ -1117,6 +1117,7 @@ const PartyPage = () => {
   // the host's page plays them (usePartyVoices.ts)
   const voices = usePartyVoices({
     isHost,
+    partyId,
     partyVoices: partySettings.voices,
     socket: () => wssRef.current ?? null,
     myName: currentUserName,
@@ -3186,7 +3187,7 @@ const PartyPage = () => {
         }
         // The name is someone else's seat (it stays theirs while they are away):
         // back to the join page, which asks for another one
-        if (jsonObj.data?.code === 'name_taken') {
+        if (jsonObj.data?.code === 'name_taken' || jsonObj.data?.code === 'name_invalid') {
           clearPartySession();
           connRef.current?.close();
           try { wss.close(); } catch { /* */ }

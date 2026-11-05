@@ -67,7 +67,8 @@ const looksLikeEmail = (s: string) =>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.trim
  * in or, for a new address, asks for a display name and creates the account.
  * A profile picture can be picked next to the name: held here until the
  * account exists, then uploaded (logic/signupPicture.ts). Links from the mail
- * (/login?email=…&code=…) fill in the code and wait for the button: opened by
+ * (/login#email=…&code=…, in the fragment so that no server's log has them; the
+ * link's old form still reads) fill in the code and wait for the button: opened by
  * itself, a link someone else sent would sign this browser in to their
  * account and hand them what it sang as a guest. A new account is offered a
  * passkey before leaving.
@@ -87,10 +88,14 @@ const AuthPage = () => {
 
   const supported = passkeysSupported();
   const googleName = params.get('google') === 'name'; // back from Google, with no account yet
-  const [step, setStep] = useState(params.get('code') ? 'code' : googleName ? 'name' : 'start'); // start | password | code | name | passkey
-  const [email, setEmail] = useState(params.get('email') ?? '');
+  const [mailed] = useState(() => {
+    const link = new URLSearchParams(window.location.hash.slice(1));
+    return { email: link.get('email') ?? params.get('email'), code: link.get('code') ?? params.get('code') };
+  });
+  const [step, setStep] = useState(mailed.code ? 'code' : googleName ? 'name' : 'start'); // start | password | code | name | passkey
+  const [email, setEmail] = useState(mailed.email ?? '');
   const [username, setUsername] = useState('');
-  const [code, setCode] = useState(params.get('code') ?? '');
+  const [code, setCode] = useState(mailed.code ?? '');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(() => {
@@ -127,6 +132,11 @@ const AuthPage = () => {
   };
 
   useEffect(() => { getSignInProviders().then(p => setGoogleOffered(p.google)).catch(() => {}); }, []);
+
+  // The code has been read: it does not stay in the address bar and the browser's history
+  useEffect(() => {
+    if (window.location.hash.includes('code=')) window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+  }, []);
 
   // Back from Google without an account: the address it vouches for and a name to start from
   useEffect(() => {

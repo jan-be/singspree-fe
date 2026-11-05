@@ -64,11 +64,11 @@ export function createLiveStore(): LiveStore {
   const listeners = new Set<() => void>();
   const store: LiveStore = {
     frame: EMPTY_FRAME,
-    notes: {},
+    notes: Object.create(null), // (names are keys, and a name can be "constructor")
     // Each singer's score as it rode along with their latest note (username ->
     // score). Newer than the JSON scoreboard in React state, which only comes
     // on join, leave and song events; MusicBars reads both per frame.
-    scores: {},
+    scores: Object.create(null),
     // Past the lane count the server picks who the big screen shows
     // (party:lanes): { pinned: [username], spotlight: [username] }, else null.
     // standing is your own rank in that crowd: { rank, total, score }.
@@ -84,8 +84,8 @@ export function createLiveStore(): LiveStore {
       store.frame = { tickData, p2TickData, idle };
       for (const l of listeners) l();
     },
-    resetNotes() { store.notes = {}; },
-    resetScores() { store.scores = {}; },
+    resetNotes() { store.notes = Object.create(null); },
+    resetScores() { store.scores = Object.create(null); },
     resetLanes() { store.lanes = null; store.standing = null; },
     subscribe(listener) {
       listeners.add(listener);

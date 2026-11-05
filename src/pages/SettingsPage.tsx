@@ -432,9 +432,9 @@ const ExperimentalSwitch = ({ id, icon, on, busy, onToggle, first }: {
  * videos with you in them; on for admins until they turn it off. The Rust
  * party page: parties open in the party page's Rust version instead of this
  * app's (logic/rustPartyPage.ts); off for everyone, admins too. Voices on the
- * speakers: the party card's switch that sends every singer's microphone to
- * the host's page, for its speakers (usePartyVoices.ts); on for admins until
- * they turn it off.
+ * speakers: a party of yours allows it, and each singer who turns theirs on
+ * sends their microphone to the host's page, for its speakers
+ * (usePartyVoices.ts); on for admins until they turn it off.
  */
 const ExperimentalSection = ({ user }: { user: Me }) => {
   const { t } = useTranslation();

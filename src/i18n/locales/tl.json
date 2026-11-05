@@ -540,7 +540,7 @@
   },
   "voices": {
     "partySwitch": "Boses ng mga kumakanta sa speaker",
-    "partySwitchHint": "Ipinapadala ng phone ng bawat kumakanta ang mikropono nito sa screen ng host, na nagpapatugtog nito sa speaker. Puwedeng patayin ng bawat isa ang sa kanya.",
+    "partySwitchHint": "Puwedeng iparinig ng mga kumakanta ang boses nila sa speaker: binubuksan ng bawat isa ang “Boses ko sa speaker” sa settings ng mikropono, at ipinapadala ito ng phone nila sa screen ng host.",
     "mine": "Boses ko sa speaker",
     "mineHint": "Naka-off: para lang sa score mo ang mikropono mo.",
     "mineLocal": "Tumutugtog sa speaker ng device na ito habang kumakanta ka.",
@@ -821,7 +821,7 @@
     "rustPartyPage": "Rust party page",
     "rustPartyPageHint": "Binubuksan ang mga party sa bagong bersyon ng party page na isinulat sa Rust. Pagsubok pa lang ito: mga 2 MB na mas malaki ang nilo-load, wala pa ang pinakabagong features (gaya ng camera ng influencer mode), at hindi ito nababasa ng mga screen reader. I-off ito rito kung may hindi gumagana.",
     "voicesOnSpeakers": "Mga boses sa speaker",
-    "voicesOnSpeakersHint": "Nagdadagdag ng switch sa QR card ng party: ipapadala ng phone ng bawat kumakanta ang mikropono nito sa screen ng host, na nagpapatugtog nito sa speaker. Pinakamaganda kung iisang Wi-Fi at naka-cable ang speaker (may delay ang Bluetooth).",
+    "voicesOnSpeakersHint": "Puwedeng iparinig ng mga kumakanta sa party mo ang boses nila sa speaker: binubuksan ito ng bawat isa sa settings ng mikropono, at puwede mo itong ihinto sa QR card ng party. Pinakamaganda kung iisang Wi-Fi at naka-cable ang speaker (may delay ang Bluetooth).",
     "noEmail": "Wala pang address",
     "changeEmail": "Palitan",
     "newEmail": "Bagong e-mail address",

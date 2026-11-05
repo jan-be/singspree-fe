@@ -540,7 +540,7 @@
   },
   "voices": {
     "partySwitch": "Voces de los cantantes en los altavoces",
-    "partySwitchHint": "El móvil de cada cantante envía su micrófono a la pantalla del anfitrión, que lo reproduce por los altavoces. Cada uno puede apagar el suyo.",
+    "partySwitchHint": "Los cantantes pueden poner su voz en los altavoces: cada uno activa «Mi voz en los altavoces» en los ajustes de su micrófono, y su móvil la envía a la pantalla del anfitrión.",
     "mine": "Mi voz en los altavoces",
     "mineHint": "Apagado: tu micrófono solo cuenta para tu puntuación.",
     "mineLocal": "Suena por los altavoces de este dispositivo mientras cantas.",
@@ -821,7 +821,7 @@
     "rustPartyPage": "Página de fiesta en Rust",
     "rustPartyPageHint": "Abre las fiestas en una nueva versión de la página de fiesta, escrita en Rust. Es una prueba: carga unos 2 MB más, aún no tiene las funciones más nuevas (como la cámara del modo influencer) y los lectores de pantalla no pueden leerla. Desactívala aquí si algo no funciona.",
     "voicesOnSpeakers": "Voces en los altavoces",
-    "voicesOnSpeakersHint": "Añade un interruptor a la tarjeta QR de la fiesta: el móvil de cada cantante envía su micrófono a la pantalla del anfitrión, que lo reproduce por los altavoces. Funciona mejor en el mismo wifi y con altavoces por cable (el Bluetooth añade retraso).",
+    "voicesOnSpeakersHint": "Los cantantes de tus fiestas pueden poner su voz en los altavoces: cada uno lo activa en los ajustes de su micrófono, y tú puedes pararlo en la tarjeta QR de la fiesta. Funciona mejor en el mismo wifi y con altavoces por cable (el Bluetooth añade retraso).",
     "noEmail": "Aún sin dirección",
     "changeEmail": "Cambiar",
     "newEmail": "Nueva dirección de correo",

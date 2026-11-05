@@ -3,10 +3,13 @@
  * singer's side (voiceLink.ts) on a phone, the mixer (voiceMixer.ts) on the
  * host's page, and the settings around them.
  *
- *   - The party has voices on or off (party:settings `voices`: the host's or a
- *     co-host's switch on the QR card); off by default.
+ *   - The party allows voices or not (party:settings `voices`: the host's or a
+ *     co-host's switch on the QR card): allowed from the start for a host with
+ *     the experiment (POST /parties), not for anyone else.
  *   - Each singer has a switch of their own ("My voice on the speakers", the
- *     mic panel), on unless they turned it off (singspree_voice_out).
+ *     mic panel), off until they turn it on. A singer's holds for one party (a
+ *     party link can come from a stranger); the host's is remembered
+ *     (singspree_voice_out).
  *   - A phone sends its microphone (and each of its extra microphones its own)
  *     to the host's page; on the host's page its own microphones go into the
  *     mixer directly, except on a phone or tablet acting as the host (opening
@@ -39,6 +42,8 @@ import type { PartyServerMessage } from '../types/party-messages';
 /** Cloudflare's STUN, until the server named its own (rtc:ice) */
 const DEFAULT_ICE: RTCIceServer[] = [{ urls: ['stun:stun.cloudflare.com:3478'] }];
 const OUT_KEY = 'singspree_voice_out';
+/** A singer's switch in one party (session storage: this tab, while it stays open) */
+const partyOutKey = (partyId: string | undefined) => `singspree_voice_out_${partyId ?? ''}`;
 const LEVEL_KEY = 'singspree_voices_level';
 const ECHO_KEY = 'singspree_voices_echo';
 const VIEW_MS = 400;
@@ -47,6 +52,7 @@ const ICE_WAIT_MS = 3_000;
 const hasRelay = (servers: RTCIceServer[]) => servers.some(s => [s.urls].flat().some(u => /^turns?:/.test(u)));
 
 const read = (key: string) => { try { return localStorage.getItem(key); } catch { return null; } };
+const readPartyOut = (partyId: string | undefined) => { try { return sessionStorage.getItem(partyOutKey(partyId)) === '1'; } catch { return false; } };
 const write = (key: string, value: string) => { try { localStorage.setItem(key, value); } catch { /* private mode: this page only */ } };
 
 /**
@@ -60,6 +66,8 @@ export function canMixLocally(nav: { userAgent?: string; platform?: string; maxT
 
 export interface PartyVoicesOptions {
   isHost: boolean;
+  /** the party's code: a singer's switch holds for this party alone */
+  partyId?: string;
   /** the party has voices on (party:settings) */
   partyVoices: boolean;
   /** the page's socket now (null while it is down) */
@@ -103,8 +111,13 @@ export interface PartyVoices {
   debugLines(): string[];
 }
 
-export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio, volume }: PartyVoicesOptions): PartyVoices {
-  const [voiceOut, setVoiceOutState] = useState(() => read(OUT_KEY) !== '0');
+export function usePartyVoices({ isHost, partyId, partyVoices, socket, myName, pageAudio, volume }: PartyVoicesOptions): PartyVoices {
+  // Off until turned on. The host's own microphone stays on its own screen. A singer's goes to
+  // someone else's page, and a party link can come from a stranger: it starts off in each party
+  const [hostOut, setHostOut] = useState(() => read(OUT_KEY) === '1');
+  const [partyOut, setPartyOut] = useState(() => readPartyOut(partyId));
+  useEffect(() => setPartyOut(readPartyOut(partyId)), [partyId]);
+  const voiceOut = isHost ? hostOut : partyOut;
   const [singersLevel, setSingersLevelState] = useState(() => {
     const v = Number(read(LEVEL_KEY));
     return read(LEVEL_KEY) !== null && Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : 80;
@@ -184,6 +197,18 @@ export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio,
     mixer.setEnabled(partyVoices);
     if (partyVoices && localDirect) mixer.setLocal(myName, voiceOut ? trackRef.current : null);
   }, [mixer, partyVoices, localDirect, myName, voiceOut]);
+  // Voices can be on from the start, with no tap on the party's switch to wake a suspended
+  // context, and a song without stems never asks for one: the next tap or key does
+  useEffect(() => {
+    if (!mixer || !partyVoices) return;
+    const wake = () => { const ctx = pageAudioRef.current()?.ctx; if (ctx?.state === 'suspended') ctx.resume().catch(() => {}); };
+    window.addEventListener('pointerup', wake, true);
+    window.addEventListener('keydown', wake, true);
+    return () => {
+      window.removeEventListener('pointerup', wake, true);
+      window.removeEventListener('keydown', wake, true);
+    };
+  }, [mixer, partyVoices]);
   useEffect(() => { mixer?.setLevels(singersLevel / 100, volume / 100); }, [mixer, singersLevel, volume]);
   useEffect(() => { mixer?.setEcho(echo); }, [mixer, echo]);
   // The meters and the measured lag, a few times a second while voices play
@@ -229,9 +254,13 @@ export function usePartyVoices({ isHost, partyVoices, socket, myName, pageAudio,
 
   return {
     voiceOut,
-    setVoiceOut: useCallback((on: boolean) => { setVoiceOutState(on); write(OUT_KEY, on ? '1' : '0'); }, []),
+    setVoiceOut: useCallback((on: boolean) => {
+      if (isHost) { setHostOut(on); write(OUT_KEY, on ? '1' : '0'); return; }
+      setPartyOut(on);
+      try { sessionStorage.setItem(partyOutKey(partyId), on ? '1' : '0'); } catch { /* private mode: this page only */ }
+    }, [isHost, partyId]),
     available: partyVoices && (!isHost || localDirect),
-    linkState: link ? linkState : null,
+    linkState: link ? linkState ?? link.state : null,
     singers,
     singersLevel,
     setSingersLevel: useCallback((level: number) => { setSingersLevelState(level); write(LEVEL_KEY, String(level)); }, []),

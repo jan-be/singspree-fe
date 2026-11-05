@@ -13,9 +13,11 @@
  * This module runs first (index.tsx imports it before anything that reads
  * storage, i18n's language included). It takes the fragment out of the
  * address bar, and only when the page came straight from singpro.app (its
- * Referer, which no other site can send) writes the storage it carries and
- * claims the token; nobody can hand someone a guest id or a session of
- * theirs with a crafted link. What this browser already has here wins.
+ * Referer, which no other site can send, and no redirect on the way: a
+ * redirect keeps the Referer and may bring a fragment of its own) writes the
+ * storage it carries and claims the token; nobody can hand someone a guest id
+ * or a session of theirs with a crafted link. What this browser already has
+ * here wins.
  *
  * Keys from before the rename (singpro_*, singpro-lang, singpro.lyricsScript)
  * get their new names (singspree…) once, here and on every other origin
@@ -89,10 +91,12 @@ const fill = (store: StorageLike, items: unknown) => {
  * or null. `referrer`: the page that sent the visitor to singpro.app ('' when
  * none), so referrer.ts counts that, not singpro.app.
  */
-export function takeHandoff({ location, history, referrer, local, session, fetchImpl }: {
+export function takeHandoff({ location, history, referrer, redirected = false, local, session, fetchImpl }: {
   location: Pick<Location, 'hash' | 'pathname' | 'search'>;
   history: Pick<History, 'state' | 'replaceState'>;
   referrer: string;
+  /** this page was reached through a redirect */
+  redirected?: boolean;
   local: StorageLike;
   session: StorageLike;
   fetchImpl: (url: string, init: { method: string; credentials: RequestCredentials; headers: Record<string, string>; body: string }) => Promise<unknown>;
@@ -100,7 +104,7 @@ export function takeHandoff({ location, history, referrer, local, session, fetch
   const data = decodeHandoff(location.hash);
   if (!/^#handoff=/.test(location.hash)) return null;
   try { history.replaceState(history.state, '', `${location.pathname}${location.search}`); } catch { /* stays in the bar */ }
-  if (!data || !referrer.startsWith(`${OLD_ORIGIN}/`)) return null;
+  if (!data || redirected || !referrer.startsWith(`${OLD_ORIGIN}/`)) return null;
   fill(local, data.l);
   fill(session, data.s);
   let claim: Promise<unknown> = Promise.resolve();
@@ -118,6 +122,7 @@ let moved: ReturnType<typeof takeHandoff> = null;
 try {
   moved = takeHandoff({
     location: window.location, history: window.history, referrer: document.referrer,
+    redirected: ((performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.redirectCount ?? 0) > 0,
     local: window.localStorage, session: window.sessionStorage, fetchImpl: (...a) => window.fetch(...a),
   });
 } catch { /* no window (tests), or storage refused */ }

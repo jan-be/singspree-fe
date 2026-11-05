@@ -540,7 +540,7 @@
   },
   "voices": {
     "partySwitch": "Şarkıcıların sesi hoparlörlerde",
-    "partySwitchHint": "Her şarkıcının telefonu mikrofonunu sunucunun ekranına gönderir, o da hoparlörlerden çalar. Herkes kendininkini kapatabilir.",
+    "partySwitchHint": "Şarkıcılar seslerini hoparlörlerden verebilir: herkes mikrofon ayarlarında “Sesim hoparlörlerde” seçeneğini açar, telefonu da sesi sunucunun ekranına gönderir.",
     "mine": "Sesim hoparlörlerde",
     "mineHint": "Kapalı: mikrofonun yalnızca puanın için kullanılır.",
     "mineLocal": "Sen şarkı söylerken bu cihazın hoparlörlerinden çalar.",
@@ -821,7 +821,7 @@
     "rustPartyPage": "Rust parti sayfası",
     "rustPartyPageHint": "Partileri, Rust ile yazılmış yeni bir parti sayfası sürümünde açar. Bu bir deneme: yaklaşık 2 MB daha fazla yükler, en yeni özellikler henüz yok (örneğin Influencer modunun kamerası) ve ekran okuyucular onu okuyamaz. Bir şey çalışmazsa buradan kapat.",
     "voicesOnSpeakers": "Sesler hoparlörlerde",
-    "voicesOnSpeakersHint": "Partinin QR kartına bir anahtar ekler: her şarkıcının telefonu mikrofonunu sunucunun ekranına gönderir, o da hoparlörlerden çalar. En iyi aynı Wi-Fi'de ve kablolu hoparlörlerle çalışır (Bluetooth gecikme ekler).",
+    "voicesOnSpeakersHint": "Partilerindeki şarkıcılar seslerini hoparlörlerden verebilir: herkes bunu mikrofon ayarlarında açar, sen de partinin QR kartından durdurabilirsin. En iyi aynı Wi-Fi'de ve kablolu hoparlörlerle çalışır (Bluetooth gecikme ekler).",
     "noEmail": "Henüz adres yok",
     "changeEmail": "Değiştir",
     "newEmail": "Yeni e-posta adresi",

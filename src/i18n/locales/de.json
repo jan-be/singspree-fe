@@ -544,7 +544,7 @@
   },
   "voices": {
     "partySwitch": "Stimmen über die Lautsprecher",
-    "partySwitchHint": "Jedes Handy schickt sein Mikrofon an den Bildschirm des Hosts, der es über die Lautsprecher abspielt. Wer singt, kann die eigene Stimme abschalten.",
+    "partySwitchHint": "Wer singt, kann die eigene Stimme über die Lautsprecher spielen: In den Mikrofon-Einstellungen „Meine Stimme über die Lautsprecher“ einschalten, dann schickt das Handy sie an den Bildschirm des Hosts.",
     "mine": "Meine Stimme über die Lautsprecher",
     "mineHint": "Aus: Dein Mikrofon zählt nur für deine Punkte.",
     "mineLocal": "Läuft über die Lautsprecher dieses Geräts, während du singst.",
@@ -1440,7 +1440,7 @@
     "rustPartyPage": "Rust-Partyseite",
     "rustPartyPageHint": "Öffnet Partys in einer neuen Version der Partyseite, geschrieben in Rust. Das ist ein Test: Sie lädt etwa 2 MB mehr, hat die neuesten Funktionen noch nicht (etwa die Kamera des Influencer-Modus), und Screenreader können sie nicht lesen. Schalte sie hier aus, wenn etwas nicht funktioniert.",
     "voicesOnSpeakers": "Stimmen über die Lautsprecher",
-    "voicesOnSpeakersHint": "Fügt der QR-Karte der Party einen Schalter hinzu: Jedes Handy schickt dann sein Mikrofon an den Bildschirm des Hosts, der es über die Lautsprecher abspielt. Am besten im selben WLAN und mit Lautsprechern per Kabel (Bluetooth verzögert).",
+    "voicesOnSpeakersHint": "Wer auf deinen Partys singt, kann die eigene Stimme über die Lautsprecher spielen: Das schaltet jede Person in ihren Mikrofon-Einstellungen ein, und du kannst es auf der QR-Karte der Party stoppen. Am besten im selben WLAN und mit Lautsprechern per Kabel (Bluetooth verzögert).",
     "noEmail": "Noch keine Adresse",
     "changeEmail": "Ändern",
     "newEmail": "Neue E-Mail-Adresse",

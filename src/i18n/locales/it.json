@@ -540,7 +540,7 @@
   },
   "voices": {
     "partySwitch": "Voci dei cantanti negli altoparlanti",
-    "partySwitchHint": "Il telefono di ogni cantante invia il suo microfono allo schermo dell'host, che lo riproduce dagli altoparlanti. Ognuno può spegnere il proprio.",
+    "partySwitchHint": "I cantanti possono far sentire la loro voce dagli altoparlanti: ognuno attiva «La mia voce negli altoparlanti» nelle impostazioni del microfono, e il suo telefono la invia allo schermo dell'host.",
     "mine": "La mia voce negli altoparlanti",
     "mineHint": "Spento: il tuo microfono serve solo per il punteggio.",
     "mineLocal": "Esce dagli altoparlanti di questo dispositivo mentre canti.",
@@ -821,7 +821,7 @@
     "rustPartyPage": "Pagina della festa in Rust",
     "rustPartyPageHint": "Apre le feste in una nuova versione della pagina della festa, scritta in Rust. È una prova: carica circa 2 MB in più, non ha ancora le funzioni più recenti (come la fotocamera della modalità influencer) e gli screen reader non riescono a leggerla. Disattivala qui se qualcosa non funziona.",
     "voicesOnSpeakers": "Voci negli altoparlanti",
-    "voicesOnSpeakersHint": "Aggiunge un interruttore alla scheda QR della festa: il telefono di ogni cantante invia il suo microfono allo schermo dell'host, che lo riproduce dagli altoparlanti. Funziona meglio sulla stessa rete Wi-Fi e con altoparlanti via cavo (il Bluetooth aggiunge ritardo).",
+    "voicesOnSpeakersHint": "I cantanti delle tue feste possono far sentire la loro voce dagli altoparlanti: ognuno la attiva nelle impostazioni del microfono, e tu puoi fermarla dalla scheda QR della festa. Funziona meglio sulla stessa rete Wi-Fi e con altoparlanti via cavo (il Bluetooth aggiunge ritardo).",
     "noEmail": "Nessun indirizzo",
     "changeEmail": "Cambia",
     "newEmail": "Nuovo indirizzo e-mail",

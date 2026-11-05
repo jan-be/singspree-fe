@@ -119,6 +119,8 @@ function splitDuetLines(rawLines: string[]): { p1: string[]; p2: string[] | null
 /**
  * Parse an array of UltraStar note lines into lyricLines + lyricRefs.
  */
+const MAX_BEATS = 200_000;
+
 function parseNoteLines(noteLines: string[]): LyricTrack {
   let lyrics: LyricElement[] = [];
   let minTone = 1e100;
@@ -173,6 +175,10 @@ function parseNoteLines(noteLines: string[]): LyricTrack {
   }
 
   let lyricRefs: LyricRef[] = [];
+
+  // The array below has a slot per beat: no song comes near this (the server's limit, scoring.ts), a
+  // number gone wrong in a chart would stop the page for minutes
+  for (const el of lyrics) if (el.start + el.length > MAX_BEATS || el.start < -MAX_BEATS) throw new Error('Not a chart: beats out of range');
 
   for (let i = 0; i < lyricLines.length; i++) {
     for (let j = 0; j < lyricLines[i].length; j++) {
