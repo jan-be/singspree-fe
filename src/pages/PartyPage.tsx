@@ -2215,7 +2215,6 @@ const PartyPage = () => {
     setPlayerDifficulties(prev => ({ ...prev, [currentUserNameRef.current]: level }));
     const w = wssRef.current;
     if (w && w.readyState === WebSocket.OPEN) sendPlayerDifficulty(w, level);
-    for (const { singer } of extraSingersRef.current.values()) singer.setDifficulty(level);
   }, []);
 
   // The microphone panel's "Save recordings": off drops the take of the song on
@@ -2608,7 +2607,8 @@ const PartyPage = () => {
     }
     for (const [id, entry] of running) {
       const slot = wanted.get(id);
-      if (slot && keyOf(slot) === entry.key) continue;
+      // (its level changes on the running singer: the seat and its score stay)
+      if (slot && keyOf(slot) === entry.key) { entry.singer.setDifficulty(slot.difficulty); continue; }
       entry.singer.close();
       running.delete(id);
       setExtraStates(st => { const next = { ...st }; delete next[id]; return next; });
@@ -2624,7 +2624,6 @@ const PartyPage = () => {
         held: songTimeHeld,
         gpu: isPitchGpuEnabled(),
         voice: voicesRef.current?.extraVoice(slot.name.trim()),
-        difficulty: () => difficultyRef.current,
         onState: st => setExtraStates(prev => ({ ...prev, [id]: st })),
       });
       singer.setVoice(!!voicesRef.current?.extraWanted);

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { MicIcon, MicOffIcon } from './Icons';
@@ -27,9 +27,9 @@ import type { VoiceLinkState } from '../logic/voiceLink';
  * join button says what is happening and cannot be pressed twice. micError
  * says why the last attempt failed (and puts a red dot on the mic button).
  *
- * Difficulty (logic/difficulty.ts): how far off a note the singer may be, for
- * this page's microphones. It takes effect at once, for the song so far too:
- * the server counts every level.
+ * Difficulty (logic/difficulty.ts): how far off a note the singer may be, each
+ * microphone its own. It takes effect at once, for the song so far too: the
+ * server counts every level.
  *
  * "Save recordings" (saveRecordings, on unless turned off; logic/takes.ts):
  * on, each song sung here is kept to listen to on the singer's profile;
@@ -112,7 +112,40 @@ const VoiceStatus = ({ voice, micActive, t }: { voice: NonNullable<MicPanelProps
   return <p id="mic-voice-out-state" role={st?.phase === 'failed' ? 'alert' : undefined} data-voice-state={st?.phase ?? 'local'} className={`mt-1 text-xs leading-snug ${tone}`}>{text}</p>;
 };
 
-/** One extra microphone: its name (kept when the field is left), input, level and state */
+/** A microphone's difficulty */
+const DifficultySlider = ({ level, onChange }: { level: Difficulty; onChange: (level: Difficulty) => void }) => {
+  const { t, i18n } = useTranslation();
+  const id = useId(); // one per microphone
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3 text-xs">
+        <span id={`${id}-label`} className="text-white/70">{t('mic.difficulty')}</span>
+        <span aria-hidden="true" data-difficulty-level="" className="text-white font-semibold">{t(`difficulty.${level}`)}</span>
+      </div>
+      {/* (left to right in every language: easiest to hardest, the track's fill with it) */}
+      <input
+        type="range" min="0" max={DIFFICULTIES.length - 1} step="1" value={DIFFICULTIES.indexOf(level)}
+        onChange={e => onChange(DIFFICULTIES[Number(e.target.value)] ?? DEFAULT_DIFFICULTY)}
+        dir="ltr"
+        aria-labelledby={`${id}-label`}
+        aria-valuetext={t(`difficulty.${level}`)}
+        aria-describedby={`${id}-hint`}
+        data-difficulty-slider=""
+        className="range mt-1"
+        style={{ '--v': `${(DIFFICULTIES.indexOf(level) / (DIFFICULTIES.length - 1)) * 100}%`, '--accent': 'var(--color-neon-green)' }}
+      />
+      {/* A mark per level, under where the thumb stops (its centre stays 8 px from the ends) */}
+      <div dir="ltr" aria-hidden="true" className="flex justify-between px-1.5 -mt-0.5">
+        {DIFFICULTIES.map(d => <span key={d} className={`w-1 h-1 rounded-full ${d === level ? 'bg-white' : 'bg-white/30'}`} />)}
+      </div>
+      <p id={`${id}-hint`} className="mt-1.5 text-xs text-white/45 leading-snug">
+        {t('mic.difficultyHint', { n: TOLERANCE[level].toLocaleString(i18n.language) })}
+      </p>
+    </div>
+  );
+};
+
+/** One extra microphone: its name (kept when the field is left), input, level, difficulty and state */
 interface ExtraMicRowProps {
   slot: ExtraMicSlot;
   state: ExtraMicState | undefined;
@@ -168,6 +201,7 @@ const ExtraMicRow = ({ slot, state, level, devices, defaultFree, slots, taken, o
         className="field h-9 px-2.5 text-sm cursor-pointer flex items-center justify-between gap-2 text-start"
       />
       <Meter pct={state?.phase === 'on' ? levelPct(level) : 0} />
+      <DifficultySlider level={slot.difficulty} onChange={difficulty => onChange({ ...slot, difficulty })} />
       {state?.phase === 'starting' && <p className="text-xs text-neon-cyan">{t('mic.starting')}</p>}
       {state?.phase === 'on' && state.voice === 'on' && <p className="text-xs text-neon-green">{t('voices.onSpeakers')}</p>}
       {state?.phase === 'on' && state.voice === 'failed' && <p className="text-xs text-red-400">{t('voices.failed')}</p>}
@@ -183,7 +217,7 @@ const MicPanel = ({
   difficulty = DEFAULT_DIFFICULTY, onDifficultyChange,
   saveRecordings = true, onSaveRecordingsChange, voice,
 }: MicPanelProps) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   // The page keeps the microphone open while the panel shows its level (micStandby.ts)
@@ -303,33 +337,7 @@ const MicPanel = ({
             <div className="mt-2"><Meter pct={micActive ? levelPct(level) : 0} /></div>
           </div>
 
-          {onDifficultyChange && (
-            <div>
-              <div className="flex items-center justify-between gap-3 text-xs">
-                <span id="mic-difficulty" className="text-white/70">{t('mic.difficulty')}</span>
-                <span aria-hidden="true" data-difficulty-level="" className="text-white font-semibold">{t(`difficulty.${difficulty}`)}</span>
-              </div>
-              {/* (left to right in every language: easiest to hardest, the track's fill with it) */}
-              <input
-                type="range" min="0" max={DIFFICULTIES.length - 1} step="1" value={DIFFICULTIES.indexOf(difficulty)}
-                onChange={e => onDifficultyChange(DIFFICULTIES[Number(e.target.value)] ?? DEFAULT_DIFFICULTY)}
-                dir="ltr"
-                aria-labelledby="mic-difficulty"
-                aria-valuetext={t(`difficulty.${difficulty}`)}
-                aria-describedby="mic-difficulty-hint"
-                data-difficulty-slider=""
-                className="range mt-1"
-                style={{ '--v': `${(DIFFICULTIES.indexOf(difficulty) / (DIFFICULTIES.length - 1)) * 100}%`, '--accent': 'var(--color-neon-green)' }}
-              />
-              {/* A mark per level, under where the thumb stops (its centre stays 8 px from the ends) */}
-              <div dir="ltr" aria-hidden="true" className="flex justify-between px-1.5 -mt-0.5">
-                {DIFFICULTIES.map(d => <span key={d} className={`w-1 h-1 rounded-full ${d === difficulty ? 'bg-white' : 'bg-white/30'}`} />)}
-              </div>
-              <p id="mic-difficulty-hint" className="mt-1.5 text-xs text-white/45 leading-snug">
-                {t('mic.difficultyHint', { n: TOLERANCE[difficulty].toLocaleString(i18n.language) })}
-              </p>
-            </div>
-          )}
+          {onDifficultyChange && <DifficultySlider level={difficulty} onChange={onDifficultyChange} />}
 
           {onSaveRecordingsChange && (
             <div>
@@ -378,10 +386,10 @@ const MicPanel = ({
                 type="button"
                 onClick={() => setMoreOpen(o => !o)}
                 aria-expanded={moreOpen}
-                className="w-full flex items-center justify-between text-xs text-white/70 hover:text-white cursor-pointer"
+                className="w-full flex items-center justify-between text-sm font-medium text-white cursor-pointer"
               >
                 <span>{t('mic.more')}{multiMic.slots.length > 0 && <span className="ml-1.5 text-white/45">({multiMic.slots.length})</span>}</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"
                   className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
               </button>
               {moreOpen && (
@@ -416,7 +424,7 @@ const MicPanel = ({
                     >
                       <MicIcon size={15} />{t('mic.add')}
                     </button>
-                  ) : (
+                  ) : devices.some(d => d.deviceId) && ( // (before the microphone is allowed the browser lists none of them)
                     <p className="text-xs text-white/45">{t('mic.noFreeDevice')}</p>
                   )}
                   {multiMic.slots.length > 0 && !micActive && <p className="text-xs text-white/45">{t('mic.followsYours')}</p>}

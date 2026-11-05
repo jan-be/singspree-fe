@@ -1,7 +1,8 @@
 /**
  * The difficulty levels, mirrored from the backend (singspree-be/src/scoring.ts):
  * how far from a note a sung pitch may be, in semitones. Every singer picks
- * theirs in the microphone panel and this browser keeps it. The server counts
+ * theirs in the microphone panel and this browser keeps it (each of the more
+ * microphones keeps its own, in its slot: extraSingers.ts). The server counts
  * them all for everyone, so the level only says which score is theirs, and
  * the highway judges each singer's notes by their own level.
  */
@@ -12,7 +13,7 @@ export const DEFAULT_DIFFICULTY: Difficulty = 'easy';
 
 const KEY = 'singspree_difficulty';
 
-const isDifficulty = (d: unknown): d is Difficulty => DIFFICULTIES.some(level => level === d);
+export const isDifficulty = (d: unknown): d is Difficulty => DIFFICULTIES.some(level => level === d);
 
 export const loadDifficulty = (): Difficulty => {
   try {

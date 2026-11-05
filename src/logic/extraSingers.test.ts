@@ -64,7 +64,7 @@ describe('extra microphone slots', () => {
   test('stored and read back; bad entries dropped, as many as there are', () => {
     const s = memory();
     const list = [
-      { id: 'a', name: 'Mic 2', deviceId: 'dev1', color: 120, guestId: 'mic-a' },
+      { id: 'a', name: 'Mic 2', deviceId: 'dev1', color: 120, guestId: 'mic-a', difficulty: 'hard' },
       { id: 'b', name: 'Mic 3', deviceId: '', color: 'red' },
       { nope: true }, { id: 'c', name: 'C' }, { id: 'd', name: 'D' },
     ];
@@ -78,6 +78,13 @@ describe('extra microphone slots', () => {
     expect(loadExtraMics({ getItem: () => 'not json' })).toEqual([]);
   });
 
+  test('a slot from before each had its own level keeps the one it sang at, the page\'s', () => {
+    vi.stubGlobal('localStorage', { getItem: () => 'veryHard' });
+    const stored = JSON.stringify([{ id: 'a', name: 'Mic 2' }, { id: 'b', name: 'Mic 3', difficulty: 'nightmare' }, { id: 'c', name: 'Mic 4', difficulty: 'easy' }]);
+    expect(loadExtraMics({ getItem: () => stored }).map(s => s.difficulty)).toEqual(['veryHard', 'veryHard', 'easy']);
+    vi.unstubAllGlobals();
+  });
+
   test('a new slot takes the first free name and a colour nobody wears', () => {
     const first = newExtraMic([], { taken: ['Ann', 'mic 2'], palette: [10, 20, 30], usedColors: [10] });
     expect(first.name).toBe('Mic 3');
@@ -86,6 +93,7 @@ describe('extra microphone slots', () => {
     expect(second.name).toBe('Micro 2');
     expect(second.color).toBe(30);
     expect(second.guestId).not.toBe(first.guestId);
+    expect(second.difficulty).toBe('easy'); // a new singer, whatever the page's is
   });
 
   test('every microphone once: what one uses is not offered to the others', () => {
@@ -130,7 +138,7 @@ describe('an extra microphone as a singer', () => {
     const initMic = vi.fn(async () => { if (fail) throw fail; return mic; });
     const states: ExtraSingerState[] = [];
     const singer = createExtraSinger({
-      slot: { name: 'Mic 2', deviceId: 'dev2', color: 200, guestId: 'mic-x' }, partyId: 'ABCD',
+      slot: { name: 'Mic 2', deviceId: 'dev2', color: 200, guestId: 'mic-x', difficulty: 'easy' }, partyId: 'ABCD',
       songTime: () => 12.5, isSongPlaying: () => playing, onState: st => states.push(st), initMic, keep,
     });
     // (the pitch as far as the singer reads it: no level)
@@ -152,6 +160,22 @@ describe('an extra microphone as a singer', () => {
     singer.close();
     expect(mic.stopMicInput).toHaveBeenCalled();
     expect(sock.sent.at(-1)).toEqual({ type: 'party:leave', data: {} });
+  });
+
+  test('sings at its own level: joins with it, changes it once, and a rejoin keeps it', () => {
+    let open: SingerSocketOptions['onOpen'] = () => {};
+    const keep = vi.fn((options: SingerSocketOptions) => { open = options.onOpen; return { close: vi.fn() }; });
+    const singer = createExtraSinger({ slot: { name: 'Mic 2', deviceId: null, color: 1, guestId: 'g', difficulty: 'veryHard' }, partyId: 'ABCD', songTime: () => 0, isSongPlaying: () => true, keep });
+    const sock = fakeSocket();
+    open(sock, { reconnect: false });
+    expect(sock.sent[0]).toEqual({ type: 'party:join', data: expect.objectContaining({ difficulty: 'veryHard' }) });
+    singer.setDifficulty('veryHard');
+    expect(sock.sent).toHaveLength(1);
+    singer.setDifficulty('medium');
+    expect(sock.sent[1]).toEqual({ type: 'player:difficulty', data: { difficulty: 'medium' } });
+    const again = fakeSocket();
+    open(again, { reconnect: true });
+    expect(again.sent[0]).toEqual({ type: 'party:join', data: expect.objectContaining({ difficulty: 'medium' }) });
   });
 
   test('nothing is sent while the song is paused; a refused name and a failed microphone are reported', async () => {
@@ -181,7 +205,7 @@ describe('an extra microphone as a singer', () => {
     const sock = fakeSocket();
     const mic = fakeMic();
     const singer = createExtraSinger({
-      slot: { name: 'Mic 2', deviceId: 'd', color: 1, guestId: 'g' }, partyId: 'ABCD', songTime: () => now, chart: () => ld,
+      slot: { name: 'Mic 2', deviceId: 'd', color: 1, guestId: 'g', difficulty: 'easy' }, partyId: 'ABCD', songTime: () => now, chart: () => ld,
       isSongPlaying: () => true, initMic: async () => mic, keep: ({ onOpen }) => { onOpen(sock, { reconnect: false }); return { close() {} }; },
     });
     await singer.openMic();
@@ -211,7 +235,7 @@ describe("an extra microphone's voice on the host's speakers", () => {
     const onTrack = vi.fn();
     const states: ExtraSingerState[] = [];
     const singer = createExtraSinger({
-      slot: { name: 'Mic 2', deviceId: 'dev2', color: 200, guestId: 'mic-x' }, partyId: 'ABCD',
+      slot: { name: 'Mic 2', deviceId: 'dev2', color: 200, guestId: 'mic-x', difficulty: 'easy' }, partyId: 'ABCD',
       songTime: () => 1, isSongPlaying: () => true, onState: st => states.push(st), initMic: async () => mic, keep,
       voice: kind === 'link' ? { link: (send, onState) => { linkSend = send; linkState = onState; return link; } } : { onTrack },
     });
