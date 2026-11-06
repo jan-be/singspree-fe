@@ -369,13 +369,14 @@ const MicPanel = ({
                   role="switch"
                   aria-checked={voice.on}
                   aria-labelledby="mic-voice-out"
-                  aria-describedby="mic-voice-out-state"
+                  aria-describedby={voice.state ? 'mic-voice-out-state mic-voice-out-delay' : 'mic-voice-out-state'}
                   data-voice-out=""
                   onClick={() => voice.onChange(!voice.on)}
                   className="switch"
                 />
               </div>
               <VoiceStatus voice={voice} micActive={micActive} t={t} />
+              {voice.state && <p id="mic-voice-out-delay" data-voice-delay="" className="mt-1 text-xs text-white/45 leading-snug">{t('voices.delayNote')}</p>}
             </div>
           )}
 

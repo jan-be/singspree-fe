@@ -4,8 +4,9 @@
  * host's page, and the settings around them.
  *
  *   - The party allows voices or not (party:settings `voices`: the host's or a
- *     co-host's switch on the QR card): allowed from the start for a host with
- *     the experiment (POST /parties), not for anyone else.
+ *     co-host's switch on the QR card): allowed from the start (POST /parties).
+ *     The host's page leaves the page's audio alone until a voice comes (most
+ *     parties have none, and a TV or an old tablet should not pay for them).
  *   - Each singer has a switch of their own ("My voice on the speakers", the
  *     mic panel), off until they turn it on. A singer's holds for one party (a
  *     party link can come from a stranger); the host's is remembered
@@ -183,6 +184,16 @@ export function usePartyVoices({ isHost, partyId, partyVoices, socket, myName, p
   mixerRef.current = mixer;
   useEffect(() => () => mixer?.close(), [mixer]);
 
+  // The mixer takes the page's AudioContext (made for it, if the song has no stems) when a voice comes, not before
+  const attachedRef = useRef(false);
+  const attachMixer = useCallback(() => {
+    const audio = mixerRef.current ? pageAudioRef.current() : null;
+    if (!audio) return;
+    attachedRef.current = true;
+    mixerRef.current?.attach(audio.ctx, audio.music);
+    if (audio.ctx.state === 'suspended') audio.ctx.resume().catch(() => {});
+  }, []);
+
   // The short way for the notes (noteLink.ts): a phone only answers, the host's page starts it
   const onDirectNoteRef = useRef(onDirectNote);
   onDirectNoteRef.current = onDirectNote;
@@ -209,24 +220,23 @@ export function usePartyVoices({ isHost, partyId, partyVoices, socket, myName, p
   // The singer's side follows the switches
   useEffect(() => { link?.setWanted(wanted && iceReady); }, [link, wanted, iceReady]);
 
-  // The host's side: on with the party's voices, in the page's AudioContext
+  // The host's side: on with the party's voices
   useEffect(() => {
     if (!mixer) return;
-    if (partyVoices) {
-      const audio = pageAudioRef.current();
-      if (audio) {
-        mixer.attach(audio.ctx, audio.music);
-        if (audio.ctx.state === 'suspended') audio.ctx.resume().catch(() => {});
-      }
-    }
+    const local = partyVoices && localDirect;
+    if (local && voiceOut && trackRef.current) attachMixer();
     mixer.setEnabled(partyVoices);
-    if (partyVoices && localDirect) mixer.setLocal(myName, voiceOut ? trackRef.current : null);
-  }, [mixer, partyVoices, localDirect, myName, voiceOut]);
-  // Voices can be on from the start, with no tap on the party's switch to wake a suspended
+    if (local) mixer.setLocal(myName, voiceOut ? trackRef.current : null);
+  }, [mixer, partyVoices, localDirect, myName, voiceOut, attachMixer]);
+  // Voices are on from the start, with no tap on the party's switch to wake a suspended
   // context, and a song without stems never asks for one: the next tap or key does
   useEffect(() => {
     if (!mixer || !partyVoices) return;
-    const wake = () => { const ctx = pageAudioRef.current()?.ctx; if (ctx?.state === 'suspended') ctx.resume().catch(() => {}); };
+    const wake = () => {
+      if (!attachedRef.current) return;
+      const ctx = pageAudioRef.current()?.ctx;
+      if (ctx?.state === 'suspended') ctx.resume().catch(() => {});
+    };
     window.addEventListener('pointerup', wake, true);
     window.addEventListener('keydown', wake, true);
     return () => {
@@ -248,11 +258,10 @@ export function usePartyVoices({ isHost, partyId, partyVoices, socket, myName, p
     link?.setTrack(track);
     const m = mixerRef.current;
     if (m && localDirect && m.enabled) {
-      const audio = track ? pageAudioRef.current() : null;
-      if (audio) m.attach(audio.ctx, audio.music);
+      if (track && wantedRef.current) attachMixer();
       m.setLocal(myName, wantedRef.current ? track : null);
     }
-  }, [link, localDirect, myName]);
+  }, [link, localDirect, myName, attachMixer]);
 
   const onMessage = useCallback((msg: PartyServerMessage) => {
     if (msg.type === 'rtc:ice' && Array.isArray(msg.data?.iceServers)) {
@@ -263,8 +272,10 @@ export function usePartyVoices({ isHost, partyId, partyVoices, socket, myName, p
       if (isNoteLink(signal.link)) {
         if (noteReceiver) noteReceiver.handleSignal(from, signal);
         else noteSender?.handleSignal(signal);
-      } else if (mixerRef.current) mixerRef.current.handleSignal(from, signal);
-      else link?.handleSignal(signal);
+      } else if (mixerRef.current) {
+        if (signal.description?.type === 'offer' && mixerRef.current.enabled) attachMixer();
+        mixerRef.current.handleSignal(from, signal);
+      } else link?.handleSignal(signal);
     } else if (msg.type === 'party:host_status' && link) {
       // the host's page came back: the connection it had went with the old one
       const up = msg.data?.connected !== false;
@@ -277,12 +288,12 @@ export function usePartyVoices({ isHost, partyId, partyVoices, socket, myName, p
     } else if (msg.type === 'player:renamed' && msg.data?.from && msg.data?.to) {
       noteReceiver?.rename(msg.data.from, msg.data.to);
     }
-  }, [link, noteReceiver, noteSender]);
+  }, [link, noteReceiver, noteSender, attachMixer]);
 
   const extraVoice = useCallback((name: string): ExtraVoice => (isHost
-    ? { onTrack: track => { if (localDirect) mixerRef.current?.setLocal(name, track); } }
+    ? { onTrack: track => { if (!localDirect) return; if (track) attachMixer(); mixerRef.current?.setLocal(name, track); } }
     : { link: (sendSignal, onState) => createVoiceLink({ send: sendSignal, iceServers: () => iceRef.current, relayOnly, onState, log: line => log(`${name}: ${line}`), report: r => report({ ...r, mic: name }) }) }
-  ), [isHost, localDirect, log, report, relayOnly]);
+  ), [isHost, localDirect, log, report, relayOnly, attachMixer]);
 
   return {
     voiceOut,

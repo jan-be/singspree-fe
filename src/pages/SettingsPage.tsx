@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import WrapperPage from './WrapperPage';
 import Avatar from '../components/Avatar';
 import { useAvatarEditor } from '../components/AvatarEditor';
-import { GlobeIcon, LockIcon, MicIcon, DuetIcon as FriendsIcon } from '../components/Icons';
+import { GlobeIcon, LockIcon, DuetIcon as FriendsIcon } from '../components/Icons';
 import { HEADER_PICTURE, PageHeader, Section, TrashIcon, btn, hint, input, label, name as settingName, panelBox, sm, useDate, useSecondClick, type Note } from '../components/ProfileParts';
 import { PRIVACY_SECTIONS, STATS_VISIBILITY, privacyOf } from '../logic/statsPrivacy';
 import { useAuth } from '../logic/AuthContext';
@@ -394,7 +394,7 @@ const ChipIcon = () => (
 /** One switch of the section: its name, what it does, and whether it is on */
 const ExperimentalSwitch = ({ id, icon, on, busy, onToggle, first }: {
   /** the names' element ids (`<id>`, `<id>-hint`) and the settings keys (`settings.<camelId>`) */
-  id: 'influencer-mode' | 'rust-party-page' | 'voices-on-speakers';
+  id: 'influencer-mode' | 'rust-party-page';
   icon: React.ReactNode;
   on: boolean;
   busy: boolean;
@@ -402,7 +402,7 @@ const ExperimentalSwitch = ({ id, icon, on, busy, onToggle, first }: {
   first?: boolean;
 }) => {
   const { t } = useTranslation();
-  const key = id === 'influencer-mode' ? 'influencerMode' : id === 'rust-party-page' ? 'rustPartyPage' : 'voicesOnSpeakers';
+  const key = id === 'influencer-mode' ? 'influencerMode' : 'rustPartyPage';
   return (
     <div className={`flex items-start justify-between gap-4 pt-3 border-t border-white/[0.07] ${first ? '' : 'mt-3'}`}>
       <div className="min-w-0">
@@ -418,7 +418,6 @@ const ExperimentalSwitch = ({ id, icon, on, busy, onToggle, first }: {
         disabled={busy}
         data-influencer-mode={id === 'influencer-mode' ? '' : undefined}
         data-rust-party-page={id === 'rust-party-page' ? '' : undefined}
-        data-voices-on-speakers={id === 'voices-on-speakers' ? '' : undefined}
         onClick={onToggle}
         className="switch flex-shrink-0 mt-0.5"
       />
@@ -442,7 +441,7 @@ const ExperimentalSection = ({ user }: { user: Me }) => {
   const { setUser } = useAuth();
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note | null>(null);
-  const save = async (changes: { influencerMode?: boolean; rustPartyPage?: boolean; voicesOnSpeakers?: boolean }) => {
+  const save = async (changes: { influencerMode?: boolean; rustPartyPage?: boolean }) => {
     setBusy(true); setNote(null);
     try {
       setUser(await updateAccount(changes));
@@ -462,10 +461,6 @@ const ExperimentalSection = ({ user }: { user: Me }) => {
           onToggle={() => save({ influencerMode: !user.influencerMode })} first />
         <ExperimentalSwitch id="rust-party-page" icon={<ChipIcon />} on={user.rustPartyPage} busy={busy}
           onToggle={() => save({ rustPartyPage: !user.rustPartyPage })} />
-        {user.voicesAllowed && (
-          <ExperimentalSwitch id="voices-on-speakers" icon={<MicIcon size={15} />} on={user.voicesOnSpeakers} busy={busy}
-            onToggle={() => save({ voicesOnSpeakers: !user.voicesOnSpeakers })} />
-        )}
       </div>
     </Section>
   );

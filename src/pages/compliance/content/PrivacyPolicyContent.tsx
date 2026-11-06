@@ -10,7 +10,7 @@ const PrivacyPolicyContent = () => (
     <div className="max-w-[65ch] text-[15px] sm:text-base leading-[1.7] text-white/75 space-y-9">
       <header className="space-y-2">
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-[-0.025em] leading-tight text-white">Privacy Policy</h1>
-        <p className="text-sm text-white/40">Last updated: 5 November 2026</p>
+        <p className="text-sm text-white/40">Last updated: 7 November 2026</p>
       </header>
 
       <section className="space-y-3">
@@ -68,7 +68,7 @@ const PrivacyPolicyContent = () => (
             </a>.
           </li>
           <li>
-            <strong className="text-white font-semibold">Cloudflare:</strong> All traffic to SingSpree passes through Cloudflare, which protects and delivers the site and sees your IP address. When a party allows &ldquo;voices on the speakers&rdquo; and you turn yours on, your microphone may reach the host&apos;s screen through Cloudflare&apos;s relay.
+            <strong className="text-white font-semibold">Cloudflare:</strong> All traffic to SingSpree passes through Cloudflare, which protects and delivers the site and sees your IP address. When you turn on &ldquo;My voice on the speakers&rdquo; in a party, your microphone goes live to the host&apos;s screen, directly or through Cloudflare&apos;s relay, and that sound is not stored. Your device and the host&apos;s screen can then see each other&apos;s IP address.
           </li>
           <li>
             <strong className="text-white font-semibold">Last.fm and Modal:</strong> To suggest similar songs we send Last.fm the artist and title of a song. To make a chart our AI may run on Modal, which gets the audio, title and lyrics of the YouTube video. Neither receives anything about you.

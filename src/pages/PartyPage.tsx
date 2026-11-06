@@ -3589,7 +3589,7 @@ const PartyPage = () => {
         onSetCohost={handleSetCohost}
         onSetJoiningOpen={handleSetJoiningOpen}
         voices={partySettings.voices}
-        onSetVoices={partySettings.known && (authUser?.voicesOnSpeakers || partySettings.voices) ? handleSetVoices : undefined}
+        onSetVoices={partySettings.known ? handleSetVoices : undefined}
         voice={voices.available ? { on: voices.voiceOut, onChange: voices.setVoiceOut, state: voices.linkState } : undefined}
         singerVoices={isHost && partySettings.voices && voices.singers ? {
           singers: voices.singers, level: voices.singersLevel, onLevelChange: voices.setSingersLevel,
