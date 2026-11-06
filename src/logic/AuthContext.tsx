@@ -1,6 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { getMe, getMyBest, logout as apiLogout, type BestScores, type Me } from './authApi';
-import { rememberRustPartyPage } from './rustPartyPage';
 
 /** What useAuth gives */
 export interface AuthContextValue {
@@ -56,8 +55,6 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   }, [refreshBest]);
 
   useEffect(() => { refresh(); }, [refresh]);
-  // the Rust party page's switch, for the song pages of this browser (logic/rustPartyPage.ts)
-  useEffect(() => { if (!loading) rememberRustPartyPage(Boolean(user?.rustPartyPage)); }, [user, loading]);
   // Not while one is under way: a first visit's browser id comes with the
   // answer (backend contentGate.ts), and the focus a new page gets as it
   // loads sent more requests without one, each handed an id of its own.

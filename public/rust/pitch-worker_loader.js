@@ -1,1 +1,0 @@
-importScripts("./pitch-worker.js");wasm_bindgen("./pitch-worker_bg.wasm");

@@ -11,7 +11,7 @@ const answer = (route: Route, body: object) => route.fulfill({ json: { success: 
 const sam = {
   id: 2, username: 'Sam', email: 'sam@gmail.com', createdAt: '2026-01-01T00:00:00.000Z', avatar: null,
   hasPassword: false, isAdmin: false, passkeys: [], google: { email: 'sam@gmail.com' },
-  privacy: {}, influencerMode: false, rustPartyPage: false, voicesOnSpeakers: false, voicesAllowed: false,
+  privacy: {}, influencerMode: false,
 };
 
 /** The API of a signed-out browser; `google`: whether the server has the sign-in. Resolves to what was sent where. */

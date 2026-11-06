@@ -1,1 +1,0 @@
-importScripts("./bleed-worker.js");wasm_bindgen("./bleed-worker_bg.wasm");
