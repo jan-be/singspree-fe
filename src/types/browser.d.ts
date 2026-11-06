@@ -44,6 +44,18 @@ declare global {
     playbackStats?: AudioPlaybackStats;
   }
 
+  /** Chrome 125+: how late an audio track's frames are, ms (MicrophoneInput.ts) */
+  interface MediaStreamTrackAudioStats {
+    readonly latency: number;
+    readonly averageLatency: number;
+    readonly minimumLatency: number;
+    readonly maximumLatency: number;
+  }
+
+  interface MediaStreamTrack {
+    readonly stats?: MediaStreamTrackAudioStats;
+  }
+
   /** Chrome 94+ (Media Capture Transform): a track's frames as a stream (MicrophoneInput.ts) */
   interface MediaStreamTrackProcessor {
     readonly readable: ReadableStream<AudioData>;

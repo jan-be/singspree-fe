@@ -26,7 +26,7 @@ const send = (data: MicCaptureRequest) => {
   scope.onmessage({ data });
 };
 /** The chunks among what the worker posted (the rest: levels, or that it failed) */
-const chunksIn = (messages: MicCaptureMessage[]) => messages.filter(m => 'audio' in m);
+const chunksIn = (messages: MicCaptureMessage[]) => messages.filter(m => 'fric' in m);
 
 /** Something like AudioData: `samples` handed out by copyTo. */
 const frame = (samples: Float32Array) => ({ numberOfFrames: samples.length, copyTo: (dest: Float32Array) => dest.set(samples), close: vi.fn() });
@@ -88,6 +88,42 @@ describe('MicCaptureWorker', () => {
     const chunks = chunksIn(posted);
     expect(chunks.length).toBeGreaterThan(0);
     expect(chunks.every(m => m.gen === 2)).toBe(true);
+  });
+
+  it('sends display chunks as well, when asked, and they change no chunk', async () => {
+    const signal = tone(0.5);
+    const plain = frameSource(signal);
+    send({ type: 'start', readable: plain.readable, options: OPTIONS });
+    await plain.next(50);
+    const without = chunksIn(posted);
+
+    vi.resetModules();
+    posted = [];
+    await import('./MicCaptureWorker');
+    const source = frameSource(signal);
+    send({ type: 'start', readable: source.readable, options: { ...OPTIONS, displaySamples: 768, displayHopSamples: 160 } });
+    await source.next(50);
+    const shown = posted.filter(m => 'display' in m);
+    expect(shown.length).toBeGreaterThan(0);
+    assert(shown[0] && 'display' in shown[0]);
+    expect(shown[0].audio.length).toBe(768);
+    expect(chunksIn(posted).map(c => c.pos)).toEqual(without.map(c => c.pos));
+    chunksIn(posted).forEach((c, i) => expect(c.audio).toEqual(without[i].audio));
+  });
+
+  it('tells how old the frames are every few seconds', async () => {
+    const dated = (samples: Float32Array, timestamp: number) => ({ ...frame(samples), timestamp, sampleRate: 48000 });
+    const signal = new Float32Array(480);
+    let controller: ReadableStreamDefaultController<AudioFrame>;
+    const readable = new ReadableStream<AudioFrame>({ start: c => { controller = c; } }, { highWaterMark: 0 });
+    send({ type: 'start', readable, options: OPTIONS });
+    for (let i = 0; i < 500; i++) controller!.enqueue(dated(signal, (performance.now() - 15) * 1000));
+    for (let i = 0; i < 20; i++) await new Promise(r => setTimeout(r, 0));
+    const report = posted.find(m => m.type === 'frameAge');
+    assert(report?.type === 'frameAge', 'no report');
+    expect(report.age.n).toBe(500);
+    expect(report.age.frameMs).toBe(10);
+    expect(report.age.p50).toBeGreaterThanOrEqual(15);
   });
 
   it('says so when the stream cannot be read at all', async () => {

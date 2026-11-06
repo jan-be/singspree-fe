@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LEAD_IN_SHARE, LONG_BREAK_SEC, COUNTDOWN_SEC, previousLineEnd, highwayWindow, countdown, cursorAlpha, type HighwayWindow, type WindowNote } from './highwayWindow';
+import { LEAD_IN_SHARE, LONG_BREAK_SEC, COUNTDOWN_SEC, NEXT_LINE_SEC, LATE_NOTE_SEC, previousLineEnd, shownLineIndex, highwayWindow, countdown, cursorAlpha, type HighwayWindow, type WindowNote } from './highwayWindow';
 
 const brk = (start: number) => ({ isBreak: true, start, length: 0 });
 const note = (start: number, length: number) => ({ isBreak: false, start, length, tone: 0 });
@@ -7,6 +7,65 @@ const line = (...notes: WindowNote[]) => [brk(0), ...notes];
 const TPS = 10; // ticks per second
 const S = LEAD_IN_SHARE;
 const share = (w: HighwayWindow) => (w.firstTick - w.startTick) / (w.endTick - w.startTick); // where the first note sits
+
+describe('shownLineIndex', () => {
+  // Line 0 ends at tick 100, line 1 starts at 110 (1 s of pause at 10 ticks a second), line 3 right after a break alone
+  const lines = [line(note(80, 20)), line(note(110, 10)), [brk(125)], line(note(126, 4))];
+  const silent = (lineIndex: number) => ({ lineIndex, isSilent: true });
+  const coming = () => true;
+  const done = () => false;
+
+  it('follows the cursor on a note, and in a rest inside a line', () => {
+    expect(shownLineIndex(lines, { lineIndex: 1, isSilent: false }, 111, TPS, coming)).toBe(1);
+    expect(shownLineIndex(lines, silent(1), 115, TPS, coming)).toBe(1);
+  });
+
+  it('stays on the line that ended while its notes are still coming, and goes on once they are in', () => {
+    expect(shownLineIndex(lines, silent(1), 101, TPS, coming)).toBe(0);
+    expect(shownLineIndex(lines, silent(1), 101, TPS, done)).toBe(1);
+  });
+
+  it('asks about the end of the line that finished', () => {
+    const asked: number[] = [];
+    shownLineIndex(lines, silent(1), 101, TPS, (end) => { asked.push(end); return true; });
+    expect(asked).toEqual([100]);
+  });
+
+  it('leaves the next line a quarter second to read it', () => {
+    const until = 110 - NEXT_LINE_SEC * TPS; // 107.5
+    expect(shownLineIndex(lines, silent(1), until - 0.1, TPS, coming)).toBe(0);
+    expect(shownLineIndex(lines, silent(1), until, TPS, coming)).toBe(1);
+  });
+
+  it('leaves half the pause where a quarter second is more than that', () => {
+    const tight = [line(note(90, 10)), line(note(103, 10))]; // a pause of 3 ticks: 0.3 s
+    expect(shownLineIndex(tight, silent(1), 101.4, TPS, coming)).toBe(0);
+    expect(shownLineIndex(tight, silent(1), 101.5, TPS, coming)).toBe(1);
+  });
+
+  it('gives up on notes that do not come, however long the pause', () => {
+    const far = [line(note(90, 10)), line(note(400, 10))];
+    const until = 100 + LATE_NOTE_SEC * TPS;
+    expect(shownLineIndex(far, silent(1), until - 0.1, TPS, coming)).toBe(0);
+    expect(shownLineIndex(far, silent(1), until, TPS, coming)).toBe(1);
+  });
+
+  it('holds nothing when two lines touch', () => {
+    const touching = [line(note(90, 10)), line(note(100, 10))];
+    expect(shownLineIndex(touching, silent(1), 100, TPS, coming)).toBe(1);
+  });
+
+  it('looks past a line of a break alone', () => {
+    expect(shownLineIndex(lines, silent(3), 123.6, TPS, coming)).toBe(3); // line 1 ended at 120, the room of 6 keeps 2.5 ticks
+    expect(shownLineIndex(lines, silent(3), 121, TPS, coming)).toBe(1);
+  });
+
+  it('has no line before the first, and none without a place in the chart', () => {
+    expect(shownLineIndex(lines, silent(0), 70, TPS, coming)).toBe(0);
+    expect(shownLineIndex(lines, undefined, 70, TPS, coming)).toBeUndefined();
+    expect(shownLineIndex(undefined, silent(1), 101, TPS, coming)).toBe(1);
+  });
+});
 
 describe('highwayWindow', () => {
   it('puts the first note the same share of the width in, on a short line and a long one', () => {

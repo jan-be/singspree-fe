@@ -67,6 +67,8 @@ const GATE_STEP_SECONDS = 0.015;   // the frame step the three constants above a
 export interface NoiseGate {
   /** Returns true if the frame should be GATED (i.e., is below the noise threshold). */
   shouldGate(rms: number): boolean;
+  /** The verdict for a level that does not count as a frame: the floor stays where it is. */
+  wouldGate(rms: number): boolean;
   getNoiseFloor(): number;
 }
 
@@ -108,6 +110,10 @@ export function createNoiseGate({ stepSeconds = GATE_STEP_SECONDS }: { stepSecon
       }
 
       return false; // signal detected, do NOT gate
+    },
+
+    wouldGate(rms: number) {
+      return frameCount <= calibrationFrames || rms < Math.max(RMS_SILENCE_FLOOR, noiseFloor * GATE_MULTIPLIER);
     },
 
     getNoiseFloor() { return noiseFloor; },

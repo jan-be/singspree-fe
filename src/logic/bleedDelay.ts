@@ -61,6 +61,8 @@ export interface DelayEstimate {
   delay: number;
   z?: number;
   chunks?: number;
+  /** who says so (the bleed's own estimates leave it out) */
+  source?: DelaySource;
 }
 
 /** The estimator's options (BleedWorker's reset message carries them) */
@@ -82,8 +84,8 @@ export interface BleedEstimator {
   readonly chunks: number;
 }
 
-/** Where the delay taken off the notes comes from: the fixed fallback or the bleed */
-export type DelaySource = 'fixed' | 'bleed';
+/** Where the delay taken off the notes comes from: the fixed fallback, the bleed or the singing (voiceAlign.ts) */
+export type DelaySource = 'fixed' | 'bleed' | 'voice';
 
 /** createDelayPolicy's state (the debug panel, a song report) */
 export interface DelayPolicyState {
@@ -409,10 +411,10 @@ export function createDelayPolicy({ fallback = 0.14, maxStep = 0.001, fastStep =
   let target = fallback, applied = fallback, source: DelaySource = 'fixed', lastEstimate: DelayEstimate | null = null;
   return {
     update(estimate) {
-      lastEstimate = estimate;
+      if (estimate.z !== undefined) lastEstimate = estimate;
       if (!estimate.confident) return;
       if (source === 'fixed') applied = estimate.delay;
-      target = estimate.delay; source = 'bleed';
+      target = estimate.delay; source = estimate.source ?? 'bleed';
     },
     /** The delay for the next note (s). */
     next() {

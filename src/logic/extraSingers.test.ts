@@ -55,7 +55,7 @@ const fakeMic = () => {
 
 vi.mock('./bleedController', () => ({
   FALLBACK_DELAY: 0.14,
-  createBleedController: () => ({ pushAudio() {}, pushStamp() {}, nextDelay: () => 0.1, startSong() {}, state: () => ({ reference: 'none' }), dispose() {} }),
+  createBleedController: () => ({ pushAudio() {}, pushStamp() {}, pushNote() {}, nextDelay: () => 0.1, startSong() {}, state: () => ({ reference: 'none' }), dispose() {} }),
 }));
 
 const memory = () => { const m = new Map<string, string>(); return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: unknown) => m.set(k, String(v)) }; };

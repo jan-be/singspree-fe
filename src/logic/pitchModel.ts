@@ -6,6 +6,14 @@ export const WINDOW_SAMPLES = 960; // 60 ms at 16 kHz, the window MicrophoneInpu
 // cheapest rate that keeps scores steady: half the model calls of the 15 ms it
 // used to be. PitchFinderWorklet.ts keeps its own copy of the constant.
 export const HOP_SAMPLES = 480;
+// The newest samples only (fastPitchFlag.ts). The model pads 384 zeros at each
+// end and reads 1024 samples every 256, so 832 samples make as many frames as
+// 960 and cost the same, and the newest frame is centred 12 ms behind the newest
+// sample instead of 20 ms: every pitch is 8 ms newer. To keep scoring what the
+// same sound scored, a note is stamped 8 ms less back (delayLead). 768 samples
+// would be 12 ms newer, but real plays replayed with them lose 20 points on
+// average, 39 on Windows; with 832 they come out even (+9, none on Windows).
+export const SHORT_WINDOW_SAMPLES = 832;
 
 // swift-f0 constants (from core.py)
 export const CONFIDENCE_THRESHOLD = 0.85;
@@ -26,10 +34,12 @@ export interface PitchDetectRequest {
   /** the consonant flag (fricative.ts) and the capture position, passed through */
   fric?: number;
   pos?: number;
+  /** a display window (provisionalPitch.ts): the model's answer only, it goes past the voicing tracker */
+  display?: 1;
 }
 
-/** Messages to a pitch worker: load the model, then one window at a time */
-export type PitchWorkerRequest = { type: 'init', modelUrl: string } | PitchDetectRequest;
+/** Messages to a pitch worker: load the model (`samples`: run it on this many of each window's newest samples), then one window at a time */
+export type PitchWorkerRequest = { type: 'init', modelUrl: string, samples?: number } | PitchDetectRequest;
 
 /** A pitch worker's answer to one window */
 export interface PitchDetectResult {

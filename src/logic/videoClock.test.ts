@@ -1,5 +1,5 @@
 import { describe, it, expect, assert } from 'vitest';
-import { VideoClock, readPlayer, LEAK, SEEK_GRACE, type PlayerReport } from './videoClock';
+import { VideoClock, readPlayer, LEAK, SEEK_GRACE, SETTLE, type PlayerReport } from './videoClock';
 
 // A report the way the IFrame API holds it: the video's time `time` taken at `at`
 const rep = (time: number, at: number, state = 1, rate = 1) => ({ time, at, state, rate });
@@ -176,6 +176,47 @@ describe('VideoClock', () => {
     for (let i = 0; i < 40; i++) c.observe(rep(10 + i * 0.4 - (i % 3) * 0.3, 1000 + i * 0.4), 1000 + i * 0.4 + 0.2);
     expect(c.mode).toBe('playing');
     expect(c.epoch).toBe(1);
+  });
+
+  // The video stands `hold` seconds right after its start: read inside
+  // YouTube's frame, 40 ms on a desktop after every start, seek and resume, and
+  // the field's slides of 240 ms say more elsewhere. Reports come every 0.26 s.
+  const started = (hold: number, reports: number) => {
+    const c = new VideoClock();
+    const line = (w: number) => w - 1000 - hold;
+    c.observe(rep(0.005, 1000), 1000.01); // read at the start, before the video stood
+    for (let i = 1; i <= reports; i++) { const w = 1000 + i * 0.26; c.observe(rep(line(w), w), w + 0.005); }
+    return { c, line };
+  };
+
+  it('does not keep the report from before the moment a start stands still', () => {
+    for (const hold of [0.04, 0.24]) {
+      const { c, line } = started(hold, 3);
+      expect(Math.abs(c.timeAt(1001) as number - line(1001))).toBeLessThan(0.006);
+    }
+  });
+
+  it('stays on the line for the rest of the song after such a start', () => {
+    const { c, line } = started(0.24, 100);
+    expect(c.epoch).toBe(1);
+    expect(Math.abs(c.timeAt(1026) as number - line(1026))).toBeLessThan(0.006);
+  });
+
+  it('leaves a report after the first moments to the highest bound again', () => {
+    const c = new VideoClock();
+    const truth = (w: number) => 5 + (w - 1000);
+    c.observe(rep(truth(1000), 1000), 1000);
+    c.observe(rep(truth(1000 + SETTLE), 1000 + SETTLE), 1000 + SETTLE);
+    c.observe(rep(truth(1000 + SETTLE + 0.3) - 0.3, 1000 + SETTLE + 0.3), 1000 + SETTLE + 0.31); // stale
+    expect(c.timeAt(1002)).toBeCloseTo(truth(1002), 2);
+  });
+
+  it('keeps every bound through a stick\'s reports sitting together just below the video', () => {
+    const c = new VideoClock();
+    const truth = (w: number) => 5 + (w - 1000);
+    for (let i = 0; i < 12; i++) { const w = 1000 + i * 0.3; c.observe(rep(truth(w), w), w); }
+    for (let i = 12; i < 40; i++) { const w = 1000 + i * 0.3; c.observe(rep(truth(w) - 0.03 - (i % 3) * 0.002, w), w); }
+    expect(Math.abs((c.timeAt(1012) as number) - truth(1012))).toBeLessThan(0.01);
   });
 
   it('starts over on a change of playback rate', () => {

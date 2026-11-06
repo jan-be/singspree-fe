@@ -20,6 +20,6 @@ export type HighwayWorkerRequest =
 /** Messages from the worker. */
 export type HighwayWorkerReply =
   | { type: 'ready'; mode: 'gl' | '2d' }
-  | { type: 'done'; ops: Float64Array<ArrayBuffer>; buffers?: undefined }
-  | { type: 'done'; buffers: SceneBuffers; ops?: undefined }
+  | { type: 'done'; at: number; ops: Float64Array<ArrayBuffer>; buffers?: undefined }
+  | { type: 'done'; at: number; buffers: SceneBuffers; ops?: undefined }
   | { type: 'error'; message: string };

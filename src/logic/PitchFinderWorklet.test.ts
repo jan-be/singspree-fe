@@ -21,8 +21,8 @@ beforeAll(async () => {
   await import('./PitchFinderWorklet');
 });
 
-const makeWorklet = (): TestWorklet => {
-  const worklet = new Worklet({ processorOptions: { nativeSampleRate: 48000, targetSampleRate: 16000 } });
+const makeWorklet = (options: PitchWorkletOptions = {}): TestWorklet => {
+  const worklet = new Worklet({ processorOptions: { nativeSampleRate: 48000, targetSampleRate: 16000, ...options } });
   return { port: lastPort, process: inputs => worklet.process(inputs, [], {}) };
 };
 
@@ -37,7 +37,7 @@ const feed = (w: TestWorklet, seconds: number, freq = 440, amplitude = 0.5) => {
   }
 };
 const messages = (w: TestWorklet) => w.port.postMessage.mock.calls.map(c => c[0]);
-const audioMessages = (w: TestWorklet) => messages(w).filter(m => 'audio' in m);
+const audioMessages = (w: TestWorklet) => messages(w).filter(m => 'fric' in m);
 const levelMessages = (w: TestWorklet) => messages(w).filter(m => !('audio' in m));
 const setActive = (w: TestWorklet, active: boolean) => {
   assert(w.port.onmessage, 'the worklet takes no messages');
@@ -45,6 +45,17 @@ const setActive = (w: TestWorklet, active: boolean) => {
 };
 
 describe('PitchFinderWorklet', () => {
+  it('posts display chunks when asked, every 10 ms or so, next to the same chunks', () => {
+    const plain = makeWorklet();
+    feed(plain, 1);
+    const w = makeWorklet({ displaySamples: 768, displayHopSamples: 160 });
+    feed(w, 1);
+    const shown = messages(w).filter(m => 'display' in m);
+    expect(shown.length).toBeGreaterThan(80);
+    expect(shown.length).toBeLessThan(100);
+    expect(audioMessages(w).map(c => c.pos)).toEqual(audioMessages(plain).map(c => c.pos));
+  });
+
   it('posts 960-sample chunks about 33 times a second while active', () => {
     const w = makeWorklet();
     feed(w, 1);

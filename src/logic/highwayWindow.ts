@@ -22,6 +22,14 @@
  * ticks, only the scale changes, and only per line. A line shorter than the
  * song's minimum is widened on the right, so its first note is where every
  * other line's is.
+ *
+ * A finished line stays a moment longer (shownLineIndex): a singer's notes land
+ * behind the cursor, by the singing delay taken off them on purpose (PartyPage)
+ * and by their way here. So the cursor reaches a line's end while the last
+ * fifth of a second of its last note is still to come, and with the highway
+ * gone to the next line those notes were never drawn: on 39 of a song's 54
+ * lines the sung line stopped short of the note it held. They count all the
+ * same, it only looked as if they did not.
  */
 
 /**
@@ -35,6 +43,19 @@ export const LEAD_IN_SHARE = 0.07;
 export const LONG_BREAK_SEC = 7;
 /** The countdown's length: the ring empties over the last seconds before the first note. */
 export const COUNTDOWN_SEC = 3;
+
+/**
+ * What a finished line leaves the next one: a quarter second before its first
+ * note to read it, or half the pause where that is less. The cursor's run-up
+ * fits in that too (it is a fraction of a second at most).
+ */
+export const NEXT_LINE_SEC = 0.25;
+/**
+ * A singer whose newest note is further behind a line's end than this stopped
+ * singing: nothing more is coming. And past this after a line's end, whatever
+ * still has not come is not worth the wait (a singer's phone that went away).
+ */
+export const LATE_NOTE_SEC = 1.5;
 
 /** What these functions read of a line's elements (LyricsParser's syllables and breaks). */
 export interface WindowNote {
@@ -82,6 +103,36 @@ export function previousLineEnd(lyricLines: readonly (readonly WindowNote[] | un
     if (last && !last.isBreak) return last.start + last.length;
   }
   return -Infinity;
+}
+
+/** What shownLineIndex reads of where the cursor is (LyricsParser's LyricRef). */
+export interface WindowRef {
+  lineIndex: number;
+  isSilent: boolean;
+}
+
+/**
+ * Which line the highway shows at `nowTick`: the one `ref` is on, or the line
+ * before while its end is still on its way to the screen. Between two lines
+ * the cursor already belongs to the next one (a silent tick does, LyricsParser);
+ * the line before stays as long as `waiting(endTick)` says that notes up to its
+ * end are still to come, until the next line needs the room (NEXT_LINE_SEC).
+ * `undefined` when there is no line yet.
+ */
+export function shownLineIndex(lines: readonly (readonly WindowNote[] | undefined)[] | undefined, ref: WindowRef | undefined, nowTick: number, ticksPerSec: number, waiting: (endTick: number) => boolean): number | undefined {
+  if (!ref?.isSilent) return ref?.lineIndex;
+  const firstTick = lines?.[ref.lineIndex]?.[1]?.start;
+  if (firstTick === undefined || nowTick >= firstTick) return ref.lineIndex; // (a rest inside the line)
+  for (let i = ref.lineIndex - 1; i >= 0; i--) {
+    const before = lines?.[i];
+    const last = before?.[before.length - 1];
+    if (!last || last.isBreak) continue; // a line of a break alone
+    const endTick = last.start + last.length;
+    const room = firstTick - endTick;
+    const until = endTick + Math.min(Math.max(room / 2, room - NEXT_LINE_SEC * ticksPerSec), LATE_NOTE_SEC * ticksPerSec);
+    return nowTick < until && waiting(endTick) ? i : ref.lineIndex;
+  }
+  return ref.lineIndex;
 }
 
 /**

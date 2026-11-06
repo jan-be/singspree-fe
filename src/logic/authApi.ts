@@ -61,6 +61,8 @@ export interface Me extends PublicUser {
   rustPartyPage: boolean;
   /** the party switch for the singers' voices on the host's speakers (experimental, on for admins until chosen; SettingsPage, usePartyVoices.ts) */
   voicesOnSpeakers: boolean;
+  /** that switch is yours to set: the experiment costs money per stream, so it is for admins and accounts let in */
+  voicesAllowed: boolean;
   passkeys: Passkey[];
   /** the Google account that signs in here, with its address, or null */
   google: { email: string | null } | null;
@@ -221,7 +223,6 @@ export interface LeaderboardEntry {
   stars: number;
   /** the level the score is at */
   difficulty?: Difficulty | null;
-  sungAt: string;
   avatar: string | null;
 }
 
@@ -658,15 +659,39 @@ export const logout = () => post('/auth/logout');
 
 /** What the address can sign in with: { exists, hasPasskey, hasPassword }. */
 export const lookupEmail = (email: string) => post<EmailLookup>('/auth/lookup', { email });
+/**
+ * The address this browser last asked a code for, for as long as a code lives. A sign-in link can come from anyone:
+ * a link with someone else's address and fresh code signs in here at one press of Continue, so it must not take
+ * what this browser sang as a guest along into that account. Kept in storage because the mail's link opens in a new tab.
+ */
+const CODE_ASKED_KEY = 'singspree_code_asked';
+const CODE_LIFE_MS = 10 * 60 * 1000;
+let codeAsked: { email: string; at: number } | null = null; // (where storage is off, this page still knows)
+
+const noteCodeAsked = (email: string) => {
+  codeAsked = { email: email.toLowerCase(), at: Date.now() };
+  try { localStorage.setItem(CODE_ASKED_KEY, JSON.stringify(codeAsked)); } catch { /* this page only */ }
+};
+
+const askedCodeFor = (email: string) => {
+  let asked = codeAsked;
+  try { asked = JSON.parse(localStorage.getItem(CODE_ASKED_KEY) ?? 'null') ?? codeAsked; } catch { /* this page's */ }
+  return asked?.email === email.toLowerCase() && Date.now() - asked.at < CODE_LIFE_MS;
+};
+
 /** Mail a six-digit code to the address. Resolves to { sent, devCode? } (the code itself only in development). */
-export const startEmailCode = (email: string, lang: string) => post<EmailCodeSent>('/auth/email/start', { email, lang });
+export const startEmailCode = async (email: string, lang: string) => {
+  const sent = await post<EmailCodeSent>('/auth/email/start', { email, lang });
+  noteCodeAsked(email);
+  return sent;
+};
 /**
  * Sign in with the mailed code. An address without an account resolves to
  * { needsUsername: true } until a display name is given, then creates it.
  * Otherwise { user, created }.
  */
 export const verifyEmailCode = (email: string, code: string, username?: string) =>
-  post<EmailVerifyResult>('/auth/email/verify', { email, code, guestId: getGuestId(), ...(username !== undefined ? { username } : {}) });
+  post<EmailVerifyResult>('/auth/email/verify', { email, code, ...(askedCodeFor(email) ? { guestId: getGuestId() } : {}), ...(username !== undefined ? { username } : {}) });
 
 // Every sign-in carries the browser's guest id: the scores sung as a guest on it become the account's.
 export const loginPassword = (email: string, password: string) => post<{ user: Me }>('/auth/password/login', { email, password, guestId: getGuestId() }).then(j => j.user);

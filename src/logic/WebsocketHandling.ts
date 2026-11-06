@@ -1,6 +1,7 @@
 import { getGuestId } from './sessionId';
 import type { Difficulty } from './difficulty';
 import type { VoiceReport, VoiceSignal } from './voiceLink';
+import type { NoteCounts } from './noteLink';
 
 // Same origin as the page (ws for http, wss for https), so the dev server,
 // `vite preview` and production all reach the backend through /api/ws.
@@ -96,7 +97,7 @@ const WATCH_MS = 5_000;
 export interface KeptSocket {
   readonly readyState: number;
   close(): void;
-  addEventListener(type: 'open' | 'message' | 'close', listener: () => void): void;
+  addEventListener(type: 'open' | 'message' | 'close', listener: (e: Event) => void): void;
 }
 
 /** What keepSocket listens to on the page: online, pagehide, pageshow, and the document's visibilitychange */
@@ -155,13 +156,17 @@ export const keepSocket = <S extends KeptSocket>(create: () => S, {
   let leaving = false; // pagehide
   let watchedAt = Date.now();
 
-  const lost = (sock: S) => {
+  const lost = (sock: S, code?: number) => {
     if (sock !== ws) return; // replaced or closed on purpose
     ws = null;
     if (opened && Date.now() - openedAt >= STABLE_MS) attempt = 0;
     opened = false;
     onDown();
-    if (!stopped && !leaving && !timer) timer = setTimeout(connect, reconnectDelay(attempt++, random));
+    if (stopped || leaving || timer) return;
+    // 1013: the server is busy with a crowd coming back and asks for a moment.
+    // That says nothing about the connection, so this does not climb the backoff,
+    // which after a long outage would keep a singer away for ten seconds more.
+    timer = setTimeout(connect, code === 1013 ? 500 + random() * 1000 : reconnectDelay(attempt++, random));
   };
 
   function connect() {
@@ -180,7 +185,7 @@ export const keepSocket = <S extends KeptSocket>(create: () => S, {
       onOpen(sock, { reconnect });
     });
     sock.addEventListener('message', () => { if (sock === ws) heardAt = Date.now(); });
-    sock.addEventListener('close', () => lost(sock)); // (an error is followed by a close)
+    sock.addEventListener('close', (e) => lost(sock, (e as CloseEvent).code)); // (an error is followed by a close)
   }
 
   const watch = setInterval(() => {
@@ -345,8 +350,13 @@ export const sendRtcSignal = (ws: Pick<PartySocket, 'sendObj' | 'readyState'>, s
  * server's event log; `mic`: the extra microphone it was for, `singer`: on the
  * host's page, whose connection.
  */
-export const sendRtcReport = (ws: Pick<PartySocket, 'sendObj' | 'readyState'>, report: VoiceReport & { mic?: string; singer?: string }) => {
+export const sendRtcReport = (ws: Pick<PartySocket, 'sendObj' | 'readyState'>, report: VoiceReport & { mic?: string; singer?: string; notes?: NoteCounts }) => {
   if (ws.readyState === 1) ws.sendObj({ type: "rtc:report", data: report });
+};
+
+/** The host's page cannot keep up with its frames, or can again: the server sends it notes with the flush only (pageSpeed.ts). */
+export const sendPartyPace = (ws: ObjSocket, slow: boolean) => {
+  ws.sendObj({ type: "party:pace", data: { slow } });
 };
 
 /** Which STUN/TURN servers this page's voice connections may use: the server answers with rtc:ice. */

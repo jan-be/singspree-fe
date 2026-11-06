@@ -24,16 +24,19 @@ import { initMicInput, micErrorKind } from "../logic/MicrophoneInput";
 import { micAction, micPermission } from "../logic/micStandby";
 import { createBleedController, FALLBACK_DELAY } from "../logic/bleedController";
 import { createSingingGate } from "../logic/singingGate";
+import { confirmProvisional } from "../logic/provisionalPitch";
+import { isEarlyContextEnabled, isFastPitchEnabled, isShortWindowEnabled } from "../logic/fastPitchFlag";
 import { isPitchGpuEnabled } from "../logic/pitchGpuFlag";
 import { createExtraSinger, loadExtraMics, saveExtraMics } from "../logic/extraSingers";
 import { usePartyVoices } from "../logic/usePartyVoices";
 import { getGapOverride, setGapOverride, clearGapOverride } from "../logic/gapOverrides";
 import { carryGap } from "../logic/gapFrame";
-import { getAndSetHitNotesByPlayer, applyRemoteNotes } from "../logic/MicInputToTick";
+import { getAndSetHitNotesByPlayer, applyRemoteNotes, applyDirectNote } from "../logic/MicInputToTick";
 import {
   keepWebSocket,
   sendPartyJoin,
   sendPlayerNote,
+  sendPartyPace,
   sendVideoTime,
   sendSongStart,
   sendSongEnd,
@@ -90,10 +93,12 @@ import { loadJoinerSound, saveJoinerSound } from "../logic/joinerSound";
 import { silentReason } from "../logic/silentPlayback";
 import { canSilenceByVolume, silenceCheck, silencePlayer } from "../logic/youtubeSilence";
 import { frameLoop } from "../logic/frameLoop";
+import { createPageSpeed } from "../logic/pageSpeed";
 import { StemPlayer, silentWavUrl } from "../logic/stemPlayer";
 import { StreamingStemPlayer } from "../logic/streamStemPlayer";
 import { stemPlayback } from "../logic/stemPlayback";
 import { VideoClock, readPlayer } from "../logic/videoClock";
+import { HostClock, Leg, songTimeAhead } from "../logic/hostClock";
 import { shouldRestart } from "../logic/stemSync";
 import { audioLatencyHint } from "../logic/audioLatencyFlag";
 import { contextLatency, nextLead } from "../logic/outputLead";
@@ -208,6 +213,7 @@ const STALL_HOLD = 1.5;
 // score or player message or slider step the page re-renders for (PartyBar
 // and VideoPlayer are memoised the same way)
 const StageMusicBars = React.memo(LiveMusicBars);
+const MAX_PROVISIONAL = 32; // pitches waiting for a note, far more than they live to be
 const StageLyrics = React.memo(LiveStageLyrics);
 const StageTimeline = React.memo(SongTimeline);
 
@@ -395,7 +401,7 @@ const PartyPage = () => {
   const [videoId, setVideoId] = useState<string>();
 
   // Clear stale player reference when joiner hides video.
-  // Without this, the animation loop uses a dead player object instead of hostVideoTimeRef.
+  // Without this, the animation loop uses a dead player object instead of the host's clock.
   useEffect(() => {
     if (!showVideo) {
       setIframePlayer(null);
@@ -473,8 +479,9 @@ const PartyPage = () => {
   const handlePlayerReady = useCallback((playerObj: YouTubePlayer) => {
     setIframePlayer(playerObj);
     applyPlayerSound(playerObj);
-    if (!isHost && hostVideoTimeRef.current > 0) {
-      playerObj.seekTo(getHostVideoTime(), true);
+    const hostTime = isHost ? 0 : getHostVideoTime();
+    if (hostTime > 0) {
+      playerObj.seekTo(hostTime, true);
       showTitleCover();
       if (hostIsPlayingRef.current) {
         playerObj.playVideo();
@@ -487,6 +494,7 @@ const PartyPage = () => {
   // different words: one is a dead link, the other is worth retrying.
   const [error, setError] = useState<'notFound' | 'unreachable' | null>(null);
   const [setOnProcessing, setSetOnProcessing] = useState<MicInput['setOnProcessing']>();
+  const [setOnProvisional, setSetOnProvisional] = useState<MicInput['setOnProvisional']>();
   const [wss, setWss] = useState<PartySocket>();
   // The connection that keeps `wss` open (keepWebSocket), and whether it is
   // down right now (the "Reconnecting…" pill)
@@ -1112,6 +1120,10 @@ const PartyPage = () => {
   iframePlayerRef.current = iframePlayer;
   const wssRef = useRef(wss);
   wssRef.current = wss;
+  // A host's page that cannot keep up gets notes with the 50 ms flush only (pageSpeed.ts)
+  const pageSpeed = useLazyRef(() => createPageSpeed(slow => {
+    if (wssRef.current?.readyState === WebSocket.OPEN) sendPartyPace(wssRef.current, slow);
+  })).current;
 
   // The singers' voices on the host's speakers: a phone sends its microphone,
   // the host's page plays them (usePartyVoices.ts)
@@ -1123,6 +1135,7 @@ const PartyPage = () => {
     myName: currentUserName,
     pageAudio,
     volume,
+    onDirectNote: (name, freq, videoTime) => applyDirectNote(live.notes, name, freq, videoTime, performance.now()),
   });
   voicesRef.current = voices;
   const isHostRef = useRef(isHost);
@@ -1225,51 +1238,23 @@ const PartyPage = () => {
   // Debounce tracking for non-host video sync
   const lastSeekRef = useRef(0); // timestamp of last seekTo call
 
-  // Host video time received via WS — used by non-host joiners when video is hidden.
-  // We also track the local timestamp of when it was received so we can interpolate
-  // forward between updates (host broadcasts ~3x/sec, but mic fires ~50x/sec).
-  const hostVideoTimeRef = useRef(0);
-  const hostVideoTimeReceivedAtRef = useRef(0); // performance.now() timestamp
-
   // Whether the host says playback is active — used when local player is unavailable
   const hostIsPlayingRef = useRef(false);
   const lastPlayRequestRef = useRef(0); // joiner: when playVideo() was last asked for
 
-  // Measured one-way network latency for this client (ms), sent back by server in ping:ack.
-  // Used to compensate drift in syncJoinerPlayer so the sync loop doesn't react to
-  // network delay as if it were real playback drift.
-  const ownLatencyRef = useRef(0);
+  // This page's way to the server, from the server's pings (ping:ack): a
+  // joiner's clock adds it to the host's time, the host sends its time ahead by it
+  const legToServer = useLazyRef(() => new Leg()).current;
 
   // This player's latency for the mic panel (party:latency_updated, every 5 s).
   // A store rather than state: as state it re-rendered the whole stage every
   // 5 s for a number only the open panel shows (see valueStore.ts)
   const latencyStore: LatencyStore = useLazyRef(() => createValueStore<number | undefined>(undefined)).current;
 
-  /**
-   * Get interpolated host video time — smooth monotonic clock for joiners.
-   *
-   * When a new WS update arrives, we only accept it if it moves time forward
-   * (or if it's a legitimate rewind like a seek). This prevents the small
-   * backward jumps caused by network jitter resetting the interpolation base
-   * to a value behind what we'd already predicted.
-   */
-  const smoothHostTimeRef = useRef(0); // last value we returned — monotonic
-
-  const getHostVideoTime = () => {
-    const base = hostVideoTimeRef.current;
-    if (!hostIsPlayingRef.current || !hostVideoTimeReceivedAtRef.current) return base;
-    const elapsed = (performance.now() - hostVideoTimeReceivedAtRef.current) / 1000;
-    const interpolated = base + elapsed;
-
-    // Enforce monotonicity: never go backward by small amounts.
-    // A large backward jump (>1s) is a legitimate seek — allow it.
-    if (interpolated < smoothHostTimeRef.current &&
-        smoothHostTimeRef.current - interpolated < 1) {
-      return smoothHostTimeRef.current;
-    }
-    smoothHostTimeRef.current = interpolated;
-    return interpolated;
-  };
+  // A joiner's song clock: where the host is, read off its video:time messages
+  // (hostClock.ts; the host broadcasts about three times a second, the mic fires 33 times)
+  const hostClock = useLazyRef(() => new HostClock()).current;
+  const getHostVideoTime = () => hostClock.timeAt(performance.now() / 1000) ?? 0;
 
   // --- Joiner video sync: playback-rate drift correction ---
   // Adjusts playback rate to keep the joiner's YouTube player tightly synced
@@ -1280,13 +1265,6 @@ const PartyPage = () => {
   //   drift > 3s    → hard seek (debounced)
   //   drift > 20ms  → speed up (1.25x) or slow down (0.75x)
   //   drift ≤ 20ms  → normal speed (1x)
-  //
-  // Ping compensation:
-  //   The host's videoTime was sent some time ago. By the time the joiner receives
-  //   and processes it, roughly one network RTT/2 has passed. Without compensation,
-  //   the joiner sees hostTime as slightly stale, making drift appear negative
-  //   (joiner appears behind), causing spurious 1.25x speed-ups even when perfectly
-  //   in sync. We add ownLatencyRef (measured RTT/2) to hostTime before comparing.
   const playerStateRef = useRef(-1);
 
   // YouTube player state for the stage (-1 unstarted, 0 ended, 1 playing,
@@ -1514,17 +1492,14 @@ const PartyPage = () => {
     if (playerStateRef.current !== 1) return; // only while playing
 
     const localTime = player.getCurrentTime?.() ?? 0;
-    // Compensate for one-way network latency: the host timestamp was created
-    // ~latencyMs ago, so the "true" host time right now is slightly ahead.
-    const compensatedHostTime = hostTime + ownLatencyRef.current / 1000;
-    const drift = localTime - compensatedHostTime; // positive = ahead, negative = behind
+    const drift = localTime - hostTime; // positive = ahead, negative = behind
 
     if (Math.abs(drift) > 3) {
       const now = performance.now();
       if (now - lastSeekRef.current < 3000) return;
       lastSeekRef.current = now;
       player.setPlaybackRate(1);
-      player.seekTo(compensatedHostTime, true);
+      player.seekTo(hostTime, true);
       showTitleCover();
       return;
     }
@@ -1792,6 +1767,7 @@ const PartyPage = () => {
     let cancelled = false;
     setError(null);
     videoClock.reset(); // a seek of the last song's is no news about this one
+    hostClock.reset();
     // The last song's length is no news about this one either
     setVideoDuration(!isHostRef.current && hostDurationRef.current?.songId === activeSongId ? hostDurationRef.current.duration : 0);
     (async () => {
@@ -1935,18 +1911,16 @@ const PartyPage = () => {
           // judged against the line being sung.
           let lastFrame: { t: number; ld: LyricData | null; gap: number; at: number } = { t: NaN, ld: null, gap: NaN, at: 0 };
           const animate = () => {
+            if (isHostRef.current) pageSpeed.frame(performance.now());
             const player = iframePlayerRef.current;
-            // For non-host joiners: prefer hostVideoTimeRef when local player
-            // is absent or hasn't loaded yet (getCurrentTime returns 0/undefined).
             let videoTime: number;
             if (isHostRef.current) {
               videoTime = hostVideoTime();
               releaseHeldStems();
             } else {
-              // Always use the smooth interpolated host time for display (lyrics/bars).
-              // The YouTube player's getCurrentTime() jitters due to playback rate
-              // adjustments and internal buffering. The host time is a smooth monotonic
-              // clock that only moves forward.
+              // Always the host's clock, for display too (lyrics/bars). The YouTube
+              // player's getCurrentTime() jitters due to playback rate adjustments
+              // and internal buffering, and a joiner's may not be there at all.
               videoTime = getHostVideoTime();
             }
             const ld = lyricDataRef.current;
@@ -2018,9 +1992,10 @@ const PartyPage = () => {
               if (sentAt - videoTimeSentAtRef.current >= 330) {
                 videoTimeSentAtRef.current = sentAt;
                 try {
+                  const isPlaying = player.getPlayerState() === 1;
                   sendVideoTime(w, {
-                    videoTime,
-                    isPlaying: player.getPlayerState() === 1,
+                    videoTime: songTimeAhead(videoTime, isPlaying, legToServer),
+                    isPlaying,
                     // Joiners without a video have no other way to learn its length
                     duration: player.getDuration?.(),
                   });
@@ -2203,7 +2178,7 @@ const PartyPage = () => {
       partyId: partyIdRef.current,
       nickname: currentUserNameRef.current,
       // the host's notes are stamped with its own player's time, a joiner's
-      // with the host's time as it heard it last (getHostVideoTime)
+      // with its estimate of that time (getHostVideoTime, hostClock.ts)
       isHost: !!isHostRef.current,
     });
   }, []);
@@ -2312,6 +2287,12 @@ const PartyPage = () => {
       let api: number | undefined;
       try { api = player?.getCurrentTime?.(); } catch { /* */ }
       lines.push(`clock: ${ci.mode} #${ci.epoch} t=${ci.time?.toFixed(2) ?? '-'} reports=${ci.reports} lag=${ms(ci.lag)} age=${ms(ci.age)} api-clock=${ms(api !== undefined && Number.isFinite(api) && ci.time !== null ? api - ci.time : null)}`);
+    } else {
+      // A joiner's estimate of it (hostClock.ts): lag = how far the newest
+      // message sat below the best of the window, age = how long ago it came,
+      // leg = this page's way from the server
+      const ci = hostClock.info(performance.now() / 1000);
+      lines.push(`clock: ${ci.mode} #${ci.epoch} t=${ci.time?.toFixed(2) ?? '-'} messages=${ci.messages} lag=${ms(ci.lag)} age=${ms(ci.age)} leg=${ms(ci.leg)}`);
     }
     const audio = audioRef.current;
     const ctx = audio?.ctx;
@@ -2331,7 +2312,7 @@ const PartyPage = () => {
     // The highway's canvas: who paints it, its size in pixels (per CSS pixel), the
     // governor's level (0 = full), paints per second, frames the worker was too busy for
     const hs = highwayStats;
-    lines.push(`highway: ${hs.mode} ${hs.width}x${hs.height} @${hs.scale.toFixed(2)} (dpr ${hs.dpr}${hs.maxSize ? `, max ${hs.maxSize}` : ''}) level=${hs.level} paints=${hs.fps}/s dropped=${hs.dropped}`);
+    lines.push(`highway: ${hs.mode} ${hs.width}x${hs.height} @${hs.scale.toFixed(2)} (dpr ${hs.dpr}${hs.maxSize ? `, max ${hs.maxSize}` : ''}) level=${hs.level} paints=${hs.fps}/s late=${Math.round(hs.late * 100)}% dropped=${hs.dropped}`);
     const bl = bleedRef.current?.state();
     lines.push(bl
       ? `delay: ${Math.round(bl.applied * 1000)} ms (${bl.source}${bl.z != null ? ` z=${bl.z.toFixed(1)}` : ''} chunks=${bl.chunks} target=${Math.round(bl.target * 1000)} ref=${bl.reference}${bl.worker ? '' : ' no-worker'})`
@@ -2344,7 +2325,7 @@ const PartyPage = () => {
     lines.push(`audioSession=${navigator.audioSession?.type ?? 'n/a'} visible=${document.visibilityState} online=${navigator.onLine}`);
     const m = micStatsRef.current;
     lines.push(m
-      ? `mic: ${m.active === false ? 'idle' : 'active'} ${m.provider ?? 'wasm'} chunks=${m.totalChunks} (${m.chunksPerSec}/s) notes=${m.totalNotes} (${m.notesPerSec}/s) gated=${m.gatedChunks}${m.droppedChunks ? ` dropped=${m.droppedChunks}` : ''} gain=${(m.inputGain ?? 1).toFixed(2)} infer=${(m.inferMs ?? 0).toFixed(1)}ms${m.inferErrors ? ` errors=${m.inferErrors}` : ''} floor=${m.noiseFloor?.toFixed(5)} last=${m.lastFreq?.toFixed(1)}Hz vol=${m.lastVolume?.toFixed(4)}`
+      ? `mic: ${m.active === false ? 'idle' : 'active'} ${m.provider ?? 'wasm'} chunks=${m.totalChunks} (${m.chunksPerSec}/s) notes=${m.totalNotes} (${m.notesPerSec}/s) gated=${m.gatedChunks}${m.droppedChunks ? ` dropped=${m.droppedChunks}` : ''}${m.displayWindows ? ` provisional=${m.provisionals}/${m.displayWindows}` : ''} gain=${(m.inputGain ?? 1).toFixed(2)} infer=${(m.inferMs ?? 0).toFixed(1)}ms${m.inferErrors ? ` errors=${m.inferErrors}` : ''} floor=${m.noiseFloor?.toFixed(5)} last=${m.lastFreq?.toFixed(1)}Hz vol=${m.lastVolume?.toFixed(4)}`
       : micActiveRef.current ? 'mic: closed until a song plays' : 'mic: not active');
     // the voices on the speakers: a phone's connection, or each voice the host's page plays
     for (const line of voicesRef.current?.debugLines() ?? []) lines.push(line);
@@ -2381,12 +2362,13 @@ const PartyPage = () => {
     joiningRef.current = true;
     setMicError(null);
     try {
-      const result = await initMicInput({ deviceId: deviceId || undefined, gpu: isPitchGpuEnabled(), onPhase: setMicPhase });
+      const result = await initMicInput({ deviceId: deviceId || undefined, gpu: isPitchGpuEnabled(), provisional: isFastPitchEnabled(), earlyContext: isEarlyContextEnabled(), shortWindow: isShortWindowEnabled(), onPhase: setMicPhase });
       micOpenedAtRef.current = performance.now();
       stopMicRef.current = result.stopMicInput;
       micStatsRef.current = result.stats;
       micRecorderRef.current = result.recorder;
       micSetActiveRef.current = result.setActive;
+      delayLeadRef.current = result.delayLead;
       result.setActive(isSongPlaying());
       // a copy goes to the host's speakers, when wanted (usePartyVoices.ts)
       voicesRef.current?.setMicTrack(result.track);
@@ -2402,6 +2384,7 @@ const PartyPage = () => {
       result.setOnAudio((samples, pos) => bleed.pushAudio(samples, pos));
       syncBleedSong(activeSongIdRef.current);
       setSetOnProcessing(() => result.setOnProcessing);
+      setSetOnProvisional(() => result.setOnProvisional);
       setMicActive(true);
       // the other microphones of this device open with this one
       for (const { singer } of extraSingersRef.current.values()) singer.openMic();
@@ -2531,6 +2514,7 @@ const PartyPage = () => {
 
   // Process mic input — uses refs to avoid re-registering the callback on every tick
   const lastDelayRef = useRef(FALLBACK_DELAY); // the delay the last note was taken back by (influencer mode's camera too)
+  const delayLeadRef = useRef(0); // what the microphone's windows take off that delay (MicInput)
   useEffect(() => {
     setOnProcessing && setOnProcessing(msg => {
       // (a failed inference arrives as no pitch, freq 0; MicrophoneInput.ts counts it in stats.inferErrors)
@@ -2552,12 +2536,13 @@ const PartyPage = () => {
       // time for judging, drawing and the server's score, so all agree.
       const bleed = bleedRef.current;
       if (bleed && pos !== undefined) bleed.pushStamp(pos, videoTime);
-      const delay = bleed ? bleed.nextDelay() : FALLBACK_DELAY;
-      lastDelayRef.current = delay;
-      const noteTime = videoTime - delay;
       // My notes are judged against the part I sing (a duet's second part has its own)
       const frame = live.frame;
       const td = myPartRef.current === 2 && frame.p2TickData ? frame.p2TickData : frame.tickData;
+      bleed?.pushNote(td.lyricData, videoTime, freq);
+      const delay = (bleed ? bleed.nextDelay() : FALLBACK_DELAY) - delayLeadRef.current;
+      lastDelayRef.current = delay;
+      const noteTime = videoTime - delay;
 
       // People talking near the mic, not singing along, are held back and go
       // on without their pitch, so talk draws no line and scores nothing; a
@@ -2577,10 +2562,29 @@ const PartyPage = () => {
         if (judged) {
           live.notes = getAndSetHitNotesByPlayer(judged, live.notes, n.freq, currentUserNameRef.current, n.t, TOLERANCE[difficultyRef.current]);
         }
+        if (n.freq > 0) confirmProvisional(live.provisional, n.t);
         if (w) sendPlayerNote(w, { freq: n.freq, videoTime: n.t, fric: n.fric });
+        if (w) voicesRef.current?.noteOut(n.freq, n.t);
       }
     });
   }, [setOnProcessing, isSongPlaying, hostVideoTime, songTimeHeld]);
+
+  // The line's head before the note comes (provisionalPitch.ts): stamped and
+  // taken back like a note, so it sits where the note will. Only drawn, so
+  // nothing here reaches a score; while the singing gate holds talk back, it
+  // holds this back too.
+  useEffect(() => {
+    setOnProvisional && setOnProvisional(freq => {
+      if (!isSongPlaying() || !singingGate.open || songTimeHeld()) return;
+      const videoTime = (!isHostRef.current)
+        ? getHostVideoTime()
+        : hostVideoTime();
+      const username = currentUserNameRef.current;
+      const line = live.provisional?.username === username ? live.provisional : (live.provisional = { username, notes: [] });
+      if (line.notes.length >= MAX_PROVISIONAL) line.notes.shift(); // nobody draws them while the page is hidden
+      line.notes.push({ videoTime: videoTime - lastDelayRef.current, freq, at: performance.now() });
+    });
+  }, [setOnProvisional, isSongPlaying, hostVideoTime, songTimeHeld]);
 
   // This device's other microphones (the mic panel's "more microphones"): a
   // singer each, connected once the page is in the party, their microphones
@@ -2774,6 +2778,7 @@ const PartyPage = () => {
         announceSong(wsInstance);
         // What this page does with intros and outros: co-hosts see it and can switch it
         sendPartySettings(wsInstance, { autoSkip: autoSkipRef.current });
+        if (pageSpeed.slow) sendPartyPace(wsInstance, true); // (the server keeps it per socket)
       }
 
       for (const { send, forSong } of outboxRef.current.splice(0)) {
@@ -2829,7 +2834,7 @@ const PartyPage = () => {
           const { data } = parseBinaryBatch(msg.data);
           const remoteNotes = data.notes.filter(n => n.username !== currentUserNameRef.current);
           if (remoteNotes.length > 0) {
-            live.notes = applyRemoteNotes(live.notes, remoteNotes);
+            live.notes = applyRemoteNotes(live.notes, remoteNotes, voicesRef.current?.socketNote);
           }
           // Each note carries its singer's score (own notes included: the
           // server's number is the one on the board). Into the live store, not
@@ -3089,8 +3094,8 @@ const PartyPage = () => {
       }
 
       if (jsonObj.type === "video:time" && !isHost) {
-        hostVideoTimeRef.current = jsonObj.data.videoTime ?? 0;
-        hostVideoTimeReceivedAtRef.current = performance.now();
+        hostClock.leg = legToServer.seconds;
+        hostClock.report(jsonObj.data.videoTime ?? 0, !!jsonObj.data.isPlaying, performance.now() / 1000);
         // The host's video length (newer hosts send it): same-state updates do not re-render
         const hostDuration = Number(jsonObj.data.duration);
         if (hostDuration > 0) setVideoDuration(prev => (Math.abs(prev - hostDuration) > 0.5 ? hostDuration : prev));
@@ -3100,7 +3105,7 @@ const PartyPage = () => {
         if (wasPlaying !== hostIsPlayingRef.current) checkMicRef.current?.(); // a closed microphone opens as the song starts
 
         // Sync stem audio for non-host joiners
-        syncStemsToTime(jsonObj.data.videoTime ?? 0, !!jsonObj.data.isPlaying);
+        syncStemsToTime(getHostVideoTime(), !!jsonObj.data.isPlaying);
 
         const player = iframePlayerRef.current;
         // A player whose iframe is gone (being replaced) throws from inside
@@ -3120,7 +3125,7 @@ const PartyPage = () => {
             } else if (st === 1 || st === 3) {
               player.pauseVideo?.();
             }
-            syncJoinerPlayer(player, jsonObj.data.videoTime);
+            syncJoinerPlayer(player, getHostVideoTime());
           } catch { /* see above */ }
         }
       }
@@ -3130,8 +3135,8 @@ const PartyPage = () => {
       }
 
       if (jsonObj.type === "ping:ack") {
-        // Server measured our RTT/2 and sent it back — store for sync compensation
-        ownLatencyRef.current = jsonObj.data.latencyMs ?? 0;
+        // The server measured our round trip and sent half of it back
+        legToServer.ack(jsonObj.data.latencyMs);
       }
 
       // The host's timing for the current song (party:gap, also carried by
@@ -3154,8 +3159,9 @@ const PartyPage = () => {
         if (!status.connected) {
           // nothing plays without the host: idle the mic, pause our copy of the video and the stems
           hostIsPlayingRef.current = false;
+          hostClock.halt(performance.now() / 1000);
           setMicsActive(false);
-          syncStemsToTime(hostVideoTimeRef.current, false);
+          syncStemsToTime(getHostVideoTime(), false);
           try { iframePlayerRef.current?.pauseVideo?.(); } catch { /* */ }
         }
       }
@@ -3178,9 +3184,9 @@ const PartyPage = () => {
       if (jsonObj.type === "error") {
         console.error("WS error:", jsonObj.data);
         // The party takes no new people right now (its host switched joining
-        // off) and this page has never been in it: no reconnecting into it,
-        // "Try again" asks anew
-        if (jsonObj.data?.code === 'joining_closed') {
+        // off, or it is full) and this page has never been in it: no
+        // reconnecting into it, "Try again" asks anew
+        if (jsonObj.data?.code === 'joining_closed' || jsonObj.data?.code === 'party_full') {
           connRef.current?.close();
           setRefused(true);
           return;

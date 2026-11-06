@@ -3,10 +3,10 @@
 // A restart is a jump in the music (crossfaded, see stemPlayer.ts), so it
 // is only made when the stems are really off. Both clocks the stems follow
 // are lower bounds of the truth: the host's video clock (videoClock.ts: a
-// report can be stale, never early) and a joiner's host time (a message can
-// arrive late, never early, and that clock never steps back). So a clock
-// ahead of the stems is proof they are behind: they follow at once. A clock
-// a little behind the stems may only be late news — the old rule restarted
+// report can be stale, never early) and a joiner's host clock (hostClock.ts: a
+// message can arrive late, never early, and the way is added at its shortest).
+// So a clock ahead of the stems is proof they are behind: they follow at once.
+// A clock a little behind the stems may only be late news — the old rule restarted
 // the stems back on it every half second on a starved Fire TV — so that has
 // to hold for a while before the stems step back. Neither clock falls a
 // second behind by lateness (they keep the best news they had), so that far

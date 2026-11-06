@@ -21,6 +21,9 @@
  *     voices on (rtc:ice), so each page asks again when they come on, and a
  *     phone waits for that (at most ICE_WAIT_MS) before its first try.
  *     ?voicerelay: through the relay only, to try it out.
+ *   - The same setup carries a short way for the notes to the host's page, for
+ *     its highway (noteLink.ts): a phone answers whatever the host's page
+ *     offers, and only a host's page opened with ?directnotes offers.
  *   - The host's page sets the singers' level and the echo effect
  *     (singspree_voices_level, singspree_voices_echo) and each singer's level
  *     (the volume panel), and plays the voices at the page's volume.
@@ -28,12 +31,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createVoiceLink } from './voiceLink';
 import { createVoiceMixer } from './voiceMixer';
+import { createNoteReceiver, createNoteSender, isNoteLink, noteLinkWanted } from './noteLink';
 import { createValueStore } from './valueStore';
 import { isAppleMobile } from './youtubeSilence';
 import { sendRtcIce, sendRtcReport, sendRtcSignal } from './WebsocketHandling';
 import { debugLog } from './debugLog';
-import type { VoiceLink, VoiceLinkState, VoiceReport } from './voiceLink';
+import type { VoiceLink, VoiceLinkState } from './voiceLink';
 import type { VoiceMixer, VoiceSingerView } from './voiceMixer';
+import type { NoteReport } from './noteLink';
+import type { HitNote } from './MicInputToTick';
 import type { ValueStore } from './valueStore';
 import type { ExtraVoice } from './extraSingers';
 import type { PartySocket } from './WebsocketHandling';
@@ -78,6 +84,8 @@ export interface PartyVoicesOptions {
   pageAudio: () => { ctx: AudioContext; music: AudioNode } | null;
   /** the page's volume, 0–100 */
   volume: number;
+  /** a singer's note came down a link (noteLink.ts): returns whether it was there already */
+  onDirectNote?: (name: string, freq: number, videoTime: number) => boolean;
 }
 
 export interface PartyVoices {
@@ -107,11 +115,15 @@ export interface PartyVoices {
   extraVoice(name: string): ExtraVoice;
   /** an extra microphone's voice is wanted now */
   extraWanted: boolean;
+  /** this page's note, for the short way to the host's page, if there is one (noteLink.ts) */
+  noteOut(freq: number, videoTime: number): void;
+  /** a host's page with the short way on: told of each note the socket brought */
+  socketNote?: (name: string, there: HitNote | null) => void;
   /** lines for the ?debug panel */
   debugLines(): string[];
 }
 
-export function usePartyVoices({ isHost, partyId, partyVoices, socket, myName, pageAudio, volume }: PartyVoicesOptions): PartyVoices {
+export function usePartyVoices({ isHost, partyId, partyVoices, socket, myName, pageAudio, volume, onDirectNote }: PartyVoicesOptions): PartyVoices {
   // Off until turned on. The host's own microphone stays on its own screen. A singer's goes to
   // someone else's page, and a party link can come from a stranger: it starts off in each party
   const [hostOut, setHostOut] = useState(() => read(OUT_KEY) === '1');
@@ -145,7 +157,7 @@ export function usePartyVoices({ isHost, partyId, partyVoices, socket, myName, p
   }, []);
   const log = useCallback((line: string) => debugLog('voice', line), []);
   // how each try went, to the server's event log (voice_link events)
-  const report = useCallback((r: VoiceReport & { mic?: string; singer?: string }) => {
+  const report = useCallback((r: NoteReport & { mic?: string }) => {
     const ws = socketRef.current();
     if (ws) sendRtcReport(ws, r);
     debugLog('voice', `${r.side} ${r.singer ?? r.mic ?? ''} ${r.result} after ${r.ms} ms: answered=${r.answered} local=${JSON.stringify(r.local)} remote=${JSON.stringify(r.remote)} ${r.states}${r.pairs ? ` pairs=${JSON.stringify(r.pairs)}` : ''}${r.route ? ` route=${r.route}` : ''}`);
@@ -170,6 +182,19 @@ export function usePartyVoices({ isHost, partyId, partyVoices, socket, myName, p
   const mixerRef = useRef(mixer);
   mixerRef.current = mixer;
   useEffect(() => () => mixer?.close(), [mixer]);
+
+  // The short way for the notes (noteLink.ts): a phone only answers, the host's page starts it
+  const onDirectNoteRef = useRef(onDirectNote);
+  onDirectNoteRef.current = onDirectNote;
+  const noteSender = useMemo(() => (isHost ? null : createNoteSender({ send, iceServers: () => iceRef.current, relayOnly, log, report })), [isHost, send, relayOnly, log, report]);
+  useEffect(() => () => noteSender?.close(), [noteSender]);
+  const noteReceiver = useMemo(() => (isHost && noteLinkWanted() ? createNoteReceiver({
+    send: (to, signal) => send({ ...signal, to }),
+    onNote: (name, freq, videoTime) => onDirectNoteRef.current?.(name, freq, videoTime) ?? false,
+    iceServers: () => iceRef.current, relayOnly, log, report,
+  }) : null), [isHost, send, relayOnly, log, report]);
+  useEffect(() => { noteReceiver?.setEnabled(partyVoices); }, [noteReceiver, partyVoices]);
+  useEffect(() => () => noteReceiver?.close(), [noteReceiver]);
 
   // Voices on: the servers again (now with the relay), and until they are in (or ICE_WAIT_MS) no try
   useEffect(() => {
@@ -235,17 +260,24 @@ export function usePartyVoices({ isHost, partyId, partyVoices, socket, myName, p
       if (hasRelay(iceRef.current)) setIceReady(true);
     } else if (msg.type === 'rtc:signal' && msg.data) {
       const { from, ...signal } = msg.data;
-      if (mixerRef.current) mixerRef.current.handleSignal(from, signal);
+      if (isNoteLink(signal.link)) {
+        if (noteReceiver) noteReceiver.handleSignal(from, signal);
+        else noteSender?.handleSignal(signal);
+      } else if (mixerRef.current) mixerRef.current.handleSignal(from, signal);
       else link?.handleSignal(signal);
     } else if (msg.type === 'party:host_status' && link) {
       // the host's page came back: the connection it had went with the old one
       const up = msg.data?.connected !== false;
       if (up && !hostUpRef.current) link.hostBack();
+      if (!up) noteSender?.hostGone();
       hostUpRef.current = up;
     } else if (msg.type === 'party:player_left' && msg.data?.username) {
       mixerRef.current?.drop(msg.data.username);
+      noteReceiver?.drop(msg.data.username);
+    } else if (msg.type === 'player:renamed' && msg.data?.from && msg.data?.to) {
+      noteReceiver?.rename(msg.data.from, msg.data.to);
     }
-  }, [link]);
+  }, [link, noteReceiver, noteSender]);
 
   const extraVoice = useCallback((name: string): ExtraVoice => (isHost
     ? { onTrack: track => { if (localDirect) mixerRef.current?.setLocal(name, track); } }
@@ -273,16 +305,19 @@ export function usePartyVoices({ isHost, partyId, partyVoices, socket, myName, p
     onMessage,
     extraVoice,
     extraWanted: wanted && (isHost ? localDirect : iceReady),
+    noteOut: useCallback((freq: number, videoTime: number) => noteSender?.note(freq, videoTime), [noteSender]),
+    socketNote: noteReceiver?.socketNote,
     debugLines: useCallback(() => {
       const m = mixerRef.current;
+      const notes = noteReceiver?.debugLines() ?? [];
       if (m) {
-        if (!m.enabled) return ['voices: off'];
+        if (!m.enabled) return ['voices: off', ...notes];
         const list = m.singers();
-        if (!list.length) return ['voices: on, nobody yet'];
-        return list.map(s => `voice ${s.name}: ${s.kind} ${s.phase}${s.route ? ` ${s.route}` : ''} lag=${s.lagMs ?? '?'}ms back=${s.couplingDb ?? '?'}dB gain=${s.gainDb.toFixed(1)}dB${s.capped ? ' capped' : ''} jitter=${s.jitterMs ?? '?'}ms loss=${s.lossPct ?? '?'}% pkt=${s.packetsPerSec ?? '?'}/s${s.howls ? ` howls=${s.howls}` : ''}${s.ducked ? ' ducked' : ''} rms=${s.rms.toFixed(4)}${s.open ? ' open' : ''}`);
+        if (!list.length) return ['voices: on, nobody yet', ...notes];
+        return [...notes, ...list.map(s => `voice ${s.name}: ${s.kind} ${s.phase}${s.route ? ` ${s.route}` : ''} lag=${s.lagMs ?? '?'}ms back=${s.couplingDb ?? '?'}dB gain=${s.gainDb.toFixed(1)}dB${s.capped ? ' capped' : ''} jitter=${s.jitterMs ?? '?'}ms loss=${s.lossPct ?? '?'}% pkt=${s.packetsPerSec ?? '?'}/s${s.howls ? ` howls=${s.howls}` : ''}${s.ducked ? ' ducked' : ''} rms=${s.rms.toFixed(4)}${s.open ? ' open' : ''}`)];
       }
       const st = link?.state;
       return [`voice: ${wantedRef.current ? st?.phase ?? 'off' : 'not wanted'}${st?.route ? ` ${st.route}` : ''}${st?.rttMs != null ? ` rtt=${st.rttMs}ms` : ''}${st?.reason ? ` last failure: ${st.reason}` : ''}`];
-    }, [link]),
+    }, [link, noteReceiver]),
   };
 }

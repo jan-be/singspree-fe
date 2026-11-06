@@ -15,7 +15,8 @@
  *               the frame's 'drawLayer' op
  *               { type: 'scene', scene } — a GLScene's take().scene
  * Messages out: { type: 'ready', mode: 'gl' | '2d' } — what it paints with
- *               { type: 'done', ops } / { type: 'done', buffers } — the frame's buffers back, for reuse
+ *               { type: 'done', at, ops } / { type: 'done', at, buffers } — the frame's buffers back, for
+ *               reuse, and when it was finished (at: milliseconds since the epoch, as timeOrigin + now())
  *               { type: 'error', message }
  */
 import { replayCanvas, type Specials } from './canvasRecorder';
@@ -58,6 +59,9 @@ const reason = (err: unknown) => (typeof err === 'object' && err !== null && 'me
 
 const fail = (err: unknown) => self.postMessage({ type: 'error', message: String(reason(err)) } satisfies HighwayWorkerReply);
 
+/** The moment a frame was finished, on a clock the page can read too. */
+const finishedAt = () => performance.timeOrigin + performance.now();
+
 self.onmessage = (e: MessageEvent<HighwayWorkerRequest>) => {
   const m = e.data;
   try {
@@ -84,7 +88,7 @@ self.onmessage = (e: MessageEvent<HighwayWorkerRequest>) => {
       const { scene } = m;
       gl.draw(scene);
       const buffers = { boxes: scene.boxes, strokes: scene.strokes, verts: scene.verts, sprites: scene.sprites };
-      self.postMessage({ type: 'done', buffers } satisfies HighwayWorkerReply, [scene.boxes.buffer, scene.strokes.buffer, scene.verts.buffer, scene.sprites.buffer]);
+      self.postMessage({ type: 'done', at: finishedAt(), buffers } satisfies HighwayWorkerReply, [scene.boxes.buffer, scene.strokes.buffer, scene.verts.buffer, scene.sprites.buffer]);
       return;
     }
     if (m.type !== 'frame' || !ctx) return;
@@ -108,7 +112,7 @@ self.onmessage = (e: MessageEvent<HighwayWorkerRequest>) => {
     }
     replayCanvas(ctx, frame, specials, images);
     // (rasterised when the compositor takes the next frame, not here)
-    self.postMessage({ type: 'done', ops: frame.ops } satisfies HighwayWorkerReply, [frame.ops.buffer]);
+    self.postMessage({ type: 'done', at: finishedAt(), ops: frame.ops } satisfies HighwayWorkerReply, [frame.ops.buffer]);
   } catch (err) {
     fail(err);
   }

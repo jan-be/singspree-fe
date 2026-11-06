@@ -36,6 +36,14 @@ describe('singerNotesOnLine', () => {
     expect(notes[1].st).toBe(33); // the semitone is cached on the note
   });
 
+  it('draws what still waits for a note after the notes, and leaves the notes as they are', () => {
+    const p1 = part([{ start: 10, length: 20, tone: 5 }]);
+    const notes = [at(12), at(13)];
+    const visible = singerNotesOnLine(notes, { chart: p1, grace: p1.grace, ...line }, [at(14), at(15)]);
+    expect(visible.map(v => v.tf)).toEqual([12, 13, 14, 15]);
+    expect(notes.length).toBe(2);
+  });
+
   it("a duet's second singer is shown along the second part while the first part rests", () => {
     const p1 = part([]); // a line the first part sits out
     const p2 = part([{ start: 10, length: 4, tone: 9 }]);

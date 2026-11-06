@@ -26,7 +26,7 @@ describe('keepWebSocket', () => {
     constructor() { super(); this.readyState = 0; this.closedByPage = false; }
     open() { this.readyState = 1; this.dispatchEvent(new Event('open')); }
     hear() { this.dispatchEvent(new Event('message')); }
-    drop() { this.readyState = 3; this.dispatchEvent(new Event('close')); }
+    drop(code?: number) { this.readyState = 3; this.dispatchEvent(Object.assign(new Event('close'), { code })); }
     close() { if (this.readyState === 3) return; this.closedByPage = true; this.drop(); }
   }
 
@@ -54,6 +54,20 @@ describe('keepWebSocket', () => {
   afterEach(() => {
     conn?.close();
     vi.useRealTimers();
+  });
+
+  it('a server busy with a returning crowd (1013) is tried again in a moment, wherever the backoff had got to', () => {
+    start();
+    for (let i = 0; i < 5; i++) { last().drop(); vi.advanceTimersByTime(30_000); } // a long outage: the waits are near the top
+    expect(sockets).toHaveLength(6);
+    last().drop(1013);
+    vi.advanceTimersByTime(999);
+    expect(sockets).toHaveLength(6);
+    vi.advanceTimersByTime(1);
+    expect(sockets).toHaveLength(7); // 0.5 s + 0.5 of a further second
+    last().drop();
+    vi.advanceTimersByTime(9_999);
+    expect(sockets).toHaveLength(7); // and the backoff goes on from where it was, at its 10 s
   });
 
   it('connects at once and hands every socket that opens to onOpen, saying whether it is a reconnect', () => {

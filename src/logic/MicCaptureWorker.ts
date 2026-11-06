@@ -14,10 +14,12 @@
 //   { type: 'active', active, gen }          the song paused / runs again: `gen` tags everything sent after
 // Out:
 //   { audio, volume, fric, pos, gen }        a chunk (audio transferred)
+//   { audio, volume, pos, display, gen }     a display chunk (micChunker.ts), when options ask for them
 //   { volume, gen }                          an input level while idle
+//   { type: 'frameAge', age }                how old the frames are when read (createFrameAgeMeter), every few seconds
 //   { type: 'failed', error }                the stream could not be read (nothing else was sent)
 
-import { createMicCapture } from './micChunker';
+import { createFrameAgeMeter, createMicCapture } from './micChunker';
 import type { AudioFrame, MicCapture, MicCaptureMessage, MicCaptureScope, MicCaptureWorkerOptions } from './micChunker';
 
 // This file's global scope: a dedicated worker's, as far as it uses it (the
@@ -27,15 +29,18 @@ declare const self: MicCaptureScope;
 
 let capture: MicCapture | null = null;
 let gen = 0;
+const FRAMES_PER_AGE_REPORT = 500; // every 5 s at 10 ms a frame
 
 async function read(readable: ReadableStream<AudioFrame>, options: MicCaptureWorkerOptions) {
   capture = createMicCapture({
     ...options,
     onChunk: chunk => self.postMessage(Object.assign(chunk, { gen }), [chunk.audio.buffer]),
+    onDisplay: chunk => self.postMessage(Object.assign(chunk, { gen, display: 1 as const }), [chunk.audio.buffer]),
     onLevel: volume => self.postMessage({ volume, gen } satisfies MicCaptureMessage),
   });
   const reader = readable.getReader();
   let frames = 0;
+  const age = createFrameAgeMeter();
   try {
     for (;;) {
       const { value: frame, done } = await reader.read();
@@ -43,9 +48,14 @@ async function read(readable: ReadableStream<AudioFrame>, options: MicCaptureWor
       // Extract float32 samples from the AudioData frame
       const channelData = new Float32Array(frame.numberOfFrames);
       frame.copyTo(channelData, { planeIndex: 0 });
+      if (frame.timestamp !== undefined) age.push(frame.timestamp, 1000 * frame.numberOfFrames / (frame.sampleRate || options.nativeRate), performance.now());
       frame.close();
       frames++;
       capture.push(channelData, channelData.length);
+      if (frames % FRAMES_PER_AGE_REPORT === 0) {
+        const read = age.read();
+        if (read) self.postMessage({ type: 'frameAge', age: read } satisfies MicCaptureMessage);
+      }
     }
   } catch (err) {
     // Only a stream that never gave a frame can be taken over by the main thread

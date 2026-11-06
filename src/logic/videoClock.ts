@@ -23,8 +23,27 @@
 // stopped moving while YouTube still says "playing" (it ran out of data: on
 // the starved stick for up to 20 s, the "buffering" news seconds behind):
 // reports whose time stands still are believed over the state.
+//
+// A video that has just started is the one exception to the rule above. Its
+// time moves and then stands for a moment while the sound path comes up (read
+// inside YouTube's frame: 40 ms on a desktop, after every start, seek and
+// resume), so the first report sits that far above where the video then plays
+// on. Taken for a bound, that lasted: nothing later reaches it, so the clock
+// sank at the leak's 1 ms/s for as long as it took, 240 ms and more over a
+// song, and the stems were dragged along by restarts (in the field a sixth of
+// the song time on Windows and iPhones, a quarter on Android). So for its first
+// SETTLE seconds an epoch follows the newest report, and the highest bound
+// starts after that.
+//
+// The leak stays for what is left: a video that loses a moment later on (rare:
+// 6 of the field's 428 slides began inside a stretch), and a starved stick,
+// whose reports can come too seldom for the first second to hold a second one.
+// Nothing faster will do there: its reports sit together 20-30 ms below the
+// video for seconds at a time, so taking their agreement for the video's place
+// made the clock wobble by that much.
 
 export const LEAK = 0.001;        // s per s: how fast the bound sinks between reports
+export const SETTLE = 1;          // s: how long after it starts a video's reports are not bounds yet
 export const SEEK_GRACE = 10;     // s: after our seek, reports that do not show it are old ones, for at most this long
 const SEEK_SLACK = 0.3;           // s: where a report may land around a seek target
 const MOVED = 0.05;               // s past the target: the video plays on from there
@@ -82,8 +101,8 @@ type ClockState =
   | { mode: 'seeking'; target: number; at: number }
   /** the video stands at `frozen`; `stuck`: because the time stood still, not because YouTube said so */
   | { mode: 'stopped'; frozen: number; stuck: boolean }
-  /** `offset`: the estimate of video time − rate × wall time; `moved`: the last report that showed the video moving */
-  | { mode: 'playing'; offset: number; moved: { time: number; at: number } };
+  /** `offset`: the estimate of video time − rate × wall time; `moved`: the last report that showed the video moving; `from`: the epoch's first report's stamp */
+  | { mode: 'playing'; offset: number; moved: { time: number; at: number }; from: number };
 
 export class VideoClock {
   declare state: ClockState;
@@ -158,7 +177,7 @@ export class VideoClock {
       return;
     }
     const o = r.time - r.at * rate;
-    s.offset = Math.max(s.offset - LEAK * (r.at - last), o);
+    s.offset = r.at - s.from < SETTLE ? o : Math.max(s.offset - LEAK * (r.at - last), o);
     this.lag = s.offset - o;
     this.lastAt = r.at;
     this.reports += 1;
@@ -172,7 +191,7 @@ export class VideoClock {
     this.reports = 1;
     this.lag = 0;
     this.since = now;
-    this.state = mode === 'playing' ? { mode, offset: time - at * rate, moved: { time, at } } : { mode, frozen: time, stuck };
+    this.state = mode === 'playing' ? { mode, offset: time - at * rate, moved: { time, at }, from: at } : { mode, frozen: time, stuck };
   }
 
   /** How long the video has been known to stand still (0 unless stopped) */

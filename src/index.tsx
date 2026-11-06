@@ -16,6 +16,7 @@ import { syncVideoScaleFromUrl } from "./logic/videoScale";
 import { syncDebugFlagFromUrl, isDebugEnabled, installDebugHooks } from "./logic/debugLog";
 import { syncAudioLatencyFromUrl } from "./logic/audioLatencyFlag";
 import { captureReferrer } from "./logic/referrer";
+import { syncMicFlagsFromUrl } from "./logic/fastPitchFlag";
 import { watchInstallPrompt } from "./logic/installPrompt";
 import { installSpatialNav } from "./logic/spatialNav";
 import { applySeason } from "./seasons/seasons";
@@ -29,6 +30,8 @@ syncDebugFlagFromUrl();
 if (isDebugEnabled()) installDebugHooks();
 // ?latency=playback asks the stems' Web Audio for a large output buffer on this browser (?latency=0: the default)
 syncAudioLatencyFromUrl();
+// ?fastpitch=1 draws an earlier pitch at the line's head, ?earlycontext=1 starts Safari's AudioContext before the mic (fastPitchFlag.ts)
+syncMicFlagsFromUrl();
 // Before the router runs: a client-side navigation clears document.referrer
 captureReferrer();
 // The browser offers adding SingSpree to the home screen once, early: kept for the entry page (after a long party)

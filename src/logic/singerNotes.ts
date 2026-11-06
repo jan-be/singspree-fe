@@ -111,14 +111,15 @@ export function targetToneNear(chart: NoteChart, tf: number, graceTicks: number)
  * @param line.lastLineTick
  * @param line.ticksPerSec
  * @param line.gapSec         the gap the song plays at, in seconds
+ * @param head                drawn after `notes` as if they were notes: the provisional pitches (provisionalPitch.ts)
  */
 export function singerNotesOnLine(notes: readonly LineNote[], { chart, grace, lineStartTick, lastLineTick, ticksPerSec, gapSec }: {
   chart: NoteChart, grace: readonly TickInterval[], lineStartTick: number, lastLineTick: number, ticksPerSec: number, gapSec: number,
-}): VisibleNote[] {
+}, head: readonly LineNote[] = []): VisibleNote[] {
   const graceTicks = Math.ceil(ticksPerSec);
   const visible: VisibleNote[] = [];
-  for (let i = notes.length - 1; i >= 0; i--) {
-    const n = notes[i];
+  for (let i = notes.length + head.length - 1; i >= 0; i--) {
+    const n = i < notes.length ? notes[i] : head[i - notes.length];
     const tf = ticksPerSec * (n.videoTime - gapSec);
     if (tf > lastLineTick) continue;
     if (tf < lineStartTick) break;

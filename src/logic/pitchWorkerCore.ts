@@ -28,6 +28,7 @@ export interface PitchRuntime<T> {
  */
 export function servePitchRequests<T>(ort: PitchRuntime<T>, provider: string): void {
   let session: PitchSession<T> | null = null;
+  let samples = 0;
   const voicing = createVoicingTracker();
 
   self.onmessage = async ({ data }: MessageEvent<PitchWorkerRequest>) => {
@@ -36,6 +37,7 @@ export function servePitchRequests<T>(ort: PitchRuntime<T>, provider: string): v
     if (type === 'init') {
       try {
         session = await ort.InferenceSession.create(data.modelUrl, { executionProviders: ['wasm'] });
+        samples = data.samples ?? 0;
         self.postMessage({ type: 'init', status: 'ok', provider } satisfies PitchWorkerResponse);
       } catch (err) {
         self.postMessage({ type: 'init', status: 'error', error: (err as Error).message } satisfies PitchWorkerResponse);
@@ -47,9 +49,14 @@ export function servePitchRequests<T>(ort: PitchRuntime<T>, provider: string): v
       const t0 = performance.now();
       try {
         const { audio, volume, t } = data; // audio: Float32Array (16kHz), volume: number, t: chunk clock (s)
-        const inputTensor = new ort.Tensor('float32', audio, [1, audio.length]);
+        const input = samples && !data.display ? audio.subarray(audio.length - samples) : audio;
+        const inputTensor = new ort.Tensor('float32', input, [1, input.length]);
         const results = await session.run({ input_audio: inputTensor });
         const hz = results.pitch_hz.data, conf = results.confidence.data;
+        if (data.display) { // nothing of it may reach the tracker: the scored stream's state
+          self.postMessage({ type: 'detect', pitchHz: 0, rawHz: hz[hz.length - 1] ?? 0, rawConf: conf[conf.length - 1] ?? 0, volume, pos: data.pos, ms: performance.now() - t0 } satisfies PitchWorkerResponse);
+          return;
+        }
         const pitchHz = voicing.pick(hz, conf, t ?? t0 / 1000);
         // raw*: the model's own last frame, for the level calibration (levelCalibration.ts);
         // firstHz: its first, for how the pitch moves within the window (singingGate.ts)

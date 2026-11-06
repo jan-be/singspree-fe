@@ -149,7 +149,7 @@ export type PartyServerMessage =
   | { type: 'party:host_status'; data: { connected?: boolean; away?: boolean } }
   | { type: 'party:closed'; data: { reason?: string } }
   | { type: 'party:latency_updated'; data: { latencies?: { username: string; latencyMs: number }[] } }
-  // a voice connection's setup, from the host page or a singer's (voiceLink.ts, voiceMixer.ts)
+  // a voice connection's setup, from the host page or a singer's (voiceLink.ts, voiceMixer.ts), and a note link's (noteLink.ts)
   | { type: 'rtc:signal'; data: VoiceSignal & { from: string } }
   | { type: 'rtc:ice'; data: { iceServers?: RTCIceServer[] } }
   | { type: 'error'; data: { code?: string; message?: string } };

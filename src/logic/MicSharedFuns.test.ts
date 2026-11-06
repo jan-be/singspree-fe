@@ -299,4 +299,15 @@ describe('createNoiseGate', () => {
     expect(gate.getNoiseFloor()).toBeLessThanOrEqual(0.01);
     expect(gate.shouldGate(0.03)).toBe(false);
   });
+
+  it('gives its verdict on a level that does not count, the floor staying where it is', () => {
+    const gate = createNoiseGate();
+    expect(gate.wouldGate(0.5)).toBe(true); // still calibrating
+    for (let i = 0; i < 9; i++) gate.shouldGate(0.004);
+    const floor = gate.getNoiseFloor();
+    for (let i = 0; i < 50; i++) gate.wouldGate(0.003);
+    expect(gate.getNoiseFloor()).toBe(floor);
+    expect(gate.wouldGate(0.05)).toBe(false);
+    expect(gate.wouldGate(0.003)).toBe(true);
+  });
 });

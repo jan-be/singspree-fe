@@ -284,6 +284,7 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
     const t = songTime();
     // the speakers reach this microphone late too: its own measured delay
     if (bleed && pos !== undefined) bleed.pushStamp(pos, t);
+    bleed?.pushNote(chart(), t, freq);
     const delay = bleed ? bleed.nextDelay() : FALLBACK_DELAY;
     for (const n of gate.push(chart(), { t: t - delay, freq, fric, hzFirst: msg.data.hzFirst, hzLast: msg.data.hzLast })) {
       if (ws) sendPlayerNote(ws, { freq: n.freq, videoTime: n.t, fric: n.fric });

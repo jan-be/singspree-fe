@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react';
 import type { TickData } from './LyricsParser';
 import type { getAndSetHitNotesByPlayer } from './MicInputToTick';
 import type { AvatarPaths } from './avatar';
+import type { ProvisionalLine } from './provisionalPitch';
 
 /** Where the song is in a frame (LyricsParser's getTickData). */
 export type LiveTickData = TickData;
@@ -48,6 +49,8 @@ const EMPTY_FRAME: LiveFrame = { tickData: {}, p2TickData: null, idle: false };
 export interface LiveStore {
   frame: LiveFrame;
   notes: LiveNotes;
+  /** the local singer's pitches still waiting for a note, oldest first: drawn, never scored (provisionalPitch.ts) */
+  provisional: ProvisionalLine | null;
   scores: Record<string, number>;
   lanes: LiveLanes | null;
   standing: LiveStanding | null;
@@ -65,6 +68,7 @@ export function createLiveStore(): LiveStore {
   const store: LiveStore = {
     frame: EMPTY_FRAME,
     notes: Object.create(null), // (names are keys, and a name can be "constructor")
+    provisional: null,
     // Each singer's score as it rode along with their latest note (username ->
     // score). Newer than the JSON scoreboard in React state, which only comes
     // on join, leave and song events; MusicBars reads both per frame.
@@ -84,7 +88,7 @@ export function createLiveStore(): LiveStore {
       store.frame = { tickData, p2TickData, idle };
       for (const l of listeners) l();
     },
-    resetNotes() { store.notes = Object.create(null); },
+    resetNotes() { store.notes = Object.create(null); store.provisional = null; },
     resetScores() { store.scores = Object.create(null); },
     resetLanes() { store.lanes = null; store.standing = null; },
     subscribe(listener) {

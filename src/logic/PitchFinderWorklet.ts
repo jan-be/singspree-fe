@@ -37,8 +37,11 @@ class PitchFinderWorklet extends AudioWorkletProcessor {
       targetRate: this.targetRate,
       windowSamples: SAMPLE_SIZE,
       hopSamples: HOP_SIZE,
+      displaySamples: opts.displaySamples,
+      displayHopSamples: opts.displayHopSamples,
       levelsPerSec: IDLE_LEVELS_PER_SEC,
       onChunk: chunk => this.port.postMessage(chunk satisfies CaptureOutput, [chunk.audio.buffer]),
+      onDisplay: chunk => this.port.postMessage(Object.assign(chunk, { display: 1 as const }) satisfies CaptureOutput, [chunk.audio.buffer]),
       onLevel: volume => this.port.postMessage({ volume } satisfies CaptureOutput),
     });
 

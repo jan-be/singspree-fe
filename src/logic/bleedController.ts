@@ -1,14 +1,16 @@
 // bleedController.ts — the main thread's side of the singing delay: feeds the
 // microphone, the pitch stamps and the song's instrumental stem to
 // BleedWorker.ts and hands out the delay to take off each sung note
-// (createDelayPolicy: a fixed delay until the speaker sound in the mic says
-// otherwise, see bleedDelay.ts).
+// (createSingerDelay: a fixed delay until the speaker sound in the mic says
+// otherwise, see bleedDelay.ts, and the singing itself once it speaks, see
+// voiceAlign.ts).
 
 import BleedWorker from './BleedWorker.ts?worker';
-import { createDelayPolicy } from './bleedDelay';
+import { createSingerDelay } from './voiceAlign';
+import type { AlignChart } from './voiceAlign';
 import type { BleedEstimatorOptions, BleedWorkerEstimate, BleedWorkerRequest, DelayPolicyState } from './bleedDelay';
 
-export const FALLBACK_DELAY = 0.14; // s, until (or unless) the bleed gives one
+export const FALLBACK_DELAY = 0.1;  // s, until (or unless) the bleed or the singing gives one
 const FLUSH_HOPS = 16;              // mic hops per message to the worker (~0.5 s)
 
 /** The instrumental stem as mono audio at a low rate, for the bleed measurement */
@@ -23,7 +25,7 @@ export type BleedReferenceState = 'none' | 'loading' | 'ready' | 'unavailable';
 /** createBleedController's state (the debug panel, a song report) */
 export interface BleedControllerState extends DelayPolicyState {
   reference: BleedReferenceState;
-  /** the worker runs (no workers: the fixed delay only) */
+  /** the worker runs (no workers: no bleed, the fixed delay and the singing) */
   worker: boolean;
 }
 
@@ -47,6 +49,8 @@ export interface BleedController {
   pushAudio(samples: Float32Array, posEnd: number): void;
   /** A pitch window: where it ended on the capture clock, and the song time it was stamped with. */
   pushStamp(capturePos: number, songTime: number): void;
+  /** A pitch window with its part, its stamp (no delay taken off) and its pitch (Hz, 0 = none): what the singing says about the delay. */
+  pushNote(chart: AlignChart | undefined, songTime: number, freq: number): void;
   /** The delay (s) to take off the next sung note. */
   nextDelay(): number;
   state(): BleedControllerState;
@@ -131,9 +135,9 @@ export const fetchStem = (url: string): Promise<Response> => fetch(url, { header
 
 export function createBleedController({ fallback = FALLBACK_DELAY, options, onEstimate }: BleedControllerOptions = {}): BleedController {
   let worker: Worker | null = null;
-  try { worker = new BleedWorker(); } catch { worker = null; } // no workers: the fixed delay only
+  try { worker = new BleedWorker(); } catch { worker = null; } // no workers: no bleed, the fixed delay and the singing
   let epoch = 0;
-  let policy = createDelayPolicy({ fallback });
+  let policy = createSingerDelay({ fallback });
   let hops: Float32Array[] = [], posEnds: number[] = [], pos: number[] = [], stamps: number[] = [];
   let reference: BleedReferenceState = 'none'; // 'none' | 'loading' | 'ready' | 'unavailable'
 
@@ -183,7 +187,7 @@ export function createBleedController({ fallback = FALLBACK_DELAY, options, onEs
     startSong() {
       flush();
       epoch++;
-      policy = createDelayPolicy({ fallback });
+      policy = createSingerDelay({ fallback });
       reference = 'none';
       worker?.postMessage({ type: 'reset', epoch, options } satisfies BleedWorkerRequest);
     },
@@ -208,6 +212,8 @@ export function createBleedController({ fallback = FALLBACK_DELAY, options, onEs
     pushStamp(capturePos, songTime) {
       pos.push(capturePos); stamps.push(songTime);
     },
+    /** A pitch window with its part, its stamp and its pitch: what the singing says about the delay. */
+    pushNote(chart, songTime, freq) { policy.pushNote(chart, songTime, freq); },
     /** The delay (s) to take off the next sung note. */
     nextDelay() { return policy.next(); },
     state() { return { ...policy.state(), reference, worker: !!worker }; },

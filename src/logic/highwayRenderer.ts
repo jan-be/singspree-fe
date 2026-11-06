@@ -12,7 +12,8 @@
  * the page's tiles every frame; the YouTube player shares that thread in a
  * WebView. From the worker the frame goes to the compositor on its own.
  * Recording costs the main thread a fraction of painting. With WebGL the
- * filling of the pixels moves on to the GPU as well.
+ * filling of the pixels moves on to the GPU as well. When the frame is built
+ * matters here, see framePacer.ts.
  *
  * One frame at a time: while the worker still paints the last one, the next
  * is skipped (begin() returns null), so a slow device paints at the rate it
@@ -41,7 +42,7 @@ const NO_ANSWER_FRAMES = 120;
 let broken = false; // a worker failed once: the main thread paints from now on
 
 /** What the highway paints with right now, for ?debug (MusicBars fills it in). */
-export const highwayStats = { mode: 'none', width: 0, height: 0, scale: 0, dpr: 0, maxSize: 0, level: 0, fps: 0, dropped: 0 };
+export const highwayStats = { mode: 'none', width: 0, height: 0, scale: 0, dpr: 0, maxSize: 0, level: 0, fps: 0, dropped: 0, late: 0 };
 
 /** What the highway paints with: the main thread (2D), the worker in 2D, or the worker with WebGL. */
 export type HighwayMode = 'main' | '2d' | 'gl';
@@ -96,9 +97,10 @@ export function offThreadPainting() {
  * Hand `canvas` to a new worker. Throws if it cannot be transferred (then the
  * canvas is still the main thread's). `onFail` is called once if the worker
  * fails later; the canvas is lost to the main thread then, so the caller
- * replaces the element.
+ * replaces the element. `onDrawn` hears when the worker finished each frame,
+ * on this page's clock (performance.now()).
  */
-export function createOffThreadPainter(canvas: HTMLCanvasElement, onFail?: () => void): OffThreadPainter {
+export function createOffThreadPainter(canvas: HTMLCanvasElement, onFail?: () => void, onDrawn?: (at: number) => void): OffThreadPainter {
   const worker = new HighwayWorker();
   let offscreen: OffscreenCanvas;
   try {
@@ -135,6 +137,7 @@ export function createOffThreadPainter(canvas: HTMLCanvasElement, onFail?: () =>
     }
     else if (m.type === 'done') {
       busy = false;
+      onDrawn?.(m.at - performance.timeOrigin);
       if (m.buffers) spareScene = m.buffers;
       else spare.push(m.ops);
     } else if (m.type === 'error') fail(m.message);

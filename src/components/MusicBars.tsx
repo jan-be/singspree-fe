@@ -6,8 +6,11 @@ import { avatarSrc, tieLetters } from "../logic/avatar";
 import { foldNotes } from "../logic/octaveFold";
 import { buildSegments } from "../logic/noteSegments";
 import { graceIntervals, singerNotesOnLine } from "../logic/singerNotes";
-import { highwayWindow, previousLineEnd, cursorAlpha, countdown, LEAD_IN_SHARE } from "../logic/highwayWindow";
+import { expireProvisional } from "../logic/provisionalPitch";
+import { highwayWindow, previousLineEnd, shownLineIndex, cursorAlpha, countdown, LEAD_IN_SHARE, LATE_NOTE_SEC } from "../logic/highwayWindow";
 import { createFrameGovernor } from "../logic/frameGovernor";
+import { createFramePacer, type FramePacer } from "../logic/framePacer";
+import { headMode, headStrength } from "../logic/headMarker";
 import { HEIGHT } from "../logic/highwayPaint";
 import { Canvas2DPainter } from "../logic/highwayPainters";
 import { offThreadPainting, createOffThreadPainter, highwayStats } from "../logic/highwayRenderer";
@@ -119,6 +122,8 @@ const TAG_FONT = "bold 12px sans-serif";
 const ringRadius = (width: number) => Math.max(14, Math.min(21, (width * LEAD_IN_SHARE) / 2 - 4));
 const RING_TRACK = [2.5]; // the full ring, dim, behind
 const RING_WIDTHS = [8, 3.5, 1.2]; // halo, line, core (the widest first: the WebGL path pads by it)
+// The voice at the cursor (headMarker.ts): how far behind the cursor a singer's notes may land and still be live
+const HEAD_LAG_SEC = 0.8;
 
 // ---------------------------------------------------------------------------
 // Per-line geometry (rebuilt only when the lyric line or the width changes)
@@ -275,6 +280,9 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
   const [governorRef] = useState<{ current: FrameGovernor }>(() => ({ current: createFrameGovernor() })); // fewer pixels or frames while the page cannot keep up (WORKER_LEVELS, GL_LEVELS)
   const governedModeRef = useRef<OffThreadPainter["mode"] | null>(null); // what the worker paints with, once it said: the levels follow it
   const painterRef = useRef<OffThreadPainter | null>(null); // the worker that paints the canvas, if one does (highwayRenderer.ts)
+  const pacerRef = useRef<FramePacer | null>(null); // when in the frame the picture is built (framePacer.ts)
+  const frameAtRef = useRef(0); // when the animation frame this paint belongs to ran, for the governor
+  const [head] = useState(headMode); // the voice shown at the cursor, a try-out behind ?head= (headMarker.ts)
   const owedStepsRef = useRef(0); // frames skipped while the worker was busy, for the sparkles
   const paintCountRef = useRef({ n: 0, at: 0 }); // paints per second, for ?debug
   const [canvasKey, setCanvasKey] = useState(0); // a new <canvas> when the worker failed with the old one
@@ -310,14 +318,33 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
     const { tickData, p2TickData } = store.frame;
     const notesByPlayer = store.notes;
 
-    // --- Which tracks are singing? ---
-    const p1Line = tickData?.currentLine;
-    const p2Line = p2TickData?.currentLine;
-    const p1Active = !!(p1Line?.[1]);
-    const p2Active = !!(p2Line?.[1]);
     const bpm = tickData?.lyricData?.bpm ?? p2TickData?.lyricData?.bpm ?? 120;
     const bufferTicks = (bpm / 60) * 3;
     const tickFloat = tickData?.tickFloat ?? 0;
+
+    // --- Which line of each part? A finished one until its end has come in
+    // (highwayWindow.ts): silence comes in as notes too, so a singer's newest
+    // note says how far their stream has got, sung or not ---
+    const tps = bpm / 60;
+    const lineGap = (tickData?.lyricData?.gap ?? p2TickData?.lyricData?.gap ?? 0) / 1000;
+    const stillComing = (endTick: number) => {
+      for (const username in notesByPlayer) {
+        const list = notesByPlayer[username].notes;
+        if (!list.length) continue;
+        const short = endTick - tps * (list[list.length - 1].videoTime - lineGap);
+        if (short > 0 && short <= LATE_NOTE_SEC * tps) return true;
+      }
+      return false;
+    };
+    const lineTick = tickData?.rawTickFloat ?? tickFloat;
+    const p1Index = shownLineIndex(tickData?.lyricData?.lyricLines, tickData?.lyricRef, lineTick, tps, stillComing);
+    const p2Index = shownLineIndex(p2TickData?.lyricData?.lyricLines, p2TickData?.lyricRef, lineTick, tps, stillComing);
+    const p1Line = (p1Index !== undefined ? tickData?.lyricData?.lyricLines[p1Index] : undefined) ?? tickData?.currentLine;
+    const p2Line = (p2Index !== undefined ? p2TickData?.lyricData?.lyricLines[p2Index] : undefined) ?? p2TickData?.currentLine;
+
+    // --- Which tracks are singing? ---
+    const p1Active = !!(p1Line?.[1]);
+    const p2Active = !!(p2Line?.[1]);
     // (on the clamped tick, so a chart whose first note is at tick 0 keeps its
     // highway up through the intro, as it always has; the cursor uses the real one)
     let p1Singing = p1Active && isNearLine(p1Line, tickFloat, bufferTicks);
@@ -340,7 +367,7 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
       governedModeRef.current = painting.mode;
       governorRef.current = createFrameGovernor({ levels: painting.mode === "gl" ? GL_LEVELS : WORKER_LEVELS });
     }
-    let steps = governed ? governorRef.current.frame(performance.now()) : 1;
+    let steps = governed ? governorRef.current.frame(frameAtRef.current) : 1;
     // (a part is sung only in a frame of the song: it has the chart)
     const lyricData = tickData.lyricData;
     if (!nowVisible || !canvas || width <= 0 || steps === 0 || !lyricData) return;
@@ -361,8 +388,8 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
           p2Line: p2Singing && p2Line ? p2Line : null,
           minTickLength: medianRef.current.value, width, bpm,
           // where each part's line before ended: the window starts no earlier
-          p1PrevEnd: previousLineEnd(tickData?.lyricData?.lyricLines, tickData?.lyricRef?.lineIndex),
-          p2PrevEnd: previousLineEnd(p2TickData?.lyricData?.lyricLines, p2TickData?.lyricRef?.lineIndex),
+          p1PrevEnd: previousLineEnd(tickData?.lyricData?.lyricLines, p1Index),
+          p2PrevEnd: previousLineEnd(p2TickData?.lyricData?.lyricLines, p2Index),
         }),
       };
       geomRef.current = g;
@@ -407,7 +434,7 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
     const nowMs = performance.now();
     pc.n++;
     if (nowMs - pc.at >= 1000) {
-      Object.assign(highwayStats, { mode: painter ? painter.mode : 'main', width: pw, height: ph, scale: dpr, dpr: deviceRatio, maxSize, level: governorRef.current.level, fps: Math.round((pc.n * 1000) / (nowMs - pc.at)) });
+      Object.assign(highwayStats, { mode: painter ? painter.mode : 'main', width: pw, height: ph, scale: dpr, dpr: deviceRatio, maxSize, level: governorRef.current.level, fps: Math.round((pc.n * 1000) / (nowMs - pc.at)), late: pacerRef.current?.takeLateShare() ?? 0 });
       pc.n = 0;
       pc.at = nowMs;
     }
@@ -419,7 +446,9 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
     // clamped tick stood on a first note at tick 0 through the whole intro):
     // so the cursor comes in from the left edge and meets the first note as
     // it is to be sung (highwayWindow.ts)
-    const nowTick = tickData.rawTickFloat ?? tickFloat;
+    // (built late in the frame it goes along by that much, framePacer.ts)
+    const ticksPerSec = lyricData.bpm / 60;
+    const nowTick = (tickData.rawTickFloat ?? tickFloat) + ((pacerRef.current?.ahead ?? 0) / 1000) * ticksPerSec;
     const cursorX = ((nowTick - lineStartTick) / lineLengthInTicks) * width;
     const cursorTick = Math.floor(nowTick);
     const currentRef = p1Singing ? lyricData?.lyricRefs?.[cursorTick] : null;
@@ -466,16 +495,19 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
     // Each singer's notes are shown within a second of a note of their own
     // part and hidden in its quiet stretches (singerNotes.ts): a duet's
     // second-part singer along the second part's notes, judged against them.
-    const ticksPerSec = lyricData.bpm / 60;
     const gapSec = lyricData.gap / 1000;
     const notesByTick: Record<number, { username: string; semitone: number }[]> = {}; // rounded tick → [{ username, semitone }] for overlap detection
     const perPlayer = [];
     for (const username in notesByPlayer) {
       const p2Chart = partsRef.current[username] === 2 ? p2TickData?.lyricData : undefined;
       const chart = p2Chart ?? lyricData;
+      // The local singer's line runs on past the newest note with what still
+      // waits for one (provisionalPitch.ts)
+      const provisional = store.provisional?.username === username ? store.provisional : null;
+      if (provisional) expireProvisional(provisional, performance.now());
       const visibleNotes = singerNotesOnLine(notesByPlayer[username].notes, {
         chart, grace: p2Chart ? p2Grace : grace, lineStartTick, lastLineTick, ticksPerSec, gapSec,
-      });
+      }, provisional?.notes);
       if (!visibleNotes.length) continue;
 
       // Octave folding (charts are octave-agnostic): each note toward its own
@@ -502,6 +534,7 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
     };
 
     const feedback: { hue: number; awesome: boolean; x: number; y: number }[] = [];
+    const heads: { hue: number; x: number; y: number; strength: number }[] = []; // (with ?head= only)
     for (const { username, chart, visibleNotes, semitones } of perPlayer) {
       // Place each note and classify it against the chart, then group into
       // continuous line segments (gold only where a golden note is overlapped)
@@ -546,6 +579,12 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
           s.isSpecial ? GOLD_LINE : [haloColor, color, coreColor]);
       }
 
+      if (head) {
+        const end = points[points.length - 1];
+        const strength = headStrength(notesByPlayer[username].notes, nowTick / ticksPerSec + gapSec, HEAD_LAG_SEC);
+        if (strength > 0) heads.push({ hue, x: end.x + tickWidth / 2, y: end.y, strength });
+      }
+
       // Feedback text for the latest active segment
       // (a singer's notes end a little behind the cursor: their delay is taken off, PartyPage)
       const active = segments.find(s => s.endTick >= cursorTick - Math.max(2, Math.ceil(0.5 * ticksPerSec)) && s.startTick <= cursorTick);
@@ -559,6 +598,17 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
     // --- Cursor --- (a little dimmer on its run-up to the first note)
     if (isOnSpecialNote) P.fillRoundRect(cursorX - 4, 0, 11, HEIGHT, 5, "rgba(255,215,0,0.15)");
     P.fillRect(cursorX, 0, 3, HEIGHT, isOnSpecialNote ? "rgba(255,215,0,0.8)" : `rgba(255,255,255,${cursorAlpha(nowTick, geom.firstTick, geom.leadTicks)})`);
+
+    // --- The voice at the cursor, a try-out (headMarker.ts): the newest pitch at
+    // its height, the line following it in; pixels only ---
+    for (const { hue, x, y, strength } of heads) {
+      const a = Math.round(strength * 20) / 20; // (a few colours, not one per frame)
+      if (head === 2 && cursorX > x) {
+        P.pitchLine([{ x, y }, { x: cursorX, y }], 0, [NOTE_HEIGHT * 0.6, NOTE_HEIGHT * 0.3, NOTE_HEIGHT * 0.1],
+          [`hsla(${hue}, 100%, 50%, ${a * 0.1})`, `hsla(${hue}, 100%, 55%, ${a * 0.35})`, `hsla(${hue}, 100%, 70%, ${a * 0.35})`]);
+      }
+      P.dot(cursorX + 1.5, y, NOTE_HEIGHT * 0.7, `hsla(${hue}, 100%, 50%, ${a * 0.4})`, NOTE_HEIGHT * 0.3, `hsla(${hue}, 100%, 75%, ${a})`);
+    }
 
     // --- Sparkle particles near the cursor while hitting a special note ---
     const now = performance.now();
@@ -675,7 +725,7 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
       for (const [username, y] of singing) drawTag(username, cursorX - 8, y, "right", 0.95, ties?.get(username));
     });
     painter?.end();
-  }, [store]);
+  }, [store, head]);
 
   // Paint in a worker where the browser can (highwayRenderer.ts). Before the
   // first frame: a canvas that has been drawn on cannot be handed over.
@@ -695,7 +745,7 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
         governorRef.current = createFrameGovernor();
         governedModeRef.current = null;
         setCanvasKey(k => k + 1);
-      });
+      }, (at) => pacerRef.current?.drawn(at));
     } catch {
       return undefined; // not transferable after all: painted here
     }
@@ -715,8 +765,29 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
     };
   }, [canvasKey]);
 
-  // Redraw on every live-store update, and whenever the container is resized
-  useEffect(() => store.subscribe(() => draw(!store.frame.idle)), [store, draw]); // (an idle frame is no frame rate)
+  // Redraw on every live-store update, and whenever the container is resized.
+  // A frame of the moving song waits for the end of the frame where a worker
+  // paints it and the page keeps up (framePacer.ts); an idle frame is no frame rate.
+  useEffect(() => {
+    const pacer = createFramePacer(() => draw(!store.frame.idle), {
+      now: () => performance.now(),
+      setTimer: (run, ms) => window.setTimeout(run, ms),
+      clearTimer: (timer) => window.clearTimeout(timer),
+    });
+    pacerRef.current = pacer;
+    const off = store.subscribe(() => {
+      const now = performance.now();
+      frameAtRef.current = now;
+      const at = document.timeline?.currentTime; // the animation frame's own time, in step with the display
+      const late = !store.frame.idle && !!painterRef.current?.ready && visibleRef.current && governorRef.current.level === 0 && document.visibilityState === 'visible';
+      pacer.frame(typeof at === 'number' ? at : now, late);
+    });
+    return () => {
+      off();
+      pacer.cancel();
+      pacerRef.current = null;
+    };
+  }, [store, draw]);
   useEffect(() => { draw(false); }, [draw, bounds.width, visible]);
   // A profile picture that arrives while nothing moves (paused) shows at once
   useEffect(() => onAvatarReady(() => draw(false)), [draw]);

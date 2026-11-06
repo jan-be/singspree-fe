@@ -434,7 +434,8 @@ const ExperimentalSwitch = ({ id, icon, on, busy, onToggle, first }: {
  * app's (logic/rustPartyPage.ts); off for everyone, admins too. Voices on the
  * speakers: a party of yours allows it, and each singer who turns theirs on
  * sends their microphone to the host's page, for its speakers
- * (usePartyVoices.ts); on for admins until they turn it off.
+ * (usePartyVoices.ts); on for admins until they turn it off, and only for
+ * them and the accounts let in, as a party of theirs uses a relay the site pays for.
  */
 const ExperimentalSection = ({ user }: { user: Me }) => {
   const { t } = useTranslation();
@@ -461,8 +462,10 @@ const ExperimentalSection = ({ user }: { user: Me }) => {
           onToggle={() => save({ influencerMode: !user.influencerMode })} first />
         <ExperimentalSwitch id="rust-party-page" icon={<ChipIcon />} on={user.rustPartyPage} busy={busy}
           onToggle={() => save({ rustPartyPage: !user.rustPartyPage })} />
-        <ExperimentalSwitch id="voices-on-speakers" icon={<MicIcon size={15} />} on={user.voicesOnSpeakers} busy={busy}
-          onToggle={() => save({ voicesOnSpeakers: !user.voicesOnSpeakers })} />
+        {user.voicesAllowed && (
+          <ExperimentalSwitch id="voices-on-speakers" icon={<MicIcon size={15} />} on={user.voicesOnSpeakers} busy={busy}
+            onToggle={() => save({ voicesOnSpeakers: !user.voicesOnSpeakers })} />
+        )}
       </div>
     </Section>
   );

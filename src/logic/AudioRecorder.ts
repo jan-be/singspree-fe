@@ -1,4 +1,5 @@
 import { apiUrl } from '../GlobalConsts';
+import type { FrameAge } from './micChunker';
 
 const MIME_TYPES = [
   'audio/webm;codecs=opus',
@@ -26,6 +27,12 @@ export interface RecordingCapture {
   inputLatency: number | null;
   windowSeconds: number;
   hopSeconds: number;
+  /** how old the mic's frames are when read (createFrameAgeMeter; Chrome 152 and later, trackProcessor) */
+  frameAge?: FrameAge;
+  /** ms the way from the mic to the page got longer by during the session, at most (createLagWatch): any browser, any path */
+  lagGrowthMs?: number;
+  /** the browser's own count of the same, its MediaStreamTrack.stats: ms, last / average / lowest / highest since the track began */
+  trackLatency?: { last: number, average: number, min: number, max: number };
 }
 
 /** What the page starts a recording with (the song, the party, whose take it is); uploaded as it is */

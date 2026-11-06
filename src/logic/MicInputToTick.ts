@@ -24,6 +24,8 @@ import type { LyricLine, LyricRef } from './LyricsParser';
 export interface HitNote {
   videoTime: number;
   freq: number;
+  /** when the short way brought it (noteLink.ts), to tell by how much it beat the socket */
+  at?: number;
 }
 
 /** The chart timing a player's notes are scored against (calcScore reads these four) */
@@ -58,9 +60,12 @@ class PlayerNotes {
   declare tolerance: number;
   declare unscored: boolean;
   declare scored: number;
+  /** a link brings this singer's notes too (noteLink.ts), so they can come twice and out of order */
+  declare direct: boolean;
 
   constructor() {
     this.notes = [];
+    this.direct = false;
     // What the newest local note was judged against (calcScore reads these
     // four; gap is copied, the host's timing fix moves it in place), and
     // whether the score over the notes as they are now is still to be worked out
@@ -181,12 +186,49 @@ const scoreNotes = (lyricData: ScoringChart, notes: readonly HitNote[], toleranc
   return Math.round(score);
 };
 
+/** How far back placeNote looks: about 2 s of a singer's notes. A rewind's notes are further off and go on the end as ever */
+const PLACE_BACK = 64;
+
+/**
+ * A note of a singer who has two ways here (noteLink.ts): in its place by time,
+ * since the highway reads the notes newest first and stops at the first one
+ * before the line, and the socket's copy of a note the link lost comes after
+ * newer ones. The same float travels both ways, so a note seen before is exactly
+ * equal. Returns that earlier note, or null when this one is new.
+ */
+export const placeNote = (pData: PlayerNotes, note: HitNote): HitNote | null => {
+  const { notes } = pData;
+  const stop = Math.max(0, notes.length - PLACE_BACK);
+  let i = notes.length;
+  while (i > stop && notes[i - 1].videoTime > note.videoTime) i--;
+  if (i > 0 && notes[i - 1].videoTime === note.videoTime) return notes[i - 1];
+  if (i === notes.length || (i === stop && stop > 0)) notes.push(note);
+  else notes.splice(i, 0, note);
+  return null;
+};
+
+/**
+ * A note the short way brought (noteLink.ts): for the drawing only, the server
+ * scores the socket's copy. Returns whether the socket was first.
+ */
+export const applyDirectNote = (hitNotesByPlayer: HitNotesByPlayer, username: string, freq: number, videoTime: number, at: number): boolean => {
+  const pData = hitNotesByPlayer[username] ??= new PlayerNotes();
+  pData.direct = true;
+  if (pData.unscored) void pData.score;
+  const pruneTime = videoTime - 30;
+  while (pData.notes.length > 0 && pData.notes[0].videoTime < pruneTime) {
+    pData.notes.shift();
+  }
+  return placeNote(pData, { videoTime, freq, at }) !== null;
+};
+
 /**
  * Apply a batch of remote notes received from the server.
  * Notes arrive as { username, freq, videoTime } — store directly.
  * MusicBars converts Hz → continuous semitone at render time.
+ * `seen`: told of each note, with the same note if the short way brought it first (noteLink.ts).
  */
-export const applyRemoteNotes = (hitNotesByPlayer: HitNotesByPlayer, notes: Iterable<RemoteNote>): HitNotesByPlayer => {
+export const applyRemoteNotes = (hitNotesByPlayer: HitNotesByPlayer, notes: Iterable<RemoteNote>, seen?: (username: string, there: HitNote | null) => void): HitNotesByPlayer => {
   if (!hitNotesByPlayer) hitNotesByPlayer = Object.create(null) as HitNotesByPlayer; // (a name can be "constructor")
   for (const { username, freq, videoTime } of notes) {
     if (!hitNotesByPlayer[username]) hitNotesByPlayer[username] = new PlayerNotes();
@@ -200,7 +242,10 @@ export const applyRemoteNotes = (hitNotesByPlayer: HitNotesByPlayer, notes: Iter
     while (pData.notes.length > 0 && pData.notes[0].videoTime < pruneTime) {
       pData.notes.shift();
     }
-    pData.notes.push({ videoTime, freq });
+    let there: HitNote | null = null;
+    if (pData.direct) there = placeNote(pData, { videoTime, freq });
+    else pData.notes.push({ videoTime, freq });
+    seen?.(username, there);
   }
   return hitNotesByPlayer;
 };
