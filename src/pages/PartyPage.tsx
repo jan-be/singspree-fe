@@ -2001,6 +2001,8 @@ const PartyPage = () => {
                     isPlaying,
                     // Joiners without a video have no other way to learn its length
                     duration: player.getDuration?.(),
+                    // The sliders, while the song has stems: how often a party turns the singer down (song_playtime)
+                    ...(hasStemsRef.current ? { mix: { v: vocalsLevelRef.current, i: instrumentalLevelRef.current } } : {}),
                   });
                 } catch { /* player destroyed */ }
               }

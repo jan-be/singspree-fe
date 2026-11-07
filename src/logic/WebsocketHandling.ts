@@ -521,14 +521,15 @@ export const sendSongGap = (ws: RawSocket, { gap }: { gap: number }) => {
   }));
 };
 
-export const sendVideoTime = (ws: ObjSocket, { videoTime, isPlaying, duration }: { videoTime: number; isPlaying: boolean; duration?: number }) => {
+export const sendVideoTime = (ws: ObjSocket, { videoTime, isPlaying, duration, mix }: { videoTime: number; isPlaying: boolean; duration?: number; mix?: { v: number; i: number } }) => {
   const now = performance.now();
   if (now - lastVideoTimeSent < 333) return; // ~3/sec
   lastVideoTimeSent = now;
   ws.sendObj({
     type: "video:time",
     // duration: the video's length in s, once the player knows it (optional: older servers relay it, older clients ignore it)
-    data: { videoTime, isPlaying, ...(duration !== undefined && duration > 0 ? { duration } : {}) },
+    // mix: the host's vocals/instrumental sliders while the song has stems (the server banks them with the playtime)
+    data: { videoTime, isPlaying, ...(duration !== undefined && duration > 0 ? { duration } : {}), ...(mix ? { mix } : {}) },
   });
 };
 

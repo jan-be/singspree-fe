@@ -294,6 +294,10 @@ export interface AdminOverview {
   scoresDay: number;
   secondsDay: number;
   secondsWeek: number;
+  /** the last 7 days' plays of songs with stems (counted since 2026-11-08), those where the host had a slider below 100 at some point, and the vocals */
+  stemPlaysWeek?: number;
+  slidersMovedWeek?: number;
+  vocalsDownWeek?: number;
   reportsOpen: number;
   avatarReportsOpen: number;
   androidTestersWaiting: number;

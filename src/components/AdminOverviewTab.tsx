@@ -81,6 +81,17 @@ const PartyCard = ({ party, busy, onClose }: { party: AdminParty; busy: boolean;
   );
 };
 
+/** A count with its share of `of` next to it (no share of nothing). */
+const Share = ({ n = 0, of = 0 }: { n?: number; of?: number }) => {
+  const { i18n } = useTranslation();
+  return (
+    <>
+      {n}
+      {of > 0 && <span className="ml-1.5 text-sm font-normal text-white/45">{new Intl.NumberFormat(i18n.language, { style: 'percent' }).format(n / of)}</span>}
+    </>
+  );
+};
+
 /** A score's stars, the ones it did not reach dimmed. */
 const Stars = ({ n }: { n: number }) => {
   const { t } = useTranslation();
@@ -297,6 +308,15 @@ const AdminOverviewTab = ({ overview, reload, actions }: { overview: AdminOvervi
             <StatTile label={t('admin.stats.scoresDay')} value={overview.scoresDay ?? 0} accent="text-amber-300" />
           </div>
         )}
+      {overview && (
+        // The host's stem sliders: how often a party turns the singer or the band down
+        <div className="mt-2 sm:mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
+          <StatTile label={t('admin.stats.stemPlaysWeek')} value={overview.stemPlaysWeek ?? 0} />
+          <StatTile label={t('admin.stats.slidersMovedWeek')} value={<Share n={overview.slidersMovedWeek} of={overview.stemPlaysWeek} />} accent="text-neon-purple" />
+          <StatTile label={t('admin.stats.vocalsDownWeek')} value={<Share n={overview.vocalsDownWeek} of={overview.stemPlaysWeek} />} />
+          <Hint className="col-span-2 self-center">{t('admin.stats.slidersHint')}</Hint>
+        </div>
+      )}
 
       <Section title={t('admin.parties.title')} aside={overview && <span className="text-xs text-white/40">{t('admin.parties.count', { count: overview.parties.length })}</span>}>
         {!overview
