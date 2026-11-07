@@ -70,8 +70,8 @@ const looksLikeEmail = (s: string) =>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.trim
  * (/login#email=…&code=…, in the fragment so that no server's log has them; the
  * link's old form still reads) fill in the code and wait for the button: opened by
  * itself, a link someone else sent would sign this browser in to their
- * account and hand them what it sang as a guest. A new account is offered a
- * passkey before leaving.
+ * account and hand them what it sang as a guest. A new account made with an
+ * address is offered a passkey before leaving, one made with Google is not.
  *
  * Or Google, where the server has it (backend googleSignIn.ts): the browser
  * goes there and comes back to the page it was headed for, or here at
@@ -88,6 +88,8 @@ const AuthPage = () => {
 
   const supported = passkeysSupported();
   const googleName = params.get('google') === 'name'; // back from Google, with no account yet
+  // After signing up: one tap on Google is all a Google account needs next time, the offer is for typing a code
+  const offerPasskey = supported && !googleName;
   const [mailed] = useState(() => {
     const link = new URLSearchParams(window.location.hash.slice(1));
     return { email: link.get('email') ?? params.get('email'), code: link.get('code') ?? params.get('code') };
@@ -122,7 +124,7 @@ const AuthPage = () => {
     setUser(user);
     setPictureFailed(pictureLost);
     // A new account: offer the shortcut for next time, and say so if its picture did not save
-    if (staysAfterSignIn({ created, passkeys: supported, pictureFailed: pictureLost })) setStep('passkey');
+    if (staysAfterSignIn({ created, passkeys: offerPasskey, pictureFailed: pictureLost })) setStep('passkey');
     else leave();
   };
   const fail = (e: unknown) => { if (!isCancelled(e)) setError(errorMessage(t, e)); };
@@ -212,7 +214,7 @@ const AuthPage = () => {
     });
   };
 
-  const title = step === 'passkey' ? (supported ? t('auth.passkeyOfferTitle') : t('auth.welcome', { name: me?.username ?? username.trim() })) : (step === 'name' ? t('auth.createAccount') : t('auth.title'));
+  const title = step === 'passkey' ? (offerPasskey ? t('auth.passkeyOfferTitle') : t('auth.welcome', { name: me?.username ?? username.trim() })) : (step === 'name' ? t('auth.createAccount') : t('auth.title'));
   const errorLine = error && <div className="rounded-xl bg-red-500/10 border border-red-500/25 px-3.5 py-2.5 text-red-300 text-sm text-center" role="alert">{error}</div>;
   const changeAddress = (
     <button type="button" onClick={() => { setStep('start'); setCode(''); setPassword(''); setError(null); setNotice(null); }} className={linkClass}>
@@ -349,7 +351,7 @@ const AuthPage = () => {
                     {t('auth.pictureNotSaved')}
                   </div>
                 )}
-                {supported ? (
+                {offerPasskey ? (
                   <>
                     <p className="text-sm text-white/70">{t('auth.passkeyOfferText')}</p>
                     <p className="text-xs text-white/45">{t('auth.passkeyHint')}</p>

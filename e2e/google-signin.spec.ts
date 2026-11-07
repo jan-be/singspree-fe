@@ -64,6 +64,22 @@ test('back without an account: a display name, prefilled, with the terms next to
   await expect.poll(() => sent.finish).toMatchObject({ username: 'Sam' });
 });
 
+test('signed up with Google: no passkey offer, straight on to where it was going', async ({ page }) => {
+  await stubApi(page);
+  await page.goto('/login?google=name&next=/contact');
+  await page.getByRole('button', { name: /create account/i }).click();
+  await expect(page).toHaveURL(/\/contact$/);
+  await expect(page.getByText('Add a passkey?')).toHaveCount(0);
+});
+
+test('signed up with an address: the passkey offer stays', async ({ page }) => {
+  await stubApi(page);
+  await page.route('**/api/auth/email/verify', route => answer(route, { user: sam, created: true }));
+  await page.goto('/login?email=sam%40gmail.com&code=123456&next=/contact');
+  await page.getByRole('button', { name: /continue/i }).click();
+  await expect(page.getByText('Add a passkey?')).toBeVisible();
+});
+
 test('back with an error says why', async ({ page }) => {
   await stubApi(page);
   await page.goto('/login?google_error=address');
