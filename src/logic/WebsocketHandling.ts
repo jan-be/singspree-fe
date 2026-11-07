@@ -314,6 +314,11 @@ export const sendCohost = (ws: ObjSocket, { username, on }: { username: string; 
   ws.sendObj({ type: "party:cohost", data: { username, on: !!on } });
 };
 
+/** Host or co-host: send `username` away for this party. Their page hears party:closed, every other page party:player_left. */
+export const sendKick = (ws: ObjSocket, username: string) => {
+  ws.sendObj({ type: "party:kick", data: { username } });
+};
+
 /**
  * Host or co-host: the party's settings, each optional: whether new people may
  * join by the QR code or the link, and the host page's auto-skip (that page

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import Avatar from "./Avatar";
 import QrCode from "./QrCode";
 import { LockIcon } from "./Icons";
+import { useSecondClick } from "./ProfileParts";
 import { playerHue, type PlayerColors } from "../logic/playerColor";
 import type { AvatarPaths } from "../logic/avatar";
 
@@ -29,6 +30,8 @@ export interface PartyQrCardProps {
   playerAvatars?: AvatarPaths;
   playerColors?: PlayerColors;
   onSetCohost?: (name: string, cohost: boolean) => void;
+  /** send someone away for this party */
+  onKick?: (name: string) => void;
   onSetJoiningOpen?: (open: boolean) => void;
   /** the singers' microphones on the host's speakers (usePartyVoices.ts), and its switch */
   voices?: boolean;
@@ -45,8 +48,27 @@ export interface PartyQrCardProps {
  * switch (people from cardPeople, logic/partyRoles.ts). The host's own role
  * has no switch: nobody takes it. And the switch for the singers' voices on
  * the host's speakers (each phone sends its microphone to the host's page).
+ * Beside a person, the button that sends them away for this party.
  */
-const PartyQrCard = ({ qrUrl, joinUrl, linkUrl, joiningOpen = true, controls = false, people = [], playerAvatars, playerColors, onSetCohost, onSetJoiningOpen,
+/** Sends someone away: the first tap asks, as a slip would keep a friend out of the party */
+const KickButton = ({ name, onKick }: { name: string; onKick: (name: string) => void }) => {
+  const { t } = useTranslation();
+  const confirm = useSecondClick();
+  return (
+    <button
+      type="button"
+      data-kick={name}
+      aria-label={t('party.kick', { name })}
+      title={t('party.kick', { name })}
+      onClick={() => confirm.press(() => onKick(name))}
+      className={confirm.armed ? 'text-xs font-semibold text-red-300 whitespace-nowrap px-1' : 'btn-icon w-7 h-7 text-white/45 flex-shrink-0'}
+    >
+      {confirm.armed ? t('party.kickConfirm') : '✕'}
+    </button>
+  );
+};
+
+const PartyQrCard = ({ qrUrl, joinUrl, linkUrl, joiningOpen = true, controls = false, people = [], playerAvatars, playerColors, onSetCohost, onKick, onSetJoiningOpen,
   voices = false, onSetVoices }: PartyQrCardProps) => {
   const { t } = useTranslation();
   const labelId = useId(); // the bar renders the card twice (laptop and phone layout), one of them hidden
@@ -119,13 +141,11 @@ const PartyQrCard = ({ qrUrl, joinUrl, linkUrl, joiningOpen = true, controls = f
                 role="switch"
                 aria-checked={voices}
                 aria-labelledby={voicesId}
-                aria-describedby={`${voicesId}-hint`}
                 data-voices-switch=""
                 onClick={() => onSetVoices(!voices)}
                 className="switch"
               />
             </div>
-            <p id={`${voicesId}-hint`} className="mt-1 text-xs text-white/55 leading-snug">{t('voices.partySwitchHint')}</p>
           </div>
         )}
 
@@ -142,7 +162,8 @@ const PartyQrCard = ({ qrUrl, joinUrl, linkUrl, joiningOpen = true, controls = f
               </span>
               {p.host ? (
                 <span className="text-xs font-semibold text-white/55 pr-0.5">{t('party.hostRole')}</span>
-              ) : (
+              ) : (<>
+                {!p.me && onKick && <KickButton name={p.name} onKick={onKick} />}
                 <button
                   type="button"
                   role="switch"
@@ -152,7 +173,7 @@ const PartyQrCard = ({ qrUrl, joinUrl, linkUrl, joiningOpen = true, controls = f
                   onClick={() => onSetCohost?.(p.name, !p.cohost)}
                   className="switch"
                 />
-              )}
+              </>)}
             </li>
           ))}
         </ul>

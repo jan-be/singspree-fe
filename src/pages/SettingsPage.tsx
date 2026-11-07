@@ -261,7 +261,7 @@ const GoogleRow = ({ user }: { user: Me }) => {
 };
 
 /** `user`: the signed-in account */
-const AccountSection = ({ user, editor, avatarNote }: { user: Me; editor: AvatarEditor; avatarNote: Note | null }) => {
+const AccountSection = ({ user, editor, avatarNote, onDeleted }: { user: Me; editor: AvatarEditor; avatarNote: Note | null; onDeleted: () => void }) => {
   const { t } = useTranslation();
   const fmt = useDate();
   const navigate = useNavigate();
@@ -362,7 +362,7 @@ const AccountSection = ({ user, editor, avatarNote }: { user: Me; editor: Avatar
           <button
             type="button"
             disabled={busy}
-            onClick={() => confirmDelete.press(() => run(async () => { await deleteAccount(); setUser(null); navigate('/'); }))}
+            onClick={() => confirmDelete.press(() => run(async () => { await deleteAccount(); onDeleted(); setUser(null); }))}
             aria-pressed={confirmDelete.armed}
             aria-describedby={confirmDelete.armed ? 'delete-account-warning' : undefined}
             data-delete-account=""
@@ -454,6 +454,7 @@ const ExperimentalSection = ({ user }: { user: Me }) => {
 const SettingsPage = () => {
   const { t } = useTranslation();
   const { user, loading, refresh: refreshMe } = useAuth();
+  const [deleted, setDeleted] = useState(false);
   const [avatarNote, setAvatarNote] = useState<Note | null>(null);
   const editor = useAvatarEditor({
     onChange: () => { refreshMe(); },
@@ -469,6 +470,8 @@ const SettingsPage = () => {
     document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [user, hash]);
 
+  // Before the check below, which would send them to the sign-in page the moment the account is gone
+  if (deleted) return <Navigate to="/" replace state={{ partyNotice: 'account_deleted' }} />;
   if (loading) {
     return <WrapperPage><div className="text-white/40 text-sm text-center py-20 animate-pulse">{t('sections.loading')}</div></WrapperPage>;
   }
@@ -485,7 +488,7 @@ const SettingsPage = () => {
       </PageHeader>
 
       <PrivacySection />
-      <AccountSection user={user} editor={editor} avatarNote={avatarNote} />
+      <AccountSection user={user} editor={editor} avatarNote={avatarNote} onDeleted={() => setDeleted(true)} />
       <ExperimentalSection user={user} />
       {editor.ui}
     </WrapperPage>

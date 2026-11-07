@@ -21,7 +21,7 @@ export interface PartyBarProps
   extends Pick<VolumeControlProps, "volume" | "restoreVolume" | "vocalsLevel" | "instrumentalLevel" | "onVolumeChange" | "onVocalsLevelChange"
     | "onInstrumentalLevelChange" | "hasStems" | "volumeTooltip" | "stemsHint" | "onDismissStemsHint" | "singerVoices">,
   Pick<MicPanelProps, "micActive" | "micPhase" | "micError" | "multiMic" | "ownColor" | "onColorChange" | "latency" | "difficulty" | "onDifficultyChange" | "saveRecordings" | "onSaveRecordingsChange" | "voice">,
-  Pick<PartyQrCardProps, "joiningOpen" | "people" | "playerAvatars" | "playerColors" | "onSetCohost" | "onSetJoiningOpen" | "voices" | "onSetVoices"> {
+  Pick<PartyQrCardProps, "joiningOpen" | "people" | "playerAvatars" | "playerColors" | "onSetCohost" | "onKick" | "onSetJoiningOpen" | "voices" | "onSetVoices"> {
   /** undefined until the party is made */
   partyId?: string;
   /** the song on stage ('none' while a joiner waits for the party's) */
@@ -68,7 +68,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
   micActive, micPhase, micError, onJoinSinging, onLeaveSinging, micStatsRef, micDeviceId, onMicDeviceChange, multiMic, onMicPanelOpenChange, ownColor, onColorChange, latency,
   difficulty, onDifficultyChange, saveRecordings, onSaveRecordingsChange, camera,
   showVideo, onToggleVideo, videoHint, onDismissVideoHint, queueOpen, queuePoppedOut, onToggleQueue, queueCount = 0, onFreeClick,
-  getReportContext, canControl = false, joiningOpen = true, people, playerAvatars, playerColors, onSetCohost, onSetJoiningOpen,
+  getReportContext, canControl = false, joiningOpen = true, people, playerAvatars, playerColors, onSetCohost, onKick, onSetJoiningOpen,
   voices, onSetVoices, voice, singerVoices }: PartyBarProps) => {
   const { t } = useTranslation();
   // Fixing a song's timing is the admins' job; everyone else reports what is wrong
@@ -134,6 +134,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
       playerAvatars={playerAvatars}
       playerColors={playerColors}
       onSetCohost={onSetCohost}
+      onKick={onKick}
       onSetJoiningOpen={onSetJoiningOpen}
       voices={voices}
       onSetVoices={onSetVoices}

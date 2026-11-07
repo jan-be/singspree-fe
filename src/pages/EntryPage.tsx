@@ -591,7 +591,7 @@ const EntryPage = () => {
           <PartyRecap recap={partyRecap} onClose={() => { setPartyRecap(null); setPartyNotice(null); }} />
         ) : partyNotice && (
           <div className="relative mt-6 max-w-md mx-auto rounded-2xl bg-panel border border-white/10 pl-4 pr-2 py-2.5 flex items-center justify-between gap-4 text-sm text-white/80">
-            <span className="text-left">{partyNotice === 'ended' ? t('party.endedNotice') : t('party.hostLeftNotice')}</span>
+            <span className="text-left">{partyNotice === 'account_deleted' ? t('profile.deletionScheduled') : partyNotice === 'ended' ? t('party.endedNotice') : partyNotice === 'removed' ? t('party.removedNotice') : t('party.hostLeftNotice')}</span>
             <button type="button" onClick={() => setPartyNotice(null)} className="btn-icon w-8 h-8 text-white/50" aria-label="close">✕</button>
           </div>
         )}

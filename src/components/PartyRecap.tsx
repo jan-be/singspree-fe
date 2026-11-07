@@ -12,7 +12,7 @@ import { loadRecap, nightSummary, takeSource, type PartyRecapData } from "../log
 /** Why the party page sent the joiner home (party:closed), and from which party */
 export interface PartyRecapInfo {
   partyId: string;
-  /** 'ended' by the host, else the host stayed gone */
+  /** 'ended' by the host, 'removed': sent away by the host or a co-host, else the host stayed gone */
   reason: string;
 }
 
@@ -109,7 +109,7 @@ const PartyRecap = ({ recap, onClose }: PartyRecapProps) => {
   }, [recap.partyId]);
 
   const summary = nightSummary(night);
-  const notice = recap.reason === 'ended' ? t('party.endedNotice') : t('party.hostLeftNotice');
+  const notice = recap.reason === 'ended' ? t('party.endedNotice') : recap.reason === 'removed' ? t('party.removedNotice') : t('party.hostLeftNotice');
   const fmt = (n: number) => Number(n).toLocaleString(i18n.language);
   const guest = night?.keptBy === 'guest' || (!night && !user);
   const achievements = (night?.achievements ?? []).map(achievementInfo).filter(a => a !== null); // (unknown keys left out)

@@ -8,6 +8,9 @@ declare global {
     /** What the TCL browser on Fire TV adds to every page (videoTakeover.ts) */
     videoDetect?: { sendVideoInfo?: unknown };
     PlayerControlsInterface?: { fullscreenClick?: unknown };
+    /** YouTube's player API, once it is in the page (logic/youtubeApi.ts) */
+    YT?: { Player?: unknown };
+    onYouTubeIframeAPIReady?: () => void;
   }
 
   interface Navigator {

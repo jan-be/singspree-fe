@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import YouTube from 'react-youtube';
+import { loadYouTubeApi, youTubeApiThere } from '../logic/youtubeApi';
 import css from './VideoPlayer.module.css';
 import type { YouTubePlayer } from '../types/youtube';
 
@@ -27,8 +28,9 @@ export interface VideoPlayerProps {
   onUnreachable?: () => void;
 }
 
-// YouTube's privacy-enhanced mode: the player is served from
-// youtube-nocookie.com and sets no cookies, so no consent gate is needed.
+// YouTube's privacy-enhanced mode: the player is served from youtube-nocookie.com
+// and sets no cookies, and the API comes from our server (logic/youtubeApi.ts).
+// It does keep data in the browser's local storage and IndexedDB.
 const YT_HOST = 'https://www.youtube-nocookie.com';
 
 // The old consent gate stored its answer here; nothing reads it any more.
@@ -75,6 +77,10 @@ const VideoPlayer = (props: VideoPlayerProps) => {
     createdStartRef.current = startSeconds !== undefined && startSeconds >= 1 ? Math.floor(startSeconds) : null;
   }
   const createdWith = createdWithRef.current; // (set whenever there is a video)
+  const [apiThere, setApiThere] = useState(youTubeApiThere);
+  useEffect(() => {
+    if (videoId && !apiThere) loadYouTubeApi().then(() => setApiThere(true));
+  }, [videoId, apiThere]);
 
   const load = (player: VideoPlayerYT, id: string) => {
     if (!id || id === loadedRef.current) return;
@@ -90,7 +96,7 @@ const VideoPlayer = (props: VideoPlayerProps) => {
   return (
     // scale > 1: a smaller player scaled up, so YouTube streams a lower resolution (videoScale.ts)
     <div className={scale > 1 ? `${css.videoContainer} ${css.reduced}` : css.videoContainer} style={scale > 1 ? { '--video-scale': scale } : undefined}>
-      {videoId && createdWith && (
+      {videoId && createdWith && apiThere && (
         <YouTube
           videoId={createdWith}
           opts={{

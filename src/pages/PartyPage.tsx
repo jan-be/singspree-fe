@@ -46,7 +46,7 @@ import {
   sendCountdownCancel,
   sendSongLyrics, sendSongGap, sendPartyLeave, sendHostAway, sendPartyClose,
   sendQueueAdd,
-  sendCohost, sendPartySettings, sendPlaybackControl,
+  sendCohost, sendKick, sendPartySettings, sendPlaybackControl,
   sendQueueRemove,
   sendQueueReorder,
   sendPlayerPart,
@@ -3172,7 +3172,8 @@ const PartyPage = () => {
         connRef.current?.close();
         clearPartySession();
         document.title = 'singspree.com';
-        const reason = jsonObj.data?.reason === 'ended' ? 'ended' : 'host_left';
+        const closed = jsonObj.data?.reason;
+        const reason = closed === 'ended' || closed === 'removed' ? closed : 'host_left';
         // a joiner takes their night home (PartyRecap on the home page)
         const recap = !isHost && partyIdRef.current ? { partyRecap: { partyId: partyIdRef.current, reason } } : {};
         navigate('/', { replace: true, state: { partyNotice: reason, ...recap } });
@@ -3402,6 +3403,10 @@ const PartyPage = () => {
     const w = wssRef.current;
     if (w) sendCohost(w, { username: name, on });
   }, []);
+  const handleKick = useCallback((name: string) => {
+    const w = wssRef.current;
+    if (w) sendKick(w, name);
+  }, []);
   const handleSetJoiningOpen = useCallback((open: boolean) => {
     const w = wssRef.current;
     if (w) sendPartySettings(w, { joiningOpen: open });
@@ -3590,6 +3595,7 @@ const PartyPage = () => {
         playerAvatars={playerAvatars}
         playerColors={playerColors}
         onSetCohost={handleSetCohost}
+        onKick={handleKick}
         onSetJoiningOpen={handleSetJoiningOpen}
         voices={partySettings.voices}
         onSetVoices={partySettings.known ? handleSetVoices : undefined}
