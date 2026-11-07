@@ -1249,7 +1249,21 @@
       "none": "Noch hat niemand gesungen.",
       "guest": "Gast",
       "noScore": "keine Wertung",
-      "inParty": "in {{partyId}}"
+      "inParty": "in {{partyId}}",
+      "filterScored": "Mit Wertung",
+      "noneHere": "Hier gibt es nichts.",
+      "stopped": "bei {{percent}} % gestoppt",
+      "atEachLevel": "Auf jeder Stufe",
+      "onMic": "{{time}} am Mikro",
+      "duetPart": "Duett-Stimme {{part}}",
+      "worstPing": "schlechtester Ping {{ms}} ms",
+      "profile": "Profil",
+      "account": "Konto",
+      "joinParty": "Party beitreten",
+      "onlyParty": "Diese Party",
+      "onlySinger": "Diese Person",
+      "onlySong": "Dieser Song",
+      "clearFilter": "Filter entfernen"
     },
     "users": {
       "title": "Konten",

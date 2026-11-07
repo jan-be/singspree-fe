@@ -1249,7 +1249,21 @@
       "none": "Nobody has sung yet.",
       "guest": "guest",
       "noScore": "no score",
-      "inParty": "in {{partyId}}"
+      "inParty": "in {{partyId}}",
+      "filterScored": "With a score",
+      "noneHere": "No plays here.",
+      "stopped": "stopped at {{percent}}%",
+      "atEachLevel": "At each level",
+      "onMic": "On the mic for {{time}}",
+      "duetPart": "Duet part {{part}}",
+      "worstPing": "worst ping {{ms}} ms",
+      "profile": "Profile",
+      "account": "Account",
+      "joinParty": "Join the party",
+      "onlyParty": "This party",
+      "onlySinger": "This singer",
+      "onlySong": "This song",
+      "clearFilter": "Remove this filter"
     },
     "users": {
       "title": "Accounts",

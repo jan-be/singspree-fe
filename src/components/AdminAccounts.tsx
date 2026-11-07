@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Avatar from './Avatar';
 import { btn, StatTile, Section, Badge, Loading, list, useAgo, type AdminActions } from './AdminParts';
@@ -64,7 +64,8 @@ const AdminAccounts = ({ myId, overview, actions }: { myId: number; overview: Ad
   const { t } = useTranslation();
   const { busy, run, say, fail } = actions;
   const [users, setUsers] = useState<{ rows: AdminUser[]; hasMore: boolean; q: string } | null>(null); // { rows, hasMore, q }
-  const [q, setQ] = useState('');
+  const [params] = useSearchParams();
+  const [q, setQ] = useState(() => params.get('q') ?? ''); // (?q=: the Account button on a play in the overview)
 
   const findUsers = useCallback((term: string) => getAdminUsers(term, 0, PAGE)
     .then(p => setUsers({ rows: p.data, hasMore: p.hasMore, q: term }))

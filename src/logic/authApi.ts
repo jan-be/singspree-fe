@@ -320,10 +320,34 @@ export interface AdminPlay {
   userId: number | null;
   seconds: number | null;
   score: number | null;
+  stars: number | null;
+  /** the level the score is at */
+  difficulty: Difficulty | null;
+  /** how far a play that stopped before the end got, 0-1 */
+  completion: number | null;
+  /** stopped too early for a best or stars */
+  partial: boolean;
+  /** seconds on the mic */
+  sungSeconds: number | null;
+  /** which of a duet's parts was sung */
+  part: number | null;
+  /** what the play made at each level, as far as that is known; null without a score */
+  levels: Record<Difficulty, number | null> | null;
   ping: number | null;
   pingMax: number | null;
   /** the system and its version (backend userAgent.ts osRelease) */
   os: string | null;
+  country: string | null;
+  /** a song whose chart the AI made */
+  generated: boolean;
+}
+
+/** What narrows the recently sung list: a party, a song, whoever sang a play (its id), those with a score */
+export interface AdminPlayFilter {
+  party?: string;
+  song?: string;
+  singer?: string;
+  scored?: boolean;
 }
 
 /** An account in the admin list (backend routes/admin.ts userRow) */
@@ -811,7 +835,14 @@ export const markNotificationsSeen = (until: string) => post('/notifications/see
 export const getAdminOverview = () => get<{ data: AdminOverview }>('/admin/overview').then(j => j.data);
 /** One row of counts per day (in Berlin) for the last `days` and the `days` before, with each range's totals (logic/trends.ts reads them). */
 export const getAdminTrends = (days = 30) => get<{ data: TrendsData }>(`/admin/trends?days=${days}`).then(j => j.data);
-export const getAdminPlays = (offset = 0, limit = 20) => get<Paged<AdminPlay>>(`/admin/plays?offset=${offset}&limit=${limit}`);
+export const getAdminPlays = (offset = 0, limit = 20, { party, song, singer, scored }: AdminPlayFilter = {}) => {
+  const query = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+  if (party) query.set('party', party);
+  if (song) query.set('song', song);
+  if (singer) query.set('singer', singer);
+  if (scored) query.set('scored', '1');
+  return get<Paged<AdminPlay>>(`/admin/plays?${query}`);
+};
 /** Newest accounts, or those whose name or address starts with q. */
 export const getAdminUsers = (q = '', offset = 0, limit = 20) => get<Paged<AdminUser>>(`/admin/users?q=${encodeURIComponent(q)}&offset=${offset}&limit=${limit}`);
 /** Appoint or demote; resolves to the account as the list shows it. */
