@@ -4,7 +4,16 @@ import React from "react";
  * The page body on its own, without the navigation and footer, so the build
  * can prerender it for crawlers (see scripts/prerender-static.mjs). The page
  * component below wraps this in the app chrome for people.
+ *
+ * Plain categories on purpose: what we keep, why, who else gets it and for how
+ * long. Every technical detail written here is one more thing that can stop
+ * being true, so cookie names, event types and how features work stay out.
  */
+const strong = "text-white font-semibold";
+const link = "text-[#ff8ae6] hover:text-white underline underline-offset-4 decoration-white/25 hover:decoration-white/60 transition-colors";
+const heading = "text-lg sm:text-xl font-semibold tracking-[-0.015em] text-white";
+const list = "list-disc pl-5 space-y-2 marker:text-white/30";
+
 const PrivacyPolicyContent = () => (
   <>
     <div className="max-w-[65ch] text-[15px] sm:text-base leading-[1.7] text-white/75 space-y-9">
@@ -14,103 +23,91 @@ const PrivacyPolicyContent = () => (
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-lg sm:text-xl font-semibold tracking-[-0.015em] text-white">1. Controller</h2>
         <p>
-          SingSpree is operated by Jan Beckschewe (see{" "}
-          <a href="/contact" className="text-[#ff8ae6] hover:text-white underline underline-offset-4 decoration-white/25 hover:decoration-white/60 transition-colors">Contact</a>
-          ). References to "we", "us", or "our" refer to the operator of this website.
+          SingSpree is run by Jan Beckschewe, who is responsible for your data here. You can reach us through the{" "}
+          <a href="/contact" className={link}>Contact page</a>.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg sm:text-xl font-semibold tracking-[-0.015em] text-white">2. What data we collect</h2>
-        <p>SingSpree is designed to collect as little personal data as possible. Account registration is <strong className="text-white font-semibold">optional</strong> – you can sing without one – and we do not use analytics or tracking scripts.</p>
-        <ul className="list-disc pl-5 space-y-2 marker:text-white/30">
-          <li><strong className="text-white font-semibold">Accounts (optional):</strong> If you create an account we store your e-mail address (verified with a one-time code and used only to sign you in and to tell you when a way to sign in is added – no newsletters), the display name you choose, the public key of each passkey you register and/or a salted hash of an optional password (never the password itself), the dates you created and last used the account, your sign-in sessions, and the profile picture you may add. A picture is cropped and shrunk in your browser and stored only as our own re-encoded 256 × 256 pixel copy, without the metadata of the original file (such as location or camera details); it is shown next to your display name on your profile, to your friends and to everyone in the parties you join, until you remove or replace it on your profile page. Administrators can remove a picture that breaks the rules. Sign-in codes are delivered by our e-mail provider Resend (Resend, Inc., USA), which processes your address and the message for that purpose only. Other signed-in users can find you by your exact e-mail address, which shows them your display name but never the address. You can delete your account at any time from your profile page, which removes everything listed here together with your saved scores and friendships.</li>
-          <li><strong className="text-white font-semibold">Saved scores and friends:</strong> Every song you sing with the microphone on is saved with its score, stars, how long you were on the microphone, date, party code and the display name you sang under; a song stopped before its end is saved too, with how far it got, once you sang at least half a minute of it. While signed in it belongs to your account and is shown on your profile and to your friends, unless you make your statistics private (see below). As a guest it is stored under a random id that your browser keeps in localStorage, so that it becomes part of your account if you sign in later on the same browser; until then it is shown to nobody, and clearing your browser's site data severs the link for good. We also remember which signed-in users finished a song in the same party, to suggest them as friends to each other. Friend requests you send or accept are stored until either side removes the friendship. Achievements (milestones such as the number of songs sung) are worked out from these saved scores alone. Your profile shows your display name, picture and the date you joined to anyone who knows the display name. Its statistics, achievements, best songs and recent plays, the numbers next to your name in your friends' lists and your best score on a song in other people's song rankings are public by default as well. In the Privacy section of your profile page you can show them to your friends only, or make them private: then only you see them. Everyone who may not see them sees just your name, picture and joining date. In a party, everyone in it always sees the score of the song you are singing; with private or friends-only statistics your previous best on that song and the achievements you just earned appear on your own screen only. How close you are to the achievements you have not earned yet is shown to you only. Administrators can still see them when they look after the service.</li>
-          <li><strong className="text-white font-semibold">Party sessions:</strong> While a party runs we keep your chosen display name, party code, browser id, score and the song queue in server memory. So that a running party survives a server restart, this is also saved to our database every half minute, where each saving replaces the last; a party that has ended is gone from it with the next one.</li>
-          <li><strong className="text-white font-semibold">Listen history:</strong> We record which songs are played (artist, title, video ID, party code, the display name used, how long the song ran, the round-trip time of your connection during it, the page you arrived from and the country our CDN places your address in) to power the "Popular at Parties" feature and to see how the site is used. We likewise record what is typed into the song search and how a song was chosen (from a search, from browsing, from a pasted YouTube link or from a party queue), to see what people look for and do not find. A song played while you are signed in is linked to your account, and your profile shows how many songs you played, in how many parties, and the latest ones (to you only, like your statistics, if you make them private); as a guest the play is stored under the browser id described above, so that it becomes part of your account if you sign in later on the same browser. Deleting your account deletes these records too, 14 days later.</li>
-          <li><strong className="text-white font-semibold">Pitch and timing of your singing:</strong> To score a song, your browser sends our server the pitch it detects in your singing, about 30 times a second, with the moment in the song it belongs to. We keep these numbers with the saved score of each song you sing, whether &ldquo;Save recordings&rdquo; is on or off. They are numbers, not sound: your voice cannot be played back from them. We use them to check and improve our pitch detection and scoring, and to work out what a song you sang would score under changed rules or at another difficulty. We do not show them to anyone. They stay as long as the score does: deleting your account deletes them, deleting a recording does not.</li>
-          <li><strong className="text-white font-semibold">Recordings of your singing (&ldquo;Save recordings&rdquo;, on unless you turn it off):</strong> When you sing, real-time pitch detection runs in your browser. While &ldquo;Save recordings&rdquo; is on in the microphone panel, the microphone audio of each song you sing (compressed Opus audio) is uploaded to our server together with the pitch detection telemetry and timing metadata of that song. A recording holds whatever your microphone hears while the song plays, which can include the music and other people nearby. It is stored under your account, or as a guest under the random browser id described above, and becomes part of your account when you sign in on that browser. You can listen to your recordings, mixed with the song&apos;s backing track, on your own profile, and so can whoever you allow in your privacy settings (by default nobody else). For that, our server keeps the mixed version of a recording once it has been played, until it has not been played for 7 days. You can delete each recording on your profile or all of them at once; deleting removes the recording, the telemetry uploaded with it, its mixed version and any share videos made from it from our server. We also use recordings to evaluate, benchmark and improve our pitch detection and scoring. With &ldquo;Save recordings&rdquo; off, no audio is recorded or uploaded; pitch detection and scoring still work, and the pitch and timing of your singing are still kept with your score, as described above.</li>
-          <li><strong className="text-white font-semibold">Share videos:</strong> When you choose &ldquo;Share video&rdquo; after a song or on your profile, your browser sends us the pictures of your score card, and our server makes a short video from them and about 15 seconds of your recording of that song mixed with its backing track. The video is sent back to your browser; where it goes from there is up to you. Our server keeps a copy so the same video can be sent again at once, until it has not been asked for in 7 days, or until you delete the recording. &ldquo;Share audio&rdquo; on your profile gives your browser the mixed recording itself to share.</li>
-          <li><strong className="text-white font-semibold">Your camera in share videos (influencer mode, experimental, off unless you turn it on in your settings; on by default for our administrators&apos; own accounts):</strong> With influencer mode on, a camera button appears next to the microphone button in a party. Only when you switch the camera on there, and only while a song plays in a browser tab you are looking at, your browser films you with your front camera (the browser shows that the camera is in use, and the page shows what it films). The video is encoded in your browser and kept in that browser tab&apos;s memory only: when your recording of the song has been uploaded, your browser keeps the roughly 20 seconds around the moment the share video will show and drops the rest, and everything is gone when you close the tab, after 3 hours, or when you choose &ldquo;Delete footage&rdquo; in the camera panel. Nothing filmed is sent to us unless you choose &ldquo;Share video&rdquo; with the camera: then those seconds of video are uploaded with your score card, our server makes the share video from them and deletes the uploaded footage as soon as the video is made. A share video with your camera in it is sent back to your browser and not kept on our server. We do not analyse the footage in any other way (no face recognition, nothing kept for research).</li>
-          <li><strong className="text-white font-semibold">Share links:</strong> A score card, share video or recording you share from SingSpree carries a link to the song with a random code (such as singspree.com/sing/&hellip;?r=Ab12Cd34). With the code we store who shared it (your account, or as a guest the random browser id described above), what was shared (the song, and the score or recording) and when, and we count each time it goes out through your share sheet or is downloaded. The code itself says nothing about you, and the same thing shared again gets the same code. When someone opens the link, we note that their browser came by it (under their own random browser id, with the country our CDN places their address in, never the address itself) and whether that browser then starts a party, sings a song or creates an account within 30 days, so we can see how many people shares bring and whose. Opening your own link counts for nothing. The page the link opens shows your name and the shared score only to the people your profile&apos;s statistics setting lets see them (see above); as a guest it shows the name you sang under with the score, as the card itself does. If you sign in on the browser you shared from as a guest, its links become your account&apos;s. Deleting your account deletes the links you shared and what they counted.</li>
-          <li><strong className="text-white font-semibold">Song recognition (the microphone button next to the song search):</strong> When you press it, your browser opens the microphone and sends what it hears to our server, a second at a time, for at most 12 seconds. The server compares it with the audio fingerprints of our songs and answers with the song and the place in it that was playing. The audio is held in the server&apos;s memory only while it looks and is dropped with the answer, or after 60 seconds at the latest; it is never stored. Like searches, we record that a recognition happened, how long it listened and which song it found, not linked to an account. The microphone closes when the answer comes, when you press Stop, or when you leave the page.</li>
-          <li><strong className="text-white font-semibold">Your recent parties and &ldquo;For you&rdquo;:</strong> Your browser keeps a list of the last ten parties it hosted or joined in its localStorage: when they were, which songs played, the display names of those who sang and the songs still left in the queue. It stays in your browser and is used on the home page to offer the songs a party you hosted left unsung (the &#10005; there stops that for the party) and for the &ldquo;For you&rdquo; row; clearing your browser&apos;s site data removes the whole list. To fill the &ldquo;For you&rdquo; row your browser sends the ids of those songs (as a guest also the random browser id described above) to our server, which adds the songs it has saved for you (your plays and scores), answers with songs that go with them and stores nothing about the request. The songs are picked from your own songs only: songs often sung at the same parties as yours (counted over all parties, without names), the same artists and the same languages. &ldquo;Hide&rdquo; takes the row off the home page of this browser. &ldquo;Plan the next one&rdquo; makes a calendar file in your browser with a link that holds the ids of the party&apos;s songs.</li>
-          <li><strong className="text-white font-semibold">Testing our Android app (optional):</strong> If you ask to test the app on our <a href="/android" className="text-[#ff8ae6] hover:text-white underline underline-offset-4 decoration-white/25 hover:decoration-white/60 transition-colors">Android page</a> or in the card that suggests it, we store the e-mail address you enter and the language of the page, not linked to an account. We enter the address by hand into the app's tester list in Google Play Console, where Google processes it according to <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-[#ff8ae6] hover:text-white underline underline-offset-4 decoration-white/25 hover:decoration-white/60 transition-colors">Google's Privacy Policy</a>, and our e-mail provider Resend delivers one e-mail with the test's link once you are on the list. The address is used for nothing else.</li>
-          <li><strong className="text-white font-semibold">Hearing about an iOS app (optional):</strong> If you leave your e-mail address on our iOS page, we store it and the language of the page, not linked to an account, to send you one e-mail through our e-mail provider Resend the day an iOS app is available. The address is used for nothing else.</li>
-          <li><strong className="text-white font-semibold">Language preference:</strong> Stored in your browser's localStorage.</li>
-          <li><strong className="text-white font-semibold">Feedback and reports:</strong> When you answer the &ldquo;How do you like SingSpree?&rdquo; card, report a problem with a song or report a profile picture, we store what you wrote or chose, the display name you used, your account if you are signed in, your IP address and your browser&apos;s user agent, so that we can read it and spot abuse.</li>
-          <li><strong className="text-white font-semibold">Charts made by our AI:</strong> When you ask for a chart for a YouTube video, we store which account asked, the video and its title, and the result.</li>
-          <li><strong className="text-white font-semibold">IP addresses and server logs:</strong> Your IP address and your browser&apos;s user agent are stored with the records described here (plays, searches, how songs were chosen, recordings, song recognition, share links, feedback and reports), and our web server logs IP addresses and request metadata. We use them to run the service, to tell people from bots and to find abuse, not for advertising.</li>
+        <h2 className={heading}>The short version</h2>
+        <ul className={list}>
+          <li>You can sing without an account.</li>
+          <li>We keep what you sing: a score and pitch data for every song, and a recording unless you turn &ldquo;Save recordings&rdquo; off.</li>
+          <li>There are no ads and no third-party analytics, and we don&apos;t sell your data.</li>
+          <li>You can see, change or delete what&apos;s in your account, and ask us about anything else.</li>
         </ul>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg sm:text-xl font-semibold tracking-[-0.015em] text-white">3. Third-party services</h2>
-        <p>SingSpree embeds content from the following third-party services, which may collect data independently:</p>
-        <ul className="list-disc pl-5 space-y-2 marker:text-white/30">
-          <li>
-            <strong className="text-white font-semibold">Sign-in with Google (optional):</strong> If you choose to continue with Google, Google tells us your Google account's ID, e-mail address and name, and we store that ID and address with your account so you can sign in with it again. We never see your Google password. You can disconnect it in your settings at any time. Google handles the sign-in under{" "}
-            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-[#ff8ae6] hover:text-white underline underline-offset-4 decoration-white/25 hover:decoration-white/60 transition-colors">
-              Google's Privacy Policy
-            </a>.
-          </li>
-          <li>
-            <strong className="text-white font-semibold">YouTube (Google):</strong> Song videos are embedded with the YouTube IFrame Player API in YouTube's{" "}
-            <strong className="text-white font-semibold">privacy-enhanced mode</strong> (served from youtube-nocookie.com), which does{" "}
-            <strong className="text-white font-semibold">not set cookies</strong> on your device and does not use your viewing to personalise your YouTube experience. Song thumbnails are loaded from YouTube's image servers (i.ytimg.com), which also set no cookies. Loading the player or a thumbnail still transfers technical request data such as your IP address to Google, which processes it according to{" "}
-            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-[#ff8ae6] hover:text-white underline underline-offset-4 decoration-white/25 hover:decoration-white/60 transition-colors">
-              Google's Privacy Policy
-            </a>. By using SingSpree, you also agree to the{" "}
-            <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" className="text-[#ff8ae6] hover:text-white underline underline-offset-4 decoration-white/25 hover:decoration-white/60 transition-colors">
-              YouTube Terms of Service
-            </a>.
-          </li>
-          <li>
-            <strong className="text-white font-semibold">Cloudflare:</strong> All traffic to SingSpree passes through Cloudflare, which protects and delivers the site and sees your IP address. When you turn on &ldquo;My voice on the speakers&rdquo; in a party, your microphone goes live to the host&apos;s screen, directly or through Cloudflare&apos;s relay, and that sound is not stored. Your device and the host&apos;s screen can then see each other&apos;s IP address.
-          </li>
-          <li>
-            <strong className="text-white font-semibold">Last.fm and Modal:</strong> To suggest similar songs we send Last.fm the artist and title of a song. To make a chart our AI may run on Modal, which gets the audio, title and lyrics of the YouTube video. Neither receives anything about you.
-          </li>
-          <li>
-            <strong className="text-white font-semibold">SponsorBlock:</strong> We query the SponsorBlock API to skip non-music segments. This sends the video ID to their servers. See{" "}
-            <a href="https://sponsor.ajay.app/about" target="_blank" rel="noopener noreferrer" className="text-[#ff8ae6] hover:text-white underline underline-offset-4 decoration-white/25 hover:decoration-white/60 transition-colors">
-              SponsorBlock's privacy info
-            </a>.
-          </li>
+        <h2 className={heading}>What we keep</h2>
+        <p><strong className={strong}>Your account, if you make one.</strong> Your e-mail address, display name, sign-in details (a passkey&apos;s public key, a hashed password or your link to Google), profile picture and sessions. We use your address to sign you in and to tell you about changes to your account, never for newsletters. Other signed-in users who know your exact address can find your display name.</p>
+        <p><strong className={strong}>Your songs.</strong> Each song you sing is saved with its score, date, party code and the name you sang under, along with your achievements and friends. Your name, picture and joining date are public on your profile. Your scores and statistics are too, unless you choose friends-only or private in your profile&apos;s privacy settings. Everyone in a party sees the scores in that party.</p>
+        <p>As a guest, this is kept under a random id in your browser. It moves to your account if you sign in on that browser.</p>
+        <p><strong className={strong}>Your singing.</strong> To score you, your browser sends us the pitch of your singing many times a second. We keep those numbers with your score, whatever your settings. They&apos;re numbers, not sound: your voice can&apos;t be played back from them.</p>
+        <p>While &ldquo;Save recordings&rdquo; is on, the sound from your microphone during each song is uploaded too. It&apos;s on unless you turn it off in the microphone panel. A recording can include the music and people nearby. You can listen to your recordings on your profile, share them and delete them.</p>
+        <p>We use both to check and improve our pitch detection and scoring.</p>
+        <p><strong className={strong}>Your voice on the speakers.</strong> If you turn on &ldquo;My voice on the speakers&rdquo;, your microphone goes live to the host&apos;s screen, directly or through Cloudflare. That sound isn&apos;t stored. Your device and the host&apos;s screen can see each other&apos;s IP address.</p>
+        <p><strong className={strong}>Things you choose to use.</strong> Share videos are made on our server from your recording and score card. Share links carry a code that lets us count how many people they bring in. Camera footage stays in your browser unless you put it in a share video, and it isn&apos;t kept on our server after that. Song recognition listens for at most 12 seconds and stores no sound. If you ask for an AI chart, we store who asked and which video it was for.</p>
+        <p><strong className={strong}>How the site is used.</strong> Which songs are played, what&apos;s searched for, how songs were chosen, where visitors came from and roughly which country they&apos;re in. Some of this is linked to your account or browser id. We keep your IP address and browser details with these records, and our web server logs requests.</p>
+        <p><strong className={strong}>What you send us.</strong> Feedback and reports, with the name you used, your IP address and browser details. If you sign up to test an app or hear about one, your e-mail address.</p>
+        <p><strong className={strong}>In your browser.</strong> Your language, settings and recent parties stay on your device.</p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className={heading}>Why we use it</h2>
+        <ul className={list}>
+          <li><strong className={strong}>To give you what you ask for</strong> (Art. 6(1)(b) GDPR): accounts, parties, scores, recordings and sharing.</li>
+          <li><strong className={strong}>Our legitimate interests</strong> (Art. 6(1)(f) GDPR): keeping the site running and safe, stopping abuse, seeing how it&apos;s used, and improving scoring.</li>
+          <li><strong className={strong}>Your consent</strong> (Art. 6(1)(a) GDPR): optional things you turn on yourself, such as the camera, Google sign-in and app sign-up lists. You can withdraw it at any time.</li>
         </ul>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg sm:text-xl font-semibold tracking-[-0.015em] text-white">4. Cookies</h2>
-        <p>SingSpree sets two strictly necessary cookies. <code className="font-mono text-[0.9em] text-white bg-white/10 rounded-md px-1.5 py-0.5">singspree_sid</code> is a random identifier for your browser, set on your first visit and kept for up to a year: it lets the server hand a song's lyrics and backing tracks only to the browsers taking part in a party that plays it. It is not linked to your name or account. <code className="font-mono text-[0.9em] text-white bg-white/10 rounded-md px-1.5 py-0.5">singspree_session</code> is set only after you sign in to an account; it keeps you signed in for up to 180 days and is removed when you sign out. No other cookies are set, and the embedded YouTube player runs in privacy-enhanced mode so that it does not set cookies either. Preferences such as your language, volume settings and which one-time hints you have already seen are kept in your browser's localStorage (not cookies). Your current party session is kept in sessionStorage and discarded when the tab is closed.</p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-lg sm:text-xl font-semibold tracking-[-0.015em] text-white">5. Your rights (GDPR)</h2>
-        <p>If you are located in the European Economic Area, you have the right to:</p>
-        <ul className="list-disc pl-5 space-y-2 marker:text-white/30">
-          <li>Request access to any personal data we hold about you</li>
-          <li>Request correction or deletion of your data</li>
-          <li>Receive the data you gave us in a common, machine-readable format (data portability)</li>
-          <li>Object to or restrict processing of your data</li>
-          <li>Lodge a complaint with your local data protection authority</li>
+        <h2 className={heading}>Who else gets data</h2>
+        <ul className={list}>
+          <li><strong className={strong}>Other people in your party</strong> see your display name, picture and score.</li>
+          <li><strong className={strong}>Cloudflare</strong> delivers and protects all traffic, sees your IP address and can relay voices.</li>
+          <li>
+            <strong className={strong}>Google:</strong> SingSpree uses YouTube API Services for its videos and thumbnails, so Google receives your IP address, and the player keeps some data in your browser&apos;s storage. Google also handles Google sign-in and our Android test list.{" "}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className={link}>Google&apos;s Privacy Policy</a> applies, and by using SingSpree you also agree to the{" "}
+            <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" className={link}>YouTube Terms of Service</a>.
+          </li>
+          <li><strong className={strong}>Resend</strong> delivers our e-mails.</li>
+          <li><strong className={strong}>Modal</strong> runs our AI when a chart is made. <strong className={strong}>Last.fm</strong> and <strong className={strong}>SponsorBlock</strong> help with similar songs and skipping non-music parts. These three get song details, nothing about you.</li>
         </ul>
-        <p>If you have any concerns, please contact us.</p>
+        <p>Some of these companies are outside the EU, mainly in the USA, so your data can be processed there.</p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg sm:text-xl font-semibold tracking-[-0.015em] text-white">6. Data retention</h2>
-        <p>Party session data is discarded when the party ends. Listen history records, and the IP address and user agent kept with them, are retained to power song popularity. When you delete your account it is hidden from everyone at once, and you can sign in within 14 days to keep it. After that, everything we hold about you is deleted: your account, scores, recordings, pitch data, plays, searches, feedback, reports and share links, including what you did as a guest in a browser you signed in on. Server logs and backups age out by themselves. Recordings of your singing are kept until you delete them on your profile or delete your account, which deletes them too. A guest&apos;s recordings can be listened to and deleted after signing in on the same browser, which keeps them; without that they are deleted after 30 days. The pitch and timing kept with a score stay as long as that score, and are deleted with your account. Scores saved as a guest stay under their browser id so that an account created later can take them over. Share links and the visits they brought are kept until the account that shared them is deleted; a guest&apos;s stay under its browser id, like its scores. Camera footage from influencer mode is not kept on our server at all: what is uploaded for a share video is deleted once the video is made, and the video once it is sent. E-mail addresses left to test the Android app are deleted when the test is over, those left to hear about an iOS app once that e-mail has gone out or we give up on the app, and either sooner if you ask us to.</p>
+        <h2 className={heading}>Cookies</h2>
+        <p>We set only the cookies the site needs: one tells us which party your browser belongs to, one keeps you signed in, and a short-lived one completes Google sign-in. Your settings are kept in your browser&apos;s local storage, and the embedded YouTube player keeps some data there too. Sometimes, for example when YouTube&apos;s player can&apos;t load through us, YouTube can also set its own cookies.</p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg sm:text-xl font-semibold tracking-[-0.015em] text-white">7. Contact</h2>
+        <h2 className={heading}>How long we keep it</h2>
+        <ul className={list}>
+          <li><strong className={strong}>Your account, scores, pitch data and recordings:</strong> until you delete them or your account. When you delete your account it&apos;s hidden from everyone at once, and you can sign in within 14 days to keep it. After that, everything we hold about you is deleted, including what you did as a guest in a browser you signed in on.</li>
+          <li><strong className={strong}>A guest&apos;s recordings:</strong> 30 days, unless you sign in on that browser first.</li>
+          <li><strong className={strong}>A guest&apos;s scores:</strong> under the browser id, so a later account can take them over.</li>
+          <li><strong className={strong}>Mixed recordings and share videos:</strong> until they haven&apos;t been used for 7 days, or the recording is deleted.</li>
+          <li><strong className={strong}>Usage records:</strong> as long as we need them to run and protect the site and understand how it&apos;s used, or until you delete your account.</li>
+          <li><strong className={strong}>Server logs and backups:</strong> these age out by themselves.</li>
+          <li><strong className={strong}>App sign-up addresses:</strong> until the test is over or the announcement has gone out.</li>
+        </ul>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className={heading}>Your rights</h2>
         <p>
-          For privacy-related inquiries, see our{" "}
-          <a href="/contact" className="text-[#ff8ae6] hover:text-white underline underline-offset-4 decoration-white/25 hover:decoration-white/60 transition-colors">Contact page</a>.
+          If you&apos;re in the European Economic Area, you can ask us for a copy of your data, and to correct it, delete it, restrict or object to how we use it, or hand it over in a common machine-readable format. You can withdraw any consent, and you can complain to your data protection authority. To do any of this, write to us through the{" "}
+          <a href="/contact" className={link}>Contact page</a>.
         </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className={heading}>Changes</h2>
+        <p>When what we do changes, we update this page and its date.</p>
       </section>
     </div>
   </>
