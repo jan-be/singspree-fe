@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import WrapperPage from "./WrapperPage";
 import AndroidContent from "./compliance/content/AndroidContent";
 import AppSignupForm from "../components/AppSignupForm";
+import { markAnswered } from "../logic/appTestPrompt";
 
 /** /android: how to join the app's closed test. An admin adds the address in Play Console, which mails the test's link. */
 const AndroidPage = () => {
@@ -14,6 +15,7 @@ const AndroidPage = () => {
       button={t('android.join')}
       done={email => t('android.done', { email })}
       privacy={t('android.privacy')}
+      onDone={markAnswered}
     />
   );
   return (

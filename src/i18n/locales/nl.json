@@ -419,16 +419,18 @@
   },
   "android": {
     "title": "SingSpree voor Android",
-    "intro": "De Android-app zit in een besloten test op Google Play. Google geeft een nieuwe app pas voor iedereen vrij als 12 mensen 14 dagen in de test zijn gebleven, en we hebben er nog een paar nodig. Help je mee?",
+    "intro": "De Android-app zit in een besloten test op Google Play. Google geeft een nieuwe app pas voor iedereen vrij als 12 mensen hem hebben getest, en we hebben er nog een paar nodig. Help je mee?",
     "step1": "Laat het adres achter van het Google-account op je telefoon.",
     "step2": "We voegen het met de hand toe aan de test, dat kan een dag duren, en mailen je de link.",
-    "step3": "Open de link, word tester, installeer de app en houd hem 14 dagen.",
+    "step3": "Open de link, word tester, installeer de app en laat hem staan.",
     "email": "Adres van je Google-account",
     "join": "Voeg me toe als tester",
     "done": "Bedankt! We schrijven naar {{email}} zodra je op de lijst staat.",
     "privacy": "We gebruiken het adres alleen voor deze test en verwijderen het als de test voorbij is.",
     "already": "Sta je al op de lijst?",
-    "open": "Open de test op Google Play"
+    "open": "Open de test op Google Play",
+    "askTitle": "Probeer de Android-app",
+    "askText": "Help SingSpree op Google Play te komen: doe mee aan de test van de app."
   },
   "ios": {
     "title": "SingSpree voor iOS",

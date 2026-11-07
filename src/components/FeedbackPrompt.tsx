@@ -4,6 +4,7 @@ import { sendFeedback } from "../logic/authApi";
 import { platformHints } from "../logic/platformHints";
 import { trackEvent } from "../logic/track";
 import { ask, closePrompt, engage, feedbackCounts, markAnswered, moveOn, useFeedbackPrompt, type FeedbackPlace } from "../logic/feedbackPrompt";
+import { useCardRoom } from "../logic/songPrompt";
 
 const MAX_COMMENT = 1000;
 /** The home page asks a moment after it has settled, not as it appears */
@@ -35,14 +36,16 @@ type Phase = 'ask' | 'rated' | 'sending' | 'thanks';
  * The stars are sent at once and the words with Send, as a change to the
  * same answer. Each showing and a ✕ before any star are usage events
  * (feedback_shown, feedback_dismissed), so the admins see how many saw the
- * card and how many waved it away. On the party page the card sits at the top on phones (the
- * score screen's buttons are at the bottom) and in the bottom right corner
- * on wide screens; on the home page above its footer bar. Solid tint, no
- * backdrop blur: it may float over the playing video while someone types.
+ * card and how many waved it away. On the party page the card sits at the
+ * bottom on phones, where the score screen leaves it room (useCardRoom), and
+ * in the bottom right corner on wide screens; on the home page above its
+ * footer bar. Solid tint, no backdrop blur: it may float over the playing
+ * video while someone types.
  */
 const FeedbackPrompt = ({ where, between = false, getContext }: FeedbackPromptProps) => {
   const { t, i18n } = useTranslation();
   const { open } = useFeedbackPrompt();
+  const room = useCardRoom(open);
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState('');
@@ -100,7 +103,6 @@ const FeedbackPrompt = ({ where, between = false, getContext }: FeedbackPromptPr
   };
 
   const pick = (stars: number) => {
-    engage();
     setRating(stars);
     setFailed(false);
     if (phase === 'ask') setPhase('rated');
@@ -131,11 +133,12 @@ const FeedbackPrompt = ({ where, between = false, getContext }: FeedbackPromptPr
 
   const shown = hover || rating;
   const place = where === 'party'
-    ? 'z-[60] top-2 inset-x-2 mx-auto max-w-sm lg:top-auto lg:bottom-4 lg:inset-x-auto lg:right-4 lg:mx-0 lg:w-80'
+    ? 'z-[60] bottom-2 inset-x-2 mx-auto max-w-sm lg:bottom-4 lg:inset-x-auto lg:right-4 lg:mx-0 lg:w-80'
     : 'z-50 bottom-14 inset-x-3 sm:inset-x-auto sm:right-4 sm:w-80';
 
   return (
     <section
+      ref={room}
       aria-labelledby="feedback-title"
       data-feedback-prompt=""
       className={`pop fixed rounded-2xl p-4 shadow-[0_12px_40px_rgba(0,0,0,0.45)] animate-slide-up ${place}`}
@@ -182,7 +185,8 @@ const FeedbackPrompt = ({ where, between = false, getContext }: FeedbackPromptPr
               <div className="text-xs text-white/60 mb-2">{t('feedback.rated')}</div>
               <textarea
                 value={comment}
-                onChange={(e) => { engage(); setComment(e.target.value.slice(0, MAX_COMMENT)); }}
+                onFocus={engage}
+                onChange={(e) => setComment(e.target.value.slice(0, MAX_COMMENT))}
                 placeholder={rating <= 3 ? t('feedback.placeholderLow') : t('feedback.placeholderHigh')}
                 rows={3}
                 className="field px-3 py-2 text-sm resize-none"

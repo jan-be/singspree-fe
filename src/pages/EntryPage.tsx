@@ -21,7 +21,7 @@ import { probeYouTube, inMainlandChinaTimeZone } from "../logic/youtubeReachable
 import { useChartOffer } from "../logic/useChartOffer";
 import { ChartHint } from "../components/ChartOfferCard";
 import SingAgainCard from "../components/SingAgainCard";
-import FeedbackPrompt from "../components/FeedbackPrompt";
+import AfterSongsPrompt from "../components/AfterSongsPrompt";
 import ForYouRow from "../components/ForYouRow";
 import SeasonRow from "../components/SeasonRow";
 import { useSeason } from "../seasons/seasons";
@@ -696,8 +696,8 @@ const EntryPage = () => {
 
     </WrapperPage>
 
-    {/* "How do you like SingSpree?" for someone who has sung a few songs (logic/feedbackPrompt.ts) */}
-    <FeedbackPrompt where="home" />
+    {/* "How do you like SingSpree?", on Android the app's test for now, for someone who has sung a few songs (logic/songPrompt.ts) */}
+    <AfterSongsPrompt where="home" />
 
     {/* Fixed footer: compliance links, SingSpree elsewhere, the language switcher.
         One line where it fits; on narrow phones the links take a line of their own */}

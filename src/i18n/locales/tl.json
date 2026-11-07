@@ -419,16 +419,18 @@
   },
   "android": {
     "title": "SingSpree para sa Android",
-    "intro": "Nasa closed test sa Google Play ang Android app. Inilalabas lang ng Google ang bagong app para sa lahat kapag may 12 taong nanatili sa test nang 14 na araw, at kulang pa kami ng ilan. Tutulong ka ba?",
+    "intro": "Nasa closed test sa Google Play ang Android app. Inilalabas lang ng Google ang bagong app para sa lahat kapag nasubukan na ito ng 12 tao, at kulang pa kami ng ilan. Tutulong ka ba?",
     "step1": "Iwan ang address ng Google account sa phone mo.",
     "step2": "Manu-mano namin itong idadagdag sa test, na maaaring umabot ng isang araw, at ipapadala namin sa iyo ang link sa email.",
-    "step3": "Buksan ang link, maging tester, i-install ang app, at panatilihin ito nang 14 na araw.",
+    "step3": "Buksan ang link, maging tester, i-install ang app, at panatilihin itong naka-install.",
     "email": "Address ng Google account mo",
     "join": "Idagdag ako bilang tester",
     "done": "Salamat! Susulatan namin ang {{email}} sa sandaling nasa listahan ka na.",
     "privacy": "Ginagamit lang namin ang address para sa test na ito at buburahin ito kapag tapos na ang test.",
     "already": "Nasa listahan ka na ba?",
-    "open": "Buksan ang test sa Google Play"
+    "open": "Buksan ang test sa Google Play",
+    "askTitle": "Subukan ang Android app",
+    "askText": "Tulungan kaming mailagay ang SingSpree sa Google Play: sumali sa test ng app."
   },
   "ios": {
     "title": "SingSpree para sa iOS",

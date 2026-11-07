@@ -417,16 +417,18 @@
   },
   "android": {
     "title": "SingSpree Android 版",
-    "intro": "Android 应用正在 Google Play 上进行封闭测试。只有 12 个人连续 14 天留在测试中，Google 才会向所有人发布新应用，我们还差几位。愿意帮忙吗？",
+    "intro": "Android 应用正在 Google Play 上进行封闭测试。只有 12 个人测试过，Google 才会向所有人发布新应用，我们还差几位。愿意帮忙吗？",
     "step1": "留下你手机上 Google 账号的邮箱地址。",
     "step2": "我们会手动把它加入测试（可能需要一天），然后把链接发到你的邮箱。",
-    "step3": "打开链接，成为测试人员，安装应用并保留 14 天。",
+    "step3": "打开链接，成为测试人员，安装应用并保留在手机上。",
     "email": "你的 Google 账号邮箱",
     "join": "把我加为测试人员",
     "done": "谢谢！你一进入名单，我们就会写信到 {{email}}。",
     "privacy": "此地址仅用于本次测试，测试结束后即删除。",
     "already": "已经在名单上了？",
-    "open": "在 Google Play 上打开测试"
+    "open": "在 Google Play 上打开测试",
+    "askTitle": "试用 Android 应用",
+    "askText": "帮 SingSpree 上架 Google Play：加入应用测试。"
   },
   "ios": {
     "title": "SingSpree iOS 版",

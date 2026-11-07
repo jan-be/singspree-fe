@@ -417,16 +417,18 @@
   },
   "android": {
     "title": "SingSpree untuk Android",
-    "intro": "Aplikasi Android sedang dalam tes tertutup di Google Play. Google baru merilis aplikasi baru untuk semua orang setelah 12 orang bertahan di tes selama 14 hari, dan kami masih butuh beberapa orang lagi. Mau bantu?",
+    "intro": "Aplikasi Android sedang dalam tes tertutup di Google Play. Google baru merilis aplikasi baru untuk semua orang setelah 12 orang mengujinya, dan kami masih butuh beberapa orang lagi. Mau bantu?",
     "step1": "Tinggalkan alamat akun Google di ponselmu.",
     "step2": "Kami menambahkannya ke tes secara manual, bisa makan waktu sehari, lalu mengirim tautannya lewat email.",
-    "step3": "Buka tautan, jadi penguji, pasang aplikasinya, dan simpan selama 14 hari.",
+    "step3": "Buka tautan, jadi penguji, pasang aplikasinya, dan biarkan tetap terpasang.",
     "email": "Alamat akun Google-mu",
     "join": "Tambahkan saya sebagai penguji",
     "done": "Terima kasih! Kami akan menulis ke {{email}} begitu kamu masuk daftar.",
     "privacy": "Kami memakai alamat ini hanya untuk tes ini dan menghapusnya saat tes selesai.",
     "already": "Sudah ada di daftar?",
-    "open": "Buka tes di Google Play"
+    "open": "Buka tes di Google Play",
+    "askTitle": "Coba aplikasi Android",
+    "askText": "Bantu kami membawa SingSpree ke Google Play: ikuti tes aplikasinya."
   },
   "ios": {
     "title": "SingSpree untuk iOS",

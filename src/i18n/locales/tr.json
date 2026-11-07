@@ -419,16 +419,18 @@
   },
   "android": {
     "title": "Android için SingSpree",
-    "intro": "Android uygulaması Google Play’de kapalı testte. Google yeni bir uygulamayı ancak 12 kişi 14 gün boyunca testte kaldıktan sonra herkese açıyor ve birkaç kişiye daha ihtiyacımız var. Yardım eder misiniz?",
+    "intro": "Android uygulaması Google Play’de kapalı testte. Google yeni bir uygulamayı ancak 12 kişi test ettikten sonra herkese açıyor ve birkaç kişiye daha ihtiyacımız var. Yardım eder misiniz?",
     "step1": "Telefonunuzdaki Google hesabının adresini bırakın.",
     "step2": "Adresi teste elle ekleyip bağlantıyı e-postayla göndeririz; bu bir gün sürebilir.",
-    "step3": "Bağlantıyı açın, test kullanıcısı olun, uygulamayı yükleyin ve 14 gün boyunca silmeyin.",
+    "step3": "Bağlantıyı açın, test kullanıcısı olun, uygulamayı yükleyin ve silmeyin.",
     "email": "Google hesabınızın adresi",
     "join": "Beni test kullanıcısı olarak ekle",
     "done": "Teşekkürler! Listeye eklenir eklenmez {{email}} adresine yazacağız.",
     "privacy": "Adresi yalnızca bu test için kullanır, test bitince sileriz.",
     "already": "Zaten listede misiniz?",
-    "open": "Testi Google Play’de aç"
+    "open": "Testi Google Play’de aç",
+    "askTitle": "Android uygulamasını deneyin",
+    "askText": "SingSpree’nin Google Play’e çıkmasına yardım edin: uygulamanın testine katılın."
   },
   "ios": {
     "title": "iOS için SingSpree",

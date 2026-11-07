@@ -423,16 +423,18 @@
   },
   "android": {
     "title": "SingSpree na Androida",
-    "intro": "Aplikacja na Androida jest w zamkniętym teście w Google Play. Google udostępnia nową aplikację wszystkim dopiero wtedy, gdy 12 osób pozostanie w teście przez 14 dni, a wciąż brakuje nam kilku. Pomożesz?",
+    "intro": "Aplikacja na Androida jest w zamkniętym teście w Google Play. Google udostępnia nową aplikację wszystkim dopiero wtedy, gdy przetestuje ją 12 osób, a wciąż brakuje nam kilku. Pomożesz?",
     "step1": "Zostaw adres konta Google ze swojego telefonu.",
     "step2": "Dodamy go do testu ręcznie, co może potrwać dzień, i wyślemy Ci link e-mailem.",
-    "step3": "Otwórz link, zostań testerem, zainstaluj aplikację i zachowaj ją przez 14 dni.",
+    "step3": "Otwórz link, zostań testerem, zainstaluj aplikację i zostaw ją na telefonie.",
     "email": "Adres Twojego konta Google",
     "join": "Dodaj mnie jako testera",
     "done": "Dziękujemy! Napiszemy na {{email}}, gdy tylko znajdziesz się na liście.",
     "privacy": "Używamy adresu tylko do tego testu i usuwamy go po jego zakończeniu.",
     "already": "Już jesteś na liście?",
-    "open": "Otwórz test w Google Play"
+    "open": "Otwórz test w Google Play",
+    "askTitle": "Wypróbuj aplikację na Androida",
+    "askText": "Pomóż nam wprowadzić SingSpree do Google Play: dołącz do testu aplikacji."
   },
   "ios": {
     "title": "SingSpree na iOS",

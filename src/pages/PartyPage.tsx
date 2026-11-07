@@ -109,8 +109,9 @@ import AiBadge from "../components/AiBadge";
 import { browserCoversVideos } from "../logic/videoTakeover";
 import { createPartyAccess, fetchInParty, makeParty } from "../logic/partyAccess";
 import { notePartySong, notePartySingers, notePartyQueue, takePendingQueue } from "../logic/partyHistory";
-import { noteSongFinished } from "../logic/feedbackPrompt";
-import FeedbackPrompt from "../components/FeedbackPrompt";
+import { noteSongFinished, useFeedbackPrompt } from "../logic/feedbackPrompt";
+import { useAppTestPrompt } from "../logic/appTestPrompt";
+import AfterSongsPrompt from "../components/AfterSongsPrompt";
 import type { LyricData } from "../logic/LyricsParser";
 import type { ScriptChoice } from "../logic/lyricsScripts";
 import type { StemName, StemUrls } from "../logic/stemPlayer";
@@ -298,6 +299,8 @@ const PartyPage = () => {
   );
   // A signed-in host plays under the account name; joiners chose theirs on the join page
   const { user: authUser, loading: authLoading, refresh: refreshAuth, refreshBest } = useAuth();
+  const { open: appTestCardOpen } = useAppTestPrompt();
+  const { open: feedbackCardOpen } = useFeedbackPrompt();
   // (a new one when the account is renamed mid-party: player:renamed)
   const [chosenUserName, setChosenUserName] = useState<string | null>(routerState?.currentUserName ?? savedSession?.username ?? null);
   const currentUserName = chosenUserName ?? authUser?.username ?? t('party.defaultHost');
@@ -3958,7 +3961,8 @@ const PartyPage = () => {
           <Link to="/" onClick={handleGoToMenu} className="capsule fixed top-2.5 left-2.5 sm:top-3 sm:left-4 z-10 px-3 no-underline">
             <Wordmark height={28} />
           </Link>
-          <div className="h-full flex p-4 pt-12 short:p-2 short:pt-10">
+          {/* The card after a few songs sits under all this below lg: the scores make room for it (useCardRoom), so it covers no button */}
+          <div className={`h-full flex p-4 pt-12 short:p-2 short:pt-10 ${appTestCardOpen || feedbackCardOpen ? 'max-lg:pb-(--song-card-room)!' : ''}`}>
           <div className="m-auto w-full max-w-lg max-h-full flex flex-col text-center">
           {/* The part that scrolls. Its bottom padding (--fade) fades out, so
               what scrolls under the buttons has no hard edge; -mx-1 px-1 is
@@ -4243,8 +4247,8 @@ const PartyPage = () => {
       {debugEnabled && <DebugOverlay snapshot={debugSnapshot} />}
       {/* The score screen's share video: stays open while the next song starts */}
       <ShareDialog share={shareVideo} onClose={() => setShareVideo(null)} />
-      {/* "How do you like SingSpree?" after a few songs, on the score screen (stays while someone types) */}
-      <FeedbackPrompt where="party" between={songEnded} getContext={() => ({ host: isHost, nickname: currentUserNameRef.current, partyId })} />
+      {/* "How do you like SingSpree?", on Android the app's test for now, after a few songs on the score screen (stays while someone types) */}
+      <AfterSongsPrompt where="party" between={songEnded} getContext={() => ({ host: isHost, nickname: currentUserNameRef.current, partyId })} />
     </div>
   );
 };

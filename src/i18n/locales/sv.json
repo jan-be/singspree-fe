@@ -419,16 +419,18 @@
   },
   "android": {
     "title": "SingSpree för Android",
-    "intro": "Android-appen är i ett slutet test på Google Play. Google släpper en ny app för alla först när 12 personer har stannat i testet i 14 dagar, och vi behöver några till. Vill du hjälpa till?",
+    "intro": "Android-appen är i ett slutet test på Google Play. Google släpper en ny app för alla först när 12 personer har testat den, och vi behöver några till. Vill du hjälpa till?",
     "step1": "Lämna adressen till Google-kontot på din telefon.",
     "step2": "Vi lägger till den i testet för hand, vilket kan ta en dag, och mejlar dig länken.",
-    "step3": "Öppna länken, bli testare, installera appen och behåll den i 14 dagar.",
+    "step3": "Öppna länken, bli testare, installera appen och behåll den.",
     "email": "Adressen till ditt Google-konto",
     "join": "Lägg till mig som testare",
     "done": "Tack! Vi skriver till {{email}} så snart du är med på listan.",
     "privacy": "Vi använder adressen bara för det här testet och raderar den när testet är över.",
     "already": "Redan med på listan?",
-    "open": "Öppna testet på Google Play"
+    "open": "Öppna testet på Google Play",
+    "askTitle": "Testa Android-appen",
+    "askText": "Hjälp oss att få ut SingSpree på Google Play: var med i testet av appen."
   },
   "ios": {
     "title": "SingSpree för iOS",

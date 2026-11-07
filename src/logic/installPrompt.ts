@@ -36,7 +36,7 @@ export function watchInstallPrompt() {
   window.addEventListener('appinstalled', () => { deferred = null; notify(); });
 }
 
-const standalone = () => {
+export const standalone = () => {
   try {
     // navigator.standalone: Safari on iOS only
     return window.matchMedia?.('(display-mode: standalone)').matches || ('standalone' in window.navigator && window.navigator.standalone === true);
