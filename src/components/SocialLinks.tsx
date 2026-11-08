@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { inTvApp } from "../logic/tvApp";
 
 /** One of SingSpree's accounts elsewhere: its address, the site's name and its logo. */
 export interface SocialLink {
@@ -70,9 +71,12 @@ const SocialLinks = ({ size = 16, className = "" }: SocialLinksProps) => {
   const logo = (icon: React.ReactElement) => <span style={{ width: size, height: size }} className="block [&>svg]:w-full [&>svg]:h-full">{icon}</span>;
   return (
     <div className={`flex items-center gap-0.5 ${className}`}>
-      {/* Not in SOCIAL_LINKS, which the crawler pages take for our accounts: these are pages of ours, about the apps */}
-      <Link to="/android" aria-label={t('android.title')} title={t('android.title')} className={LINK_CLASS}>{logo(GooglePlayIcon)}</Link>
-      <Link to="/ios" aria-label={t('ios.title')} title={t('ios.title')} className={LINK_CLASS}>{logo(AppStoreIcon)}</Link>
+      {/* Not in SOCIAL_LINKS, which the crawler pages take for our accounts: these are pages of ours, about the apps.
+          Not in the Fire TV app: Amazon's store takes no links to other stores */}
+      {!inTvApp() && <>
+        <Link to="/android" aria-label={t('android.title')} title={t('android.title')} className={LINK_CLASS}>{logo(GooglePlayIcon)}</Link>
+        <Link to="/ios" aria-label={t('ios.title')} title={t('ios.title')} className={LINK_CLASS}>{logo(AppStoreIcon)}</Link>
+      </>}
       {SOCIAL_LINKS.map(({ href, label, icon }) => (
         <a
           key={label}

@@ -14,6 +14,7 @@ import {
   getSignInProviders, startGoogle, disconnectGoogle,
 } from '../logic/authApi';
 import { appDomain } from '../GlobalConsts';
+import { inTvApp } from '../logic/tvApp';
 import { deleteAllTakes, loadSaveRecordings, storeSaveRecordings } from '../logic/takes';
 import { errorMessage } from './AuthPage';
 import type { Me } from '../logic/authApi';
@@ -233,7 +234,8 @@ const GoogleRow = ({ user }: { user: Me }) => {
   const [busy, setBusy] = useState(false);
   const [params, setParams] = useSearchParams();
   const [note, setNote] = useState<Note | null>(null);
-  useEffect(() => { getSignInProviders().then(p => setOffered(p.google)).catch(() => {}); }, []);
+  // (connecting one is not offered in the Fire TV app: Google refuses to sign in inside a WebView)
+  useEffect(() => { getSignInProviders().then(p => setOffered(p.google && !inTvApp())).catch(() => {}); }, []);
   // Back from Google: how it went, once, and off the address
   useEffect(() => {
     const why = params.get('google_error');

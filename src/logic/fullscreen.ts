@@ -6,10 +6,13 @@
  * WebKit-derived browsers (a TV stick's WebView, say) still spell it with a
  * prefix — so both spellings are tried and every call is best-effort.
  */
+import { inTvApp } from './tvApp';
+
 const root = () => document.documentElement;
 
+/** Whether to offer fullscreen: not in the Fire TV app (logic/tvApp.ts), which is full screen already */
 export const fullscreenSupported = () =>
-  typeof document !== 'undefined' &&
+  typeof document !== 'undefined' && !inTvApp() &&
   (typeof root().requestFullscreen === 'function' || typeof root().webkitRequestFullscreen === 'function');
 
 export const isFullscreen = () => {
@@ -33,6 +36,7 @@ export const exitFullscreen = () => {
 
 /** Enter fullscreen. Browsers only allow this from a user gesture. */
 export const enterFullscreen = () => {
+  if (inTvApp()) return; // full screen already (the stage's double click)
   try {
     const el = root();
     if (typeof el.requestFullscreen === 'function') el.requestFullscreen()?.catch?.(() => {});

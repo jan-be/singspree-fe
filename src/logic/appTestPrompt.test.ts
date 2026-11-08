@@ -56,6 +56,13 @@ describe('suggestsAppTest', () => {
     device(ANDROID_PHONE, { referrer: 'https://www.google.com/' });
     expect(suggestsAppTest()).toBe(true);
   });
+
+  test('not in the TV app, on whatever Android it runs', () => {
+    device(`${ANDROID_TV} SingSpreeTV/1.0.0`);
+    expect(suggestsAppTest()).toBe(false);
+    device(`${ANDROID_TABLET.replace('Chrome', 'wv) Chrome')} SingSpreeTV/1.0.0`);
+    expect(suggestsAppTest()).toBe(false);
+  });
 });
 
 describe('appTestPrompt', () => {

@@ -11,6 +11,7 @@ import {
   getSignInProviders, startGoogle, getGoogleSignup, finishGoogleSignup,
 } from '../logic/authApi';
 import { staysAfterSignIn, uploadSignupPicture } from '../logic/signupPicture';
+import { inTvApp } from '../logic/tvApp';
 import type { Me } from '../logic/authApi';
 import type { Translate } from '../types/i18n';
 
@@ -133,7 +134,8 @@ const AuthPage = () => {
     try { await fn(); } catch (e) { fail(e); } finally { setBusy(false); }
   };
 
-  useEffect(() => { getSignInProviders().then(p => setGoogleOffered(p.google)).catch(() => {}); }, []);
+  // (not in the Fire TV app: Google refuses to sign in inside a WebView)
+  useEffect(() => { getSignInProviders().then(p => setGoogleOffered(p.google && !inTvApp())).catch(() => {}); }, []);
 
   // The code has been read: it does not stay in the address bar and the browser's history
   useEffect(() => {

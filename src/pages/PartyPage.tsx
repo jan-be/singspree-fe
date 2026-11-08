@@ -87,6 +87,7 @@ import { DEFAULT_DIFFICULTY, TOLERANCE, loadDifficulty, storeDifficulty, type Di
 import { CAMERA_LATENCY_S, cameraAction, cameraEncoderSupported, createCameraFilm, type CameraFilm } from "../logic/cameraClip";
 import CameraButton, { CameraPreview } from "../components/CameraButton";
 import { exitFullscreen, toggleFullscreen } from "../logic/fullscreen";
+import { inTvApp, MEDIA_SEEK_STEP } from "../logic/tvApp";
 import { getReferrer, getArrival } from "../logic/referrer";
 import { platformHints } from "../logic/platformHints";
 import { loadJoinerSound, saveJoinerSound } from "../logic/joinerSound";
@@ -1428,6 +1429,49 @@ const PartyPage = () => {
       if (action === 'toggle') togglePlayback();
     }, DOUBLE_CLICK_MS);
   }, [togglePlayback]);
+
+  // In the Fire TV app (logic/tvApp.ts) the remote's Home button hides the page: the song the
+  // host plays pauses for everyone and waits there for play (Amazon tests that a TV app goes
+  // quiet when left). The remote's play/pause, rewind and fast-forward work the song for the
+  // host and co-hosts, as the stage and the timeline do.
+  useEffect(() => {
+    if (!inTvApp() || !canControl) return undefined;
+    // Buffering counts as playing: a press then pauses, as it would a moment later
+    const playing = () => {
+      if (!isHostRef.current) return hostIsPlayingRef.current;
+      try { const s = iframePlayerRef.current?.getPlayerState?.(); return s === 1 || s === 3; } catch { return false; }
+    };
+    const setPlaying = (on: boolean) => {
+      if (!isHostRef.current) { if (on !== hostIsPlayingRef.current) togglePlayback(); return; } // a co-host asks the host's page
+      const player = iframePlayerRef.current;
+      try { if (on) player?.playVideo?.(); else player?.pauseVideo?.(); } catch { /* */ }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden' && isHostRef.current && playing()) setPlaying(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || promptJustAnswered()) return; // the "tap for sound" prompt took the press
+      const step = MEDIA_SEEK_STEP[e.key];
+      if (step) {
+        let now = 0, duration = 0;
+        try { now = iframePlayerRef.current?.getCurrentTime?.() ?? 0; duration = iframePlayerRef.current?.getDuration?.() ?? 0; } catch { /* */ }
+        let to = Math.max(0, now + step);
+        if (duration > 0) to = Math.min(to, duration - 1);
+        if (isHostRef.current) seekVideo(to); else seekViaHost(to);
+      } else if (e.key === 'MediaPlayPause' || e.key === 'MediaPlay' || e.key === 'MediaPause') {
+        setPlaying(e.key === 'MediaPlayPause' ? !playing() : e.key === 'MediaPlay');
+      } else {
+        return;
+      }
+      e.preventDefault();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [canControl, togglePlayback, seekVideo, seekViaHost]);
   // On a joiner the free stage is no pause button: no pointer, no focus (a
   // double click there still goes fullscreen). On a co-host it is.
   // No minimum height: on a short screen (a tablet in windowed Chrome) the
