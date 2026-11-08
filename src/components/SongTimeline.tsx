@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { frameSeconds, formatTime, type SongRegion } from '../logic/songRegions';
 import type { LiveStore } from '../logic/liveStore';
+import { screenRatio } from '../logic/canvasScale';
 
 export interface SongTimelineProps {
   store: LiveStore;
@@ -132,7 +133,7 @@ const Cursor = ({ store, total }: { store: LiveStore; total: number }) => {
     // done anyway, never from the per-frame update (a forced layout).
     const measure = () => {
       const r = bar.getBoundingClientRect();
-      geo = { left: r.left, width: r.width, dpr: window.devicePixelRatio || 1 };
+      geo = { left: r.left, width: r.width, dpr: screenRatio() };
       shownPixels = null;
       update();
     };

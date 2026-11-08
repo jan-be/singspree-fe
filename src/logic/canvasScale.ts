@@ -13,6 +13,36 @@
  * caps it further (`cap`, frameGovernor.ts), never below 1.
  */
 
+type ScreenLike = { devicePixelRatio?: number; matchMedia?: (query: string) => { matches: boolean } };
+const ratioCache = { dpr: NaN, ratio: 1 };
+
+/**
+ * Device pixels per CSS pixel as the screen really has them: devicePixelRatio,
+ * unless the CSS `resolution` says much less. Amazon's WebView on a 4K Fire TV
+ * says 4 while the app's window is a 1920x1080 buffer that the stick's display
+ * hardware scales up to 4K: 960x540 CSS px at 2, and `resolution` there is
+ * 2dppx. The highway sized by 4 drew four times the pixels that show
+ * (3712x800), and with a singer the stick presented 36 frames a second, many
+ * held for 2-3 refreshes; at 2 it presented 57-59 (2026-11-08). A small
+ * difference (a desktop's page zoom) is not believed: the ratio stays then.
+ */
+export function screenRatio(win: ScreenLike = globalThis): number {
+  const dpr = win.devicePixelRatio || 1;
+  const own = win === globalThis;
+  if (own && dpr === ratioCache.dpr) return ratioCache.ratio;
+  let ratio = dpr;
+  try {
+    if (win.matchMedia && !win.matchMedia(`(min-resolution: ${dpr * 0.75}dppx)`).matches) {
+      ratio = 1; // (none of the steps: one pixel per CSS pixel)
+      for (let r = Math.floor(dpr * 0.75 * 8) / 8; r >= 1; r -= 0.125) {
+        if (win.matchMedia(`(min-resolution: ${r}dppx)`).matches) { ratio = r; break; }
+      }
+    }
+  } catch { /* no media queries: the ratio as said */ }
+  if (own) { ratioCache.dpr = dpr; ratioCache.ratio = ratio; }
+  return ratio;
+}
+
 const FALLBACK_MAX = 4096; // what nearly every GPU of the last decade takes; used when WebGL cannot tell
 let cachedMax: number | null = null;
 

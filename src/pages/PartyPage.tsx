@@ -22,6 +22,7 @@ import { startAtFromSearch, searchWithoutStartAt, startPoint, resumeTime } from 
 import Wordmark from "../components/Wordmark";
 import { initMicInput, micErrorKind } from "../logic/MicrophoneInput";
 import { micAction, micPermission } from "../logic/micStandby";
+import { keepScreenAwake } from "../logic/screenAwake";
 import { createBleedController, FALLBACK_DELAY } from "../logic/bleedController";
 import { createSingingGate } from "../logic/singingGate";
 import { confirmProvisional } from "../logic/provisionalPitch";
@@ -102,7 +103,7 @@ import { VideoClock, readPlayer } from "../logic/videoClock";
 import { HostClock, Leg, songTimeAhead } from "../logic/hostClock";
 import { shouldRestart } from "../logic/stemSync";
 import { audioLatencyHint } from "../logic/audioLatencyFlag";
-import { contextLatency, nextLead } from "../logic/outputLead";
+import { leadEstimate, nextLead } from "../logic/outputLead";
 import { debugLog, debugError, isDebugEnabled } from "../logic/debugLog";
 import { createStruggleWatch, forcedVideoScale, initialVideoScale, rememberReducedScale, reducedVideoScale, softwareAv1OnWeakDevice } from "../logic/videoScale";
 import DebugOverlay from "../components/DebugOverlay";
@@ -973,12 +974,14 @@ const PartyPage = () => {
   // is a start or a drag on the timeline, where any difference counts.
   const stemSyncRef = useRef<{ seeks: number; ahead: number; back: number; last: number; drift: number; behindSince: number | null }>({ seeks: 0, ahead: 0, back: 0, last: 0, drift: 0, behindSince: null });
   // The stems play this far ahead of the song's clock: the audio's way from
-  // the context to the ear (outputLead.ts; half a second on a Fire TV with a
-  // Bluetooth speaker), so the music heard lines up with the picture and the
-  // lyrics. Every start, seek and check of the stems aims at clock + lead.
+  // the context to the ear (outputLead.ts: half a second on a Fire TV with a
+  // Bluetooth speaker, and what a Fire TV leaves out of its estimate), so the
+  // music heard lines up with the picture and the lyrics, and singers who sing
+  // to it are not behind the cursor. Every start, seek and check of the stems
+  // aims at clock + lead.
   const stemLeadRef = useRef(0);
   const updateStemLead = useCallback(() => {
-    stemLeadRef.current = nextLead(stemLeadRef.current, contextLatency(audioRef.current?.ctx));
+    stemLeadRef.current = nextLead(stemLeadRef.current, leadEstimate(audioRef.current?.ctx));
     return stemLeadRef.current;
   }, []);
   const alignStems = useCallback((clockTime: number, immediate = false) => {
@@ -2541,6 +2544,11 @@ const PartyPage = () => {
     });
     return () => { cancelled = true; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The screen stays on while a song plays and a while after (screenAwake.ts):
+  // a joiner who switched the video off had it go dark mid-song, and the
+  // microphone with it. The Fire TV app keeps its screen on by itself.
+  useEffect(() => (inTvApp() ? undefined : keepScreenAwake(isSongPlaying)), [isSongPlaying]);
 
   // Open only while needed (micStandby.ts): a song playing, or the mic panel
   // open for its level meter. Checked every second, on a change of tab

@@ -14,7 +14,7 @@ import { headMode, headStrength } from "../logic/headMarker";
 import { HEIGHT } from "../logic/highwayPaint";
 import { Canvas2DPainter } from "../logic/highwayPainters";
 import { offThreadPainting, createOffThreadPainter, highwayStats } from "../logic/highwayRenderer";
-import { layerScale, maxLayerSize } from "../logic/canvasScale";
+import { layerScale, maxLayerSize, screenRatio } from "../logic/canvasScale";
 import useMeasure from "react-use-measure";
 import type { LiveStore } from "../logic/liveStore";
 import type { LyricElement, LyricLine } from "../logic/LyricsParser";
@@ -401,7 +401,7 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
     // A worker's canvas: within the GPU's texture limit, and fewer pixels
     // when the governor says the device cannot keep up (canvasScale.ts)
     const painter = painterRef.current;
-    const deviceRatio = window.devicePixelRatio || 1;
+    const deviceRatio = screenRatio(); // (not devicePixelRatio: a 4K Fire TV says 4 for a window of 2)
     const maxSize = painter ? maxLayerSize() : 0;
     const dpr = painter
       ? layerScale({ dpr: deviceRatio, cssWidth: width, cssHeight: HEIGHT, maxSize, cap: governorRef.current.scale })
