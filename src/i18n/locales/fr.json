@@ -487,7 +487,9 @@
   "footer": {
     "privacyPolicy": "Politique de confidentialité",
     "termsOfService": "Conditions d'utilisation",
-    "contact": "Contact"
+    "contact": "Contact",
+    "more": "Plus",
+    "language": "Langue"
   },
   "notFound": {
     "title": "404 — Page introuvable",

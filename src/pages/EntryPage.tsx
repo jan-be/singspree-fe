@@ -19,6 +19,7 @@ import AiBadge from "../components/AiBadge";
 import { trackSearch, trackPick, currentSearch, endSearch } from "../logic/track";
 import { probeYouTube, inMainlandChinaTimeZone } from "../logic/youtubeReachable";
 import { useChartOffer } from "../logic/useChartOffer";
+import { inOurApp } from "../logic/androidApp";
 import { ChartHint } from "../components/ChartOfferCard";
 import SingAgainCard from "../components/SingAgainCard";
 import AfterSongsPrompt from "../components/AfterSongsPrompt";
@@ -441,6 +442,9 @@ const LanguageDropdown = ({ languages, active, onSelect, userLang }: {
 const EntryPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  // Our apps have no footer: a TV remote's arrows never got past the endless
+  // songs to it, and an app keeps such links in a menu (AppMenu, in the top bar)
+  const [inApp] = useState(inOurApp);
   // A joiner who comes back to the menu has left the party: choosing a song
   // here starts their own. A host keeps the party (the joiners wait), sees it
   // here with the code and who is connected, and just picks the next song.
@@ -701,7 +705,7 @@ const EntryPage = () => {
 
     {/* Fixed footer: compliance links, SingSpree elsewhere, the language switcher.
         One line where it fits; on narrow phones the links take a line of their own */}
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-ink/80 backdrop-blur-md border-t border-white/[0.06]">
+    {!inApp && <div className="fixed bottom-0 left-0 right-0 z-40 bg-ink/80 backdrop-blur-md border-t border-white/[0.06]">
       <div className="flex flex-wrap justify-center items-center gap-x-4 sm:gap-x-6 gap-y-0 px-4 py-1 text-xs sm:text-[13px]">
         <div className="flex items-center gap-4 sm:gap-6">
           <Link to="/privacy-policy" className="text-white/45 hover:text-white transition-colors">
@@ -720,7 +724,7 @@ const EntryPage = () => {
           <LanguageSwitcher />
         </div>
       </div>
-    </div>
+    </div>}
     </>
   );
 };

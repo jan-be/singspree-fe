@@ -485,7 +485,9 @@
   "footer": {
     "privacyPolicy": "개인정보 보호정책",
     "termsOfService": "이용약관",
-    "contact": "연락처"
+    "contact": "연락처",
+    "more": "더보기",
+    "language": "언어"
   },
   "notFound": {
     "title": "404 — 페이지를 찾을 수 없습니다",

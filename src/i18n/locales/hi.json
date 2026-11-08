@@ -487,7 +487,9 @@
   "footer": {
     "privacyPolicy": "गोपनीयता नीति",
     "termsOfService": "सेवा की शर्तें",
-    "contact": "संपर्क"
+    "contact": "संपर्क",
+    "more": "और",
+    "language": "भाषा"
   },
   "notFound": {
     "title": "404 — पृष्ठ नहीं मिला",

@@ -485,7 +485,9 @@
   "footer": {
     "privacyPolicy": "Chính sách bảo mật",
     "termsOfService": "Điều khoản dịch vụ",
-    "contact": "Liên hệ"
+    "contact": "Liên hệ",
+    "more": "Thêm",
+    "language": "Ngôn ngữ"
   },
   "notFound": {
     "title": "404 — Không tìm thấy trang",

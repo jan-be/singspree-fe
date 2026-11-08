@@ -487,7 +487,9 @@
   "footer": {
     "privacyPolicy": "Integritetspolicy",
     "termsOfService": "Användarvillkor",
-    "contact": "Kontakt"
+    "contact": "Kontakt",
+    "more": "Mer",
+    "language": "Språk"
   },
   "notFound": {
     "title": "404 — Sidan hittades inte",

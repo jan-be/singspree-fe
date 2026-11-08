@@ -11,6 +11,7 @@ import { extractYouTubeVideoId } from "../logic/youtubeLink";
 import { ChartLookup, ChartOffer, ChartMaking, type VideoOffer } from "./ChartOfferCard";
 import ListenPanel, { type ListenResult, type ListenState } from "./ListenPanel";
 import { listen } from "../logic/songListener";
+import { inTvApp } from "../logic/tvApp";
 
 const DEBOUNCE_MS = 200;
 
@@ -76,6 +77,7 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
   const [listenState, setListenState] = useState<ListenState | null>(null); // ListenPanel's state
   const listenRef = useRef<ReturnType<typeof listen> | null>(null);
   const meterRef = useRef<(level: number) => void>(null);
+  const [canListen] = useState(() => !inTvApp()); // the Fire TV app grants no microphone
 
   // Follow external changes to `q` (back button, "clear filters") without
   // clobbering what the user is typing right now.
@@ -299,12 +301,12 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           autoComplete="off"
-          className={`field h-12 sm:h-14 rounded-2xl pl-12 ${text ? 'pr-[5.5rem]' : 'pr-14'} text-base sm:text-[17px] [&::-webkit-search-cancel-button]:hidden`}
+          className={`field h-12 sm:h-14 rounded-2xl pl-12 ${canListen ? (text ? 'pr-[5.5rem]' : 'pr-14') : (text ? 'pr-14' : 'pr-4')} text-base sm:text-[17px] [&::-webkit-search-cancel-button]:hidden`}
         />
         {text && (
           <button
             onClick={clearSearch}
-            className="btn-icon absolute right-12 top-1/2 -translate-y-1/2 w-9 h-9 text-white/50"
+            className={`btn-icon absolute ${canListen ? 'right-12' : 'right-2'} top-1/2 -translate-y-1/2 w-9 h-9 text-white/50`}
             title={t('search.clear')}
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -313,7 +315,7 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
           </button>
         )}
         {/* Listen for the song playing in the room */}
-        <button
+        {canListen && <button
           type="button"
           onClick={listening ? stopListening : startListening}
           className={`btn-icon absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 ${listening ? 'text-white bg-gradient-to-br from-[#ff4fd8] to-[#8b5cf6]' : 'text-white/70'}`}
@@ -324,7 +326,7 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10a7 7 0 0 0 14 0" /><line x1="12" y1="17" x2="12" y2="22" />
           </svg>
-        </button>
+        </button>}
       </div>
 
       <ListenPanel

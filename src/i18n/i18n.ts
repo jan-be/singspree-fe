@@ -105,4 +105,11 @@ const syncHtmlLang = (lng: string) => {
 syncHtmlLang(i18n.language);
 i18n.on('languageChanged', syncHtmlLang);
 
+/** The page in `lang` from now on, kept for the next visit (the detection above reads it first) */
+export function chooseLanguage(lang: string) {
+  if (lang === (i18n.language || 'en')) return;
+  try { localStorage.setItem('singspree-lang', lang); } catch { /* private mode */ }
+  void i18n.changeLanguage(lang);
+}
+
 export default i18n;

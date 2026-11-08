@@ -485,7 +485,9 @@
   "footer": {
     "privacyPolicy": "Kebijakan Privasi",
     "termsOfService": "Ketentuan Layanan",
-    "contact": "Kontak"
+    "contact": "Kontak",
+    "more": "Lainnya",
+    "language": "Bahasa"
   },
   "notFound": {
     "title": "404 — Halaman tidak ditemukan",

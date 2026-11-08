@@ -1472,22 +1472,42 @@ const PartyPage = () => {
       document.removeEventListener('keydown', onKey);
     };
   }, [canControl, togglePlayback, seekVideo, seekViaHost]);
-  // On a joiner the free stage is no pause button: no pointer, no focus (a
-  // double click there still goes fullscreen). On a co-host it is.
+  // On a joiner the free stage is no pause button: no pointer (a double click
+  // there still goes fullscreen). On a co-host it is.
   // No minimum height: on a short screen (a tablet in windowed Chrome) the
-  // free stage gives way before the stage below lg has to scroll
-  const stageButtonProps = canControl
-    ? { 'aria-label': videoState === 1 ? 'Pause' : 'Play', 'data-stage': '', className: 'group relative flex-1 min-h-0 cursor-pointer bg-transparent' }
-    : { 'aria-hidden': true, tabIndex: -1, className: 'flex-1 min-h-0 cursor-default bg-transparent' };
-  // A TV remote's arrows reach the free stage too (logic/spatialNav.ts):
-  // focused, it shows what OK does there in its middle, where a ring around
-  // the empty space would say nothing (index.css takes the ring off)
-  const stageSign = canControl && (
-    <span aria-hidden="true" className="hidden group-focus-visible:grid absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 place-items-center rounded-full bg-black/60 text-white ring-[3px] ring-white pointer-events-none">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-        {videoState === 1 ? <path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /> : <path d="M8.5 5.5v13l10-6.5z" />}
-      </svg>
-    </span>
+  // free stage gives way before the stage below lg has to scroll.
+  // Its two halves, above and below the highway, are for the pointer only:
+  // for the keys (a TV remote's arrows, logic/spatialNav.ts; Tab; a screen
+  // reader) pause / resume is one control, the highway in the middle (stageKeyProps)
+  const stageButtonProps = { 'aria-hidden': true, tabIndex: -1, className: `flex-1 min-h-0 bg-transparent ${canControl ? 'cursor-pointer' : 'cursor-default'}` } as const;
+  // Focused from the keys, the highway shows what OK does in the middle of
+  // the screen, where the paused sign is, and in its place: a ring around the
+  // highway would say little (index.css takes it off), and two signs, one
+  // above the other, looked like two buttons
+  const [stageKeyFocus, setStageKeyFocus] = useState(false);
+  const stageKeyProps = canControl ? {
+    role: 'button', tabIndex: 0, 'aria-label': videoState === 1 ? 'Pause' : 'Play', 'data-stage': '',
+    // (a click on it is the canvas's own, StageMusicBars' onClick)
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if ((e.key !== 'Enter' && e.key !== ' ') || e.target !== e.currentTarget) return;
+      e.preventDefault();
+      if (!e.repeat) handleStageClick();
+    },
+    onFocus: (e: React.FocusEvent<HTMLElement>) => {
+      let keys = true; // (an engine without :focus-visible: only the keys reach it there)
+      try { keys = e.currentTarget.matches(':focus-visible'); } catch { /* */ }
+      setStageKeyFocus(keys);
+    },
+    onBlur: () => setStageKeyFocus(false),
+  } : {};
+  const stageSign = canControl && stageKeyFocus && (
+    <div aria-hidden="true" className="absolute inset-0 z-[25] flex items-center justify-center pointer-events-none">
+      <span className="grid w-16 h-16 place-items-center rounded-full bg-black/60 text-white ring-[3px] ring-white">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+          {videoState === 1 ? <path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /> : <path d="M8.5 5.5v13l10-6.5z" />}
+        </svg>
+      </span>
+    </div>
   );
 
   // The streamed stems are media elements, so a phone offers pause for them
@@ -2509,7 +2529,8 @@ const PartyPage = () => {
   useEffect(() => {
     let remembered = null;
     try { remembered = localStorage.getItem('singspree_mic_on'); } catch { /* */ }
-    const wantMic = remembered == null ? !isHost : remembered === '1';
+    // (never in the Fire TV app, which grants no microphone, even when it joins someone's party)
+    const wantMic = !inTvApp() && (remembered == null ? !isHost : remembered === '1');
     if (!wantMic || micActive) return;
     micActiveRef.current = true;
     setMicActive(true);
@@ -3710,7 +3731,7 @@ const PartyPage = () => {
             nothing is loading then */}
         {showVideo && stalled !== 'video' && (
           <div aria-hidden="true" className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-            {(videoState === 2 || videoState === 0) && (
+            {(videoState === 2 || videoState === 0) && !stageSign && (
               <svg width="72" height="72" viewBox="0 0 24 24" fill="currentColor" className="text-white/80">
                 <polygon points="6 3 20 12 6 21 6 3" />
               </svg>
@@ -3799,9 +3820,7 @@ const PartyPage = () => {
             type="button"
             onClick={handleStageClick}
             {...stageButtonProps}
-          >
-            {stageSign}
-          </button>
+          />
 
           {/* The scores, always in view: everyone who sang, best first */}
           <LiveScoreStrip
@@ -3823,7 +3842,7 @@ const PartyPage = () => {
               CSS masks here were re-rendered on every frame, the largest cost
               of a frame on CPU-drawing devices. A click on it pauses / resumes too. */}
           <div className={`relative flex-shrink-0 ${canControl ? 'cursor-pointer' : ''}`}>
-            <div className="relative">
+            <div className="relative" {...stageKeyProps}>
               <StageMusicBars
                 store={live}
                 isHost={canControl}
@@ -3909,9 +3928,7 @@ const PartyPage = () => {
             type="button"
             onClick={handleStageClick}
             {...stageButtonProps}
-          >
-            {stageSign}
-          </button>
+          />
 
           {/* Skip Intro / Outro / Interruption — Netflix-style button above the lyrics.
               Label depends on SponsorBlock segment category. */}
@@ -3962,6 +3979,9 @@ const PartyPage = () => {
         </div>
 
       </div>
+
+      {/* The focused highway's sign, at the screen's middle (stageSign) */}
+      {stageSign}
 
       {/* Queue + similar songs: a drawer under the top-right pill (unless
           the queue has a window of its own) */}

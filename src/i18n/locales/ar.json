@@ -495,7 +495,9 @@
   "footer": {
     "privacyPolicy": "سياسة الخصوصية",
     "termsOfService": "شروط الخدمة",
-    "contact": "اتصل بنا"
+    "contact": "اتصل بنا",
+    "more": "المزيد",
+    "language": "اللغة"
   },
   "notFound": {
     "title": "404 — الصفحة غير موجودة",

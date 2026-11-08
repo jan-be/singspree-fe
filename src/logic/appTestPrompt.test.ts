@@ -57,6 +57,11 @@ describe('suggestsAppTest', () => {
     expect(suggestsAppTest()).toBe(true);
   });
 
+  test('a link opened from another Android app is not our app', () => {
+    device(ANDROID_PHONE, { referrer: 'android-app://com.whatsapp/' });
+    expect(suggestsAppTest()).toBe(true);
+  });
+
   test('not in the TV app, on whatever Android it runs', () => {
     device(`${ANDROID_TV} SingSpreeTV/1.0.0`);
     expect(suggestsAppTest()).toBe(false);

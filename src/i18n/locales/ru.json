@@ -491,7 +491,9 @@
   "footer": {
     "privacyPolicy": "Политика конфиденциальности",
     "termsOfService": "Условия использования",
-    "contact": "Контакты"
+    "contact": "Контакты",
+    "more": "Ещё",
+    "language": "Язык"
   },
   "notFound": {
     "title": "404 — Страница не найдена",

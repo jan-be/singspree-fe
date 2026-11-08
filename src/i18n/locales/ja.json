@@ -485,7 +485,9 @@
   "footer": {
     "privacyPolicy": "プライバシーポリシー",
     "termsOfService": "利用規約",
-    "contact": "お問い合わせ"
+    "contact": "お問い合わせ",
+    "more": "その他",
+    "language": "言語"
   },
   "notFound": {
     "title": "404 — ページが見つかりません",

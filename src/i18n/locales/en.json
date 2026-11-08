@@ -491,7 +491,9 @@
   "footer": {
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
-    "contact": "Contact"
+    "contact": "Contact",
+    "more": "More",
+    "language": "Language"
   },
   "volume": {
     "title": "Volume",

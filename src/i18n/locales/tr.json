@@ -487,7 +487,9 @@
   "footer": {
     "privacyPolicy": "Gizlilik Politikası",
     "termsOfService": "Kullanım Koşulları",
-    "contact": "İletişim"
+    "contact": "İletişim",
+    "more": "Daha fazla",
+    "language": "Dil"
   },
   "notFound": {
     "title": "404 — Sayfa bulunamadı",

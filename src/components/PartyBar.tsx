@@ -10,6 +10,7 @@ import { LockIcon, PopOutIcon } from "./Icons";
 import QueueChartBadge from "./QueueChartBadge";
 import { markPopoverClosed } from "../logic/popoverGuard";
 import { fullscreenSupported, isFullscreen, toggleFullscreen } from "../logic/fullscreen";
+import { inTvApp } from "../logic/tvApp";
 import AppIcon from "./AppIcon";
 import Wordmark from "./Wordmark";
 import { Link } from "react-router-dom";
@@ -92,6 +93,8 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
   const qrRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [isPhone] = useState(isSmartphone);
+  // The Fire TV app grants no microphone (the phones in the party are the mics): no panel to join singing
+  const [canSing] = useState(() => !inTvApp());
 
   // Browser fullscreen: only hides the browser and OS chrome, the page keeps
   // its layout (with a little more room). Hidden where the API is missing (iOS).
@@ -166,7 +169,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
 
         {/* Right: microphone, volume, video, fullscreen, settings | queue | the party code */}
         <div className="pointer-events-auto capsule min-w-0">
-          <MicPanel
+          {canSing && <MicPanel
             micActive={micActive}
             micPhase={micPhase}
             micError={micError}
@@ -185,7 +188,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
             saveRecordings={saveRecordings}
             onSaveRecordingsChange={onSaveRecordingsChange}
             voice={voice}
-          />
+          />}
           {camera && <CameraButton {...camera} onOpenChange={setCameraPanelOpen} />}
           <VolumeControl
             volume={volume}

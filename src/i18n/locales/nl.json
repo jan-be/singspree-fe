@@ -487,7 +487,9 @@
   "footer": {
     "privacyPolicy": "Privacybeleid",
     "termsOfService": "Gebruiksvoorwaarden",
-    "contact": "Contact"
+    "contact": "Contact",
+    "more": "Meer",
+    "language": "Taal"
   },
   "notFound": {
     "title": "404 — Pagina niet gevonden",

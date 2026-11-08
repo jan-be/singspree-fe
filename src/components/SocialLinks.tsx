@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { inAndroidApp } from "../logic/androidApp";
 import { inTvApp } from "../logic/tvApp";
 
 /** One of SingSpree's accounts elsewhere: its address, the site's name and its logo. */
@@ -72,8 +73,9 @@ const SocialLinks = ({ size = 16, className = "" }: SocialLinksProps) => {
   return (
     <div className={`flex items-center gap-0.5 ${className}`}>
       {/* Not in SOCIAL_LINKS, which the crawler pages take for our accounts: these are pages of ours, about the apps.
-          Not in the Fire TV app: Amazon's store takes no links to other stores */}
-      {!inTvApp() && <>
+          Not in our apps: Amazon's store takes no links to other stores, and in the Android app they are
+          about getting what it already is */}
+      {!inTvApp() && !inAndroidApp() && <>
         <Link to="/android" aria-label={t('android.title')} title={t('android.title')} className={LINK_CLASS}>{logo(GooglePlayIcon)}</Link>
         <Link to="/ios" aria-label={t('ios.title')} title={t('ios.title')} className={LINK_CLASS}>{logo(AppStoreIcon)}</Link>
       </>}

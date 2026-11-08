@@ -22,7 +22,8 @@ interface BarGeometry {
 /**
  * Our own progress bar for the song (YouTube's is covered). The stretches
  * where somebody sings are marked — purple for the first singer, orange for
- * the second — and the host can click or drag to seek.
+ * the second — and the host can click or drag to seek, or, with the bar
+ * focused (a TV remote's arrows), step through the song with left / right.
  *
  * The regions are static per song, so they are a memoised layer; only the
  * cursor and the time label follow the live store frame by frame.
@@ -60,6 +61,14 @@ const grid = (x: number) => Math.round(x * 64) / 64;
 const lengthOf = (px: number) => Math.trunc(f32(px) * 64) / 64;
 const percentOf = (base: number, pct: number) => Math.trunc(f32(f32(f32(f32(base) * f32(pct)) / 100) * 64)) / 64;
 const pixelOf = (x: number) => Math.floor(x + 0.5);
+
+// Seconds a left / right press moves the song, as the remote's rewind / fast-forward (tvApp.ts)
+const KEY_STEP = 10;
+// A held key moves it at most this often (ms): five steps, 50 s of song, a second
+const KEY_REPEAT_MS = 200;
+// Presses this close (ms) step on from where the last one went: the player
+// (a co-host's: the host's, over the network) takes a moment to report it there
+const KEY_CHAIN_MS = 1000;
 
 /**
  * The pixels the cursor's painted edges land on at `pct` — the fill's right
@@ -112,7 +121,12 @@ const Cursor = ({ store, total }: { store: LiveStore; total: number }) => {
       }
       shownPixels = pixels;
       const text = formatTime(sec);
-      if (text !== secText.data) secText.data = text;
+      if (text !== secText.data) {
+        secText.data = text;
+        // (for a screen reader; the slider's other values are React's)
+        bar.setAttribute('aria-valuenow', String(Math.round(sec)));
+        bar.setAttribute('aria-valuetext', `${text} / ${formatTime(total)}`);
+      }
     };
     // Read in a ResizeObserver callback or a resize event, where layout is
     // done anyway, never from the per-frame update (a forced layout).
@@ -153,11 +167,28 @@ const SongTimeline = ({ store, regions, duration, onSeek, label }: SongTimelineP
     return Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
   };
   const seekTo = (e: React.PointerEvent<HTMLDivElement>) => { if (onSeek && total > 0) onSeek(fractionAt(e) * total); };
+  const keyRef = useRef({ to: 0, at: -Infinity });
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (!dir || !onSeek || total <= 0 || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    e.preventDefault(); // (the page's arrow navigation leaves the focus here then; up / down still leave)
+    const k = keyRef.current;
+    const now = performance.now();
+    if (e.repeat && now - k.at < KEY_REPEAT_MS) return;
+    const from = now - k.at < KEY_CHAIN_MS ? k.to : frameSeconds(store.getFrame().tickData);
+    k.to = Math.max(0, Math.min(total - 1, from + dir * KEY_STEP));
+    k.at = now;
+    onSeek(k.to);
+  };
 
   return (
     <div
       role={onSeek ? 'slider' : 'progressbar'}
       aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={Math.round(total)}
+      tabIndex={onSeek ? 0 : undefined}
+      onKeyDown={onSeek ? onKeyDown : undefined}
       className={`relative h-2.5 mx-3 mb-2 mt-5 rounded bg-white/15 ${onSeek ? 'cursor-pointer' : ''}`}
       onPointerDown={onSeek ? (e) => { dragging.current = true; e.currentTarget.setPointerCapture(e.pointerId); seekTo(e); } : undefined}
       onPointerMove={onSeek ? (e) => { if (dragging.current) seekTo(e); } : undefined}

@@ -1,3 +1,4 @@
+import { inAndroidApp } from './androidApp';
 import { feedbackCounts } from './feedbackPrompt';
 import { standalone } from './installPrompt';
 import { songPrompt } from './songPrompt';
@@ -16,9 +17,6 @@ export const {
 
 /** Android that is no use for the test: TVs and Fire tablets, which have no Google Play or no one's own phone behind them */
 const TV_OR_FIRE = /\bTV\b|Silk|AFT[A-Z]|GoogleTV|SmartTV|SMART-TV|BRAVIA|Chromecast|CrKey/i;
-
-/** Launched from the Android app: the first page's referrer, which stays for a single-page app */
-const inAndroidApp = () => typeof document !== 'undefined' && document.referrer.startsWith('android-app://');
 
 /** Whether this browser gets the suggestion: an Android phone or tablet, and not in the app, whose users are testers already, nor in the TV app */
 export function suggestsAppTest() {

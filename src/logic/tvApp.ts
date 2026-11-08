@@ -2,7 +2,9 @@
  * The Fire TV app: singspree.com in a WebView (Amazon WebView on Fire TV) that adds
  * "SingSpreeTV/<version>" to the user agent. There the page leaves out what the app cannot do
  * or Amazon's store does not allow: links to Google Play and the App Store, Google sign-in
- * (Google refuses sign-ins from a WebView), the fullscreen button (the app is full screen).
+ * (Google refuses sign-ins from a WebView), the fullscreen button (the app is full screen), and
+ * the microphone buttons (SearchBar's listen, PartyBar's mic panel): the app grants no microphone,
+ * a TV has none and the phones in the party are the mics.
  * In a party the remote's Home button pauses the song (the app hides the page; Amazon tests
  * that a TV app stops its sound when left), and its play/pause, rewind and fast-forward
  * buttons work the song (PartyPage).

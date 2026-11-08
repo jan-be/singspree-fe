@@ -485,7 +485,9 @@
   "footer": {
     "privacyPolicy": "隱私權政策",
     "termsOfService": "服務條款",
-    "contact": "聯絡我們"
+    "contact": "聯絡我們",
+    "more": "更多",
+    "language": "語言"
   },
   "notFound": {
     "title": "404 — 找不到頁面",

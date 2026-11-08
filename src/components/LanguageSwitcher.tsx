@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { supportedLanguages, languageNames } from "../i18n/i18n";
+import { supportedLanguages, languageNames, chooseLanguage } from "../i18n/i18n";
 
 /** language code -> its own name; i18next's language may be one without a name here */
 const NAMES: Record<string, string | undefined> = languageNames;
@@ -30,11 +30,7 @@ const LanguageSwitcher = () => {
 
   const switchTo = (newLang: string) => {
     setOpen(false);
-    if (newLang === currentLang) return;
-
-    // Save to localStorage so detection picks it up next time
-    try { localStorage.setItem("singspree-lang", newLang); } catch { /* private mode */ }
-    i18n.changeLanguage(newLang);
+    chooseLanguage(newLang);
   };
 
   return (

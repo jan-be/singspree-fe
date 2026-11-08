@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import Wordmark from "../components/Wordmark";
 import AccountMenu from "../components/AccountMenu";
 import AdminLink from "../components/AdminLink";
+import AppMenu from "../components/AppMenu";
+import { inOurApp } from "../logic/androidApp";
 
 export interface WrapperPageProps {
   children?: React.ReactNode;
@@ -13,6 +15,8 @@ export interface WrapperPageProps {
 }
 
 const WrapperPage = (props: WrapperPageProps) => {
+  // Our apps keep the footer's links in a menu at the top bar's end (AppMenu)
+  const [inApp] = React.useState(inOurApp);
   return (
     <div className="flex flex-col min-h-screen overflow-x-clip">
       <nav className="bg-ink/70 backdrop-blur-md border-b border-white/[0.06] relative z-40">
@@ -25,6 +29,7 @@ const WrapperPage = (props: WrapperPageProps) => {
             {props.navActions}
             <AdminLink />
             <AccountMenu />
+            {inApp && <AppMenu />}
           </div>
         </div>
       </nav>
@@ -33,7 +38,7 @@ const WrapperPage = (props: WrapperPageProps) => {
         {props.children}
       </main>
 
-      {!props.hideFooter && <Footer />}
+      {!props.hideFooter && !inApp && <Footer />}
     </div>
   );
 };

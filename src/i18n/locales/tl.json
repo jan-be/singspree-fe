@@ -487,7 +487,9 @@
   "footer": {
     "privacyPolicy": "Patakaran sa Privacy",
     "termsOfService": "Mga Tuntunin ng Serbisyo",
-    "contact": "Makipag-ugnayan"
+    "contact": "Makipag-ugnayan",
+    "more": "Higit pa",
+    "language": "Wika"
   },
   "notFound": {
     "title": "404 — Hindi nahanap ang pahina",

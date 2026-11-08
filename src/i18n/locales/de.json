@@ -491,7 +491,9 @@
   "footer": {
     "privacyPolicy": "Datenschutz",
     "termsOfService": "Nutzungsbedingungen",
-    "contact": "Kontakt"
+    "contact": "Kontakt",
+    "more": "Mehr",
+    "language": "Sprache"
   },
   "notFound": {
     "title": "404 — Seite nicht gefunden",

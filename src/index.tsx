@@ -16,6 +16,7 @@ import { syncVideoScaleFromUrl } from "./logic/videoScale";
 import { syncDebugFlagFromUrl, isDebugEnabled, installDebugHooks } from "./logic/debugLog";
 import { syncAudioLatencyFromUrl } from "./logic/audioLatencyFlag";
 import { captureReferrer } from "./logic/referrer";
+import { inAndroidApp } from "./logic/androidApp";
 import { syncMicFlagsFromUrl } from "./logic/fastPitchFlag";
 import { watchInstallPrompt } from "./logic/installPrompt";
 import { installSpatialNav } from "./logic/spatialNav";
@@ -34,6 +35,8 @@ syncAudioLatencyFromUrl();
 syncMicFlagsFromUrl();
 // Before the router runs: a client-side navigation clears document.referrer
 captureReferrer();
+// The Google Play app shows only in the first page's referrer: noted for the session now (androidApp.ts)
+inAndroidApp();
 // The browser offers adding SingSpree to the home screen once, early: kept for the entry page (after a long party)
 watchInstallPrompt();
 // The arrow keys (a TV remote's D-pad) move the focus from control to control, as on youtube.com/tv
