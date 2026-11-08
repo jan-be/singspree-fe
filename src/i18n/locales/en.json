@@ -1244,6 +1244,7 @@
       "hostGone": "host disconnected",
       "playing": "playing",
       "paused": "paused",
+      "ended": "finished",
       "idle": "Nothing playing",
       "signedIn": "Signed in",
       "players_one": "{{count}} player online",

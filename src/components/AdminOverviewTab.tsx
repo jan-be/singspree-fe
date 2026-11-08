@@ -56,7 +56,7 @@ const PartyCard = ({ party, busy, onClose }: { party: AdminParty; busy: boolean;
             <Thumb videoId={song.videoId} />
             <div className="min-w-0 flex-1">
               <div className="text-sm font-medium text-white truncate">{song.title}</div>
-              <div className="text-xs text-white/55 truncate">{song.artist} · {song.isPlaying ? t('admin.parties.playing') : t('admin.parties.paused')}{song.startedAt ? ` · ${ago(song.startedAt)}` : ''}</div>
+              <div className="text-xs text-white/55 truncate">{song.artist} · {t(song.ended ? 'admin.parties.ended' : song.isPlaying ? 'admin.parties.playing' : 'admin.parties.paused')}{song.startedAt ? ` · ${ago(song.startedAt)}` : ''}</div>
             </div>
           </Link>
         )

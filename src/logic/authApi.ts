@@ -273,7 +273,8 @@ export interface AdminParty {
   createdAt: number;
   hostConnected: boolean;
   hostAway: boolean;
-  currentSong: { songId: string; title: string; artist: string; videoId: string; isPlaying: boolean; startedAt?: number } | null;
+  /** ended: the play is over (score screen, or stopped); a server from before the flag sends none */
+  currentSong: { songId: string; title: string; artist: string; videoId: string; isPlaying: boolean; ended?: boolean; startedAt?: number } | null;
   queueLength: number;
   players: { username: string; connected: boolean; score: number; signedIn: boolean; latencyMs: number; avatar?: string }[];
 }
