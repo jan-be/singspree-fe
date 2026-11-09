@@ -1100,7 +1100,7 @@
           "ready": "ready"
         },
         "busy": {
-          "offline": "Not reachable: off, Docker Desktop not running, or the VPN down",
+          "offline": "Not reachable: off, Docker Desktop not running, or its tunnel to the server down",
           "job": "Making a song ({{value}} in its line)",
           "gpu": "GPU {{value}} % busy (limit {{limit}} %)",
           "vram": "Other programs hold {{value}} GB of GPU memory (limit {{limit}} GB)",

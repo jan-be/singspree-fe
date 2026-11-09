@@ -1100,7 +1100,7 @@
           "ready": "bereit"
         },
         "busy": {
-          "offline": "Nicht erreichbar: aus, Docker Desktop läuft nicht oder das VPN ist unten",
+          "offline": "Nicht erreichbar: aus, Docker Desktop läuft nicht oder sein Tunnel zum Server ist unten",
           "job": "Erstellt gerade einen Song ({{value}} in seiner Schlange)",
           "gpu": "GPU zu {{value}} % ausgelastet (Grenze {{limit}} %)",
           "vram": "Andere Programme belegen {{value}} GB GPU-Speicher (Grenze {{limit}} GB)",
