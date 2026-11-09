@@ -1,7 +1,7 @@
 # Minimal ONNX Runtime for the pitch worker
 
 The pitch worker (`src/logic/PitchWorkerMinimal.ts`) runs swift-f0 on our own
-build of ONNX Runtime 1.30.0 for WebAssembly instead of onnxruntime-web's:
+build of ONNX Runtime 1.31.1 for WebAssembly instead of onnxruntime-web's:
 
 - **single-threaded, ordinary memory.** Since 1.19 onnxruntime-web ships only
   its threaded build, whose memory is a shared `WebAssembly.Memory` of up to
@@ -65,7 +65,7 @@ protobuf 33 brings abseil along); later runs ~1 minute.
 Built natively on Windows (no WSL); nothing in it is Windows-only, but Linux
 is untested. Steps:
 
-1. clone ONNX Runtime v1.30.0 (shallow) and its Emscripten submodule,
+1. clone ONNX Runtime v1.31.1 (shallow) and its Emscripten submodule,
 2. remove ORT's `SharedArrayBuffer` stand-in from `onnxruntime/wasm/pre.js`
    (it creates a shared memory for code a single-threaded build does not
    have; `build.py` refuses output that still mentions shared memory),
@@ -111,7 +111,9 @@ Verifying).
 | the same + `stft-multiply.patch` (2026-10-05) | 1,150,743 | 430,421 | 328,449 | 1.8 ms |
 | the same + `mlas-narrow-conv.patch` (2026-10-05) | 1,152,163 | 431,329 | 328,633 | 1.35 ms |
 | stock onnxruntime-web 1.30 (2026-10-26, Chrome 155, all 7,216 windows) | 14,239,897 | 3,652,765 | 2,355,011 | 3.1 ms |
-| **the same build on ONNX Runtime 1.30.0** (2026-10-26, as above) | 1,184,458 | 450,221 | 345,378 | 1.36–1.40 ms |
+| the same build on ONNX Runtime 1.30.0 (2026-10-26, as above) | 1,184,458 | 450,221 | 345,378 | 1.36–1.40 ms |
+| stock onnxruntime-web 1.31.1 (2026-11-09, Chrome 156, all 7,216 windows, PC busy) | 14,848,852 | 3,792,479 | 2,449,236 | 4.6 ms |
+| **the same build on ONNX Runtime 1.31.1** (2026-11-09, as above) | 1,190,691 | 452,028 | 347,087 | 1.8 ms (1.30's: the same) |
 
 - 1.29 → 1.30 (2026-10-26): same Emscripten (4.0.23), flags and patches;
   the files the patches and `patch_pre_js` touch (`convolve.cpp`, `dft.cc`,
@@ -126,6 +128,17 @@ Verifying).
   strings in the binary say so). Speed: unchanged; over 20 interleaved rounds
   per browser on a busy PC, 1.30/1.29 = 1.005 in Chrome, 0.993 in Firefox,
   1.014 in WebKit (95 % intervals within ±4 %).
+- 1.30 → 1.31.1 (2026-11-09): same Emscripten (4.0.23), flags and patches
+  (they apply as they are). Upstream changed `convolve.cpp` only in a
+  RISC-V branch and `dft.cc` in how it reads the window and with an
+  empty-shape check; `pre.js` is unchanged, and `api.h` only gained
+  functions (EP devices, LoRA adapters) that `ortMinimal.ts` does not call;
+  onnxruntime-web's default CPU session options are unchanged. The operator
+  list is the same. Outputs: bit for bit those of stock 1.31.1 and of the
+  1.30 build, on every window of `iris.mp3`, in Chrome, Firefox and WebKit.
+  Size: +6 kB (+1.8 kB gzip), glue 11,038 → 11,227 B (the new API exports).
+  Speed: equal to 1.30's in each browser, run interleaved (the absolute
+  times are higher than above: the PC was busy with another benchmark).
 
 - Minimal over full: a third of the size; the price is the `.ort` model,
   which the build produces anyway.

@@ -1,7 +1,7 @@
 # Python packages for build.py: the model converter (must match the runtime's
 # version; it imports onnx) and the build tools ORT's build.py calls.
-onnxruntime==1.30.0
-onnx==1.23.1
-cmake==4.4.3
+onnxruntime==1.31.1
+onnx==1.23.2
+cmake==4.4.4
 ninja==1.13.2
 brotli  # optional: build.py prints brotli sizes when it is there
