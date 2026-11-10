@@ -440,6 +440,17 @@
     "done": "Terima kasih! Kami akan menulis ke {{email}} pada hari aplikasinya tersedia.",
     "privacy": "Kami memakai alamat ini hanya untuk email itu dan menghapusnya setelahnya."
   },
+  "firetv": {
+    "title": "SingSpree untuk Fire TV",
+    "intro": "Karaoke di layar besar: aplikasi Fire TV menampilkan SingSpree di TV-mu, dan semua ikut bernyanyi lewat ponselnya.",
+    "pictureAlt": "SingSpree di TV saat lagu diputar, di sebelahnya dua ponsel: satu bergabung ke pesta dengan kode, satu lagi bernyanyi",
+    "step1": "Pasang aplikasinya di Fire TV-mu dan pilih lagu dengan remote.",
+    "step2": "Teman-temanmu memindai kode QR di TV atau mengetik kode pesta di ponsel mereka.",
+    "step3": "Semua bernyanyi ke ponselnya sendiri, dan skornya muncul di TV.",
+    "get": "Dapatkan di Amazon",
+    "badge": "dapatkan di",
+    "affiliate": "Tautan afiliasi: sebagai Amazon Associate, kami mendapat penghasilan dari pembelian yang memenuhi syarat."
+  },
   "share": {
     "shareScore": "Bagikan Skor",
     "iJustSang": "Aku baru saja menyanyikan",

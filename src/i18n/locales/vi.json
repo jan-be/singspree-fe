@@ -440,6 +440,17 @@
     "done": "Cảm ơn bạn! Chúng tôi sẽ viết đến {{email}} vào ngày ứng dụng ra mắt.",
     "privacy": "Chúng tôi chỉ dùng địa chỉ này cho email đó và xóa sau khi gửi."
   },
+  "firetv": {
+    "title": "SingSpree cho Fire TV",
+    "intro": "Karaoke trên màn hình lớn: ứng dụng Fire TV đưa SingSpree lên TV của bạn, còn mọi người hát bằng điện thoại của mình.",
+    "pictureAlt": "SingSpree trên TV khi đang phát một bài, bên cạnh là hai điện thoại: một chiếc đang vào tiệc bằng mã, chiếc kia đang hát",
+    "step1": "Cài ứng dụng trên Fire TV và chọn bài bằng điều khiển từ xa.",
+    "step2": "Bạn bè quét mã QR trên TV hoặc nhập mã tiệc trên điện thoại.",
+    "step3": "Mỗi người hát vào điện thoại của mình, và điểm số hiện trên TV.",
+    "get": "Tải trên Amazon",
+    "badge": "tải về trên",
+    "affiliate": "Liên kết tiếp thị: là thành viên Amazon Associates, chúng tôi kiếm tiền từ các giao dịch mua đủ điều kiện."
+  },
   "share": {
     "shareScore": "Chia sẻ điểm",
     "iJustSang": "Tôi vừa hát",

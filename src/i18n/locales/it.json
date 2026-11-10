@@ -442,6 +442,17 @@
     "done": "Grazie! Scriveremo a {{email}} il giorno in cui l’app sarà disponibile.",
     "privacy": "Usiamo l’indirizzo solo per quella e-mail e poi lo cancelliamo."
   },
+  "firetv": {
+    "title": "SingSpree per Fire TV",
+    "intro": "Il karaoke sul grande schermo: l’app per Fire TV porta SingSpree sulla tua TV e tutti cantano con il proprio telefono.",
+    "pictureAlt": "SingSpree su una TV con una canzone in corso, accanto a due telefoni: uno entra nella festa con il codice, l’altro canta",
+    "step1": "Installa l’app su Fire TV e scegli una canzone con il telecomando.",
+    "step2": "I tuoi amici scansionano il codice QR sulla TV o inseriscono il codice della festa sul telefono.",
+    "step3": "Ognuno canta nel proprio telefono e i punteggi compaiono sulla TV.",
+    "get": "Scaricala su Amazon",
+    "badge": "disponibile su",
+    "affiliate": "Link di affiliazione: in qualità di Affiliato Amazon, riceviamo un guadagno dagli acquisti idonei."
+  },
   "share": {
     "shareScore": "Condividi punteggio",
     "iJustSang": "Ho appena cantato",

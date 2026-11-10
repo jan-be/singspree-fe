@@ -442,6 +442,17 @@
     "done": "Teşekkürler! Uygulama çıktığı gün {{email}} adresine yazacağız.",
     "privacy": "Adresi yalnızca bu e-posta için kullanır, ardından sileriz."
   },
+  "firetv": {
+    "title": "Fire TV için SingSpree",
+    "intro": "Büyük ekranda karaoke: Fire TV uygulaması SingSpree'yi televizyonuna getirir, herkes kendi telefonuyla eşlik eder.",
+    "pictureAlt": "Şarkı çalan bir televizyonda SingSpree, yanında iki telefon: biri kodla partiye katılıyor, diğeri şarkı söylüyor",
+    "step1": "Uygulamayı Fire TV'ne yükle ve kumandayla bir şarkı seç.",
+    "step2": "Arkadaşların televizyondaki QR kodunu tarar ya da parti kodunu telefonlarına yazar.",
+    "step3": "Herkes kendi telefonuna şarkı söyler, puanlar televizyonda görünür.",
+    "get": "Amazon'dan indir",
+    "badge": "hemen indir",
+    "affiliate": "Ortaklık bağlantısı: Amazon Ortağı olarak uygun satın alımlardan kazanç sağlıyoruz."
+  },
   "share": {
     "shareScore": "Puanı Paylaş",
     "iJustSang": "Az önce söyledim",

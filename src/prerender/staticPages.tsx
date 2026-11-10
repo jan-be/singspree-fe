@@ -1,6 +1,8 @@
 import en from '../i18n/locales/en.json';
 import AndroidContent from '../pages/compliance/content/AndroidContent';
 import ContactContent from '../pages/compliance/content/ContactContent';
+import FireTvContent from '../pages/compliance/content/FireTvContent';
+import { AMAZON_COM } from '../logic/amazonStore';
 import PrivacyPolicyContent from '../pages/compliance/content/PrivacyPolicyContent';
 import TermsOfServiceContent from '../pages/compliance/content/TermsOfServiceContent';
 import type { ComponentType } from 'react';
@@ -46,5 +48,11 @@ export const STATIC_PAGES: { path: string; title: string; description: string; C
     description: 'Help test the SingSpree karaoke app for Android: join the closed test on Google Play.',
     Content: () => <AndroidContent text={key => en.android[key]} />,
     noindex: true,
+  },
+  {
+    path: '/firetv',
+    title: 'SingSpree for Fire TV',
+    description: 'SingSpree on your Fire TV: karaoke on the big screen, and everyone sings along on their phones. Free on the Amazon Appstore.',
+    Content: () => <FireTvContent text={key => en.firetv[key]} store={AMAZON_COM} />,
   },
 ];

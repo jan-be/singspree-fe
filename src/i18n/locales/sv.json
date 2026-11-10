@@ -442,6 +442,17 @@
     "done": "Tack! Vi skriver till {{email}} den dag appen finns.",
     "privacy": "Vi använder adressen bara till det mejlet och raderar den sedan."
   },
+  "firetv": {
+    "title": "SingSpree för Fire TV",
+    "intro": "Karaoke på storbild: Fire TV-appen visar SingSpree på din tv, och alla sjunger med i mobilen.",
+    "pictureAlt": "SingSpree på en tv medan en låt spelas, bredvid två mobiler: den ena går med i festen med koden, den andra sjunger",
+    "step1": "Installera appen på din Fire TV och välj en låt med fjärrkontrollen.",
+    "step2": "Dina vänner skannar QR-koden på tv:n eller skriver in festkoden i mobilen.",
+    "step3": "Alla sjunger i sin egen mobil, och poängen visas på tv:n.",
+    "get": "Hämta på Amazon",
+    "badge": "hämta på",
+    "affiliate": "Affiliatelänk: som Amazon-partner tjänar vi pengar på kvalificerade köp."
+  },
   "share": {
     "shareScore": "Dela poäng",
     "iJustSang": "Jag sjöng just",

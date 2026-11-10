@@ -442,6 +442,17 @@
     "done": "Bedankt! We schrijven naar {{email}} zodra de app er is.",
     "privacy": "We gebruiken het adres alleen voor die ene e-mail en verwijderen het daarna."
   },
+  "firetv": {
+    "title": "SingSpree voor Fire TV",
+    "intro": "Karaoke op het grote scherm: de Fire TV-app zet SingSpree op je tv, en iedereen zingt mee met zijn telefoon.",
+    "pictureAlt": "SingSpree op een tv terwijl er een nummer speelt, naast twee telefoons: de een doet mee met de feestcode, de ander zingt mee",
+    "step1": "Installeer de app op je Fire TV en kies met de afstandsbediening een nummer.",
+    "step2": "Je vrienden scannen de QR-code op de tv of typen de feestcode in op hun telefoon.",
+    "step3": "Iedereen zingt in zijn eigen telefoon, en de scores verschijnen op de tv.",
+    "get": "Download bij Amazon",
+    "badge": "ontdek het op",
+    "affiliate": "Affiliatelink: als Amazon Associate verdienen we aan in aanmerking komende aankopen."
+  },
   "share": {
     "shareScore": "Score delen",
     "iJustSang": "Ik zong net",

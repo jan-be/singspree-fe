@@ -440,6 +440,17 @@
     "done": "謝謝！應用程式上線當天，我們會寫信到 {{email}}。",
     "privacy": "此地址僅用於這封郵件，寄出後即刪除。"
   },
+  "firetv": {
+    "title": "Fire TV 版 SingSpree",
+    "intro": "大螢幕上的卡拉OK：Fire TV 應用程式把 SingSpree 帶到你的電視上，大家用自己的手機一起唱。",
+    "pictureAlt": "電視上正在播放歌曲的 SingSpree，旁邊兩支手機：一支用派對代碼加入，另一支正在唱歌",
+    "step1": "在 Fire TV 上安裝應用程式，用遙控器選一首歌。",
+    "step2": "朋友們掃描電視上的 QR 碼，或在手機上輸入派對代碼。",
+    "step3": "每個人對著自己的手機唱，分數會顯示在電視上。",
+    "get": "在 Amazon 取得",
+    "badge": "立即取得",
+    "affiliate": "推廣連結：身為 Amazon 聯盟會員，我們會從符合資格的購買中賺取收入。"
+  },
   "share": {
     "shareScore": "分享得分",
     "iJustSang": "我剛剛唱了",

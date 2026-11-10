@@ -442,6 +442,17 @@
     "done": "Salamat! Susulatan namin ang {{email}} sa araw na available na ang app.",
     "privacy": "Ginagamit lang namin ang address para sa email na iyon at buburahin ito pagkatapos."
   },
+  "firetv": {
+    "title": "SingSpree para sa Fire TV",
+    "intro": "Karaoke sa malaking screen: dinadala ng Fire TV app ang SingSpree sa TV mo, at kumakanta ang lahat gamit ang phone nila.",
+    "pictureAlt": "SingSpree sa TV habang may tumutugtog na kanta, at sa tabi nito ang dalawang phone: sumasali ang isa sa party gamit ang code, kumakanta ang isa",
+    "step1": "I-install ang app sa Fire TV mo at pumili ng kanta gamit ang remote.",
+    "step2": "Ini-scan ng mga kaibigan mo ang QR code sa TV o tina-type nila ang code ng party sa phone nila.",
+    "step3": "Kumakanta ang bawat isa sa sarili niyang phone, at lumalabas ang mga score sa TV.",
+    "get": "Kunin sa Amazon",
+    "badge": "kunin sa",
+    "affiliate": "Affiliate link: bilang Amazon Associate, kumikita kami mula sa mga kwalipikadong pagbili."
+  },
   "share": {
     "shareScore": "Ibahagi ang Puntos",
     "iJustSang": "Kakakanta ko lang ng",

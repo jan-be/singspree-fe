@@ -440,6 +440,17 @@
     "done": "감사합니다! 앱이 나오는 대로 {{email}}(으)로 연락드릴게요.",
     "privacy": "이 주소는 그 이메일에만 사용하며 보낸 후 삭제합니다."
   },
+  "firetv": {
+    "title": "Fire TV용 SingSpree",
+    "intro": "큰 화면에서 즐기는 노래방: Fire TV 앱으로 SingSpree를 TV에 띄우고, 모두 자기 휴대폰으로 노래해요.",
+    "pictureAlt": "노래가 재생 중인 SingSpree 화면의 TV와 그 옆 휴대폰 두 대: 한 대는 코드로 파티에 참가하고, 다른 한 대는 노래하고 있어요",
+    "step1": "Fire TV에 앱을 설치하고 리모컨으로 노래를 고르세요.",
+    "step2": "친구들은 TV의 QR 코드를 스캔하거나 휴대폰에 파티 코드를 입력해요.",
+    "step3": "모두 자기 휴대폰에 대고 노래하고, 점수는 TV에 나와요.",
+    "get": "Amazon에서 받기",
+    "badge": "다운로드하기",
+    "affiliate": "제휴 링크: Amazon 어소시에이트로서 SingSpree는 적격 구매에 대해 수익을 얻습니다."
+  },
   "share": {
     "shareScore": "점수 공유",
     "iJustSang": "방금 부른 노래",
