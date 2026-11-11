@@ -7,6 +7,7 @@ import { LiveStageLyrics, LiveMusicBars } from "../components/LiveView";
 import { highwayStats } from "../logic/highwayRenderer";
 import SongTimeline from "../components/SongTimeline";
 import { songRegions } from "../logic/songRegions";
+import { useVideoBesideHighway } from "../logic/videoBesideHighway";
 import { popoverJustClosed, markPopoverClosed, promptJustAnswered, markPromptAnswered, stageClickAction } from "../logic/popoverGuard";
 import { savePartySession, loadPartySession, clearPartySession } from "../logic/partySession";
 import { createLiveStore, useLiveValue } from "../logic/liveStore";
@@ -1316,6 +1317,14 @@ const PartyPage = () => {
     rafId = requestAnimationFrame(tick);
     return () => { cancelled = true; cancelAnimationFrame(rafId); };
   }, [videoScale, showVideo]);
+  // Upright screens: the video moves up with the highway when the lyrics band
+  // grows (videoBesideHighway.ts). The highway as state: the stage mounts
+  // after the page for a joiner waiting for the first song.
+  const videoShiftRef = useRef<HTMLDivElement>(null);
+  const stageScrollRef = useRef<HTMLDivElement>(null);
+  const stageTopRef = useRef<HTMLButtonElement>(null);
+  const [highwayEl, setHighwayEl] = useState<HTMLDivElement | null>(null);
+  useVideoBesideHighway(videoShiftRef, highwayEl, stageTopRef, stageScrollRef);
   // Queue + similar songs live in a drawer opened from the top-right pill
   const [queueOpen, setQueueOpen] = useState(false);
   const queueDrawerRef = useRef<HTMLDivElement>(null);
@@ -3714,9 +3723,14 @@ const PartyPage = () => {
           playback; while the video is not playing a blurred, darkened overlay
           hides YouTube's own UI (title bar, controls, "more videos"). */}
       <div className="absolute inset-0 z-0">
-        {showVideo && (
-          <VideoPlayer videoId={videoId} startSeconds={videoStart?.songId === activeSongId ? videoStart.seconds : undefined} scale={videoScale} onPlayerObject={handlePlayerReady} onVideoChange={applyPlayerSound} onStateChange={handleVideoStateChange} onEnd={handleVideoEnd} onError={setVideoError} onUnreachable={handleYouTubeUnreachable} />
-        )}
+        {/* Upright screen: the player moves up with the highway (useVideoBesideHighway),
+            and where it moved away, black like its bars, not the page's purple */}
+        {showVideo && videoState === 1 && <div aria-hidden="true" className="absolute inset-0 hidden portrait:block bg-black" />}
+        <div ref={videoShiftRef} className="absolute inset-0">
+          {showVideo && (
+            <VideoPlayer videoId={videoId} startSeconds={videoStart?.songId === activeSongId ? videoStart.seconds : undefined} scale={videoScale} onPlayerObject={handlePlayerReady} onVideoChange={applyPlayerSound} onStateChange={handleVideoStateChange} onEnd={handleVideoEnd} onError={setVideoError} onUnreachable={handleYouTubeUnreachable} />
+          )}
+        </div>
         {/* Vignette: lets the panels and text read on bright footage */}
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/45 via-transparent to-black/60" />
         {/* Covers YouTube's title/channel band for a moment after every start and seek
@@ -3819,12 +3833,13 @@ const PartyPage = () => {
         </div>
       )}
 
-      <div className={`relative z-20 flex-1 min-h-0 flex flex-col lg:flex-row gap-4 px-4 pb-4 pt-14 overflow-y-auto lg:overflow-hidden ${stalled === 'video' ? 'pointer-events-none' : ''}`}>
+      <div ref={stageScrollRef} className={`relative z-20 flex-1 min-h-0 flex flex-col lg:flex-row gap-4 px-4 pb-4 pt-14 overflow-y-auto lg:overflow-hidden ${stalled === 'video' ? 'pointer-events-none' : ''}`}>
         {/* Centre: the note highway floats in the middle of the video, the
             lyrics and the timeline sit at the bottom; the free space around
             them pauses / resumes on click */}
         <div className="flex-1 min-w-0 flex flex-col min-h-[60vh] lg:min-h-0">
           <button
+            ref={stageTopRef}
             type="button"
             onClick={handleStageClick}
             {...stageButtonProps}
@@ -3849,7 +3864,7 @@ const PartyPage = () => {
               draws both fades itself (paintBackdrop / fadeEdges, highwayPaint.js):
               CSS masks here were re-rendered on every frame, the largest cost
               of a frame on CPU-drawing devices. A click on it pauses / resumes too. */}
-          <div className={`relative flex-shrink-0 ${canControl ? 'cursor-pointer' : ''}`}>
+          <div ref={setHighwayEl} className={`relative flex-shrink-0 ${canControl ? 'cursor-pointer' : ''}`}>
             <div className="relative" {...stageKeyProps}>
               <StageMusicBars
                 store={live}
