@@ -1,5 +1,5 @@
 import React, { useRef, useSyncExternalStore } from 'react';
-import Lyrics from './Lyrics';
+import Lyrics, { LyricsBand } from './Lyrics';
 import MusicBars from './MusicBars';
 import type { LiveFrame, LiveStore } from '../logic/liveStore';
 import type { LyricLine, TickData } from '../logic/LyricsParser';
@@ -19,8 +19,9 @@ const P2 = (f: LiveFrame) => f.p2TickData;
 
 // The empty line before the first one is a new [] every frame
 const sameLine = (a: LyricLine | undefined, b: LyricLine | undefined) => a === b || (!!a && !!b && !a.length && !b.length);
-// What Lyrics draws, but for the sweep: the lines, which syllable is sung
+// What Lyrics draws, but for the sweep: the chart's lines, which one is sung and which syllable of it
 const sameText = (a: Partial<TickData>, b: Partial<TickData>) => sameLine(a.currentLine, b.currentLine) && sameLine(a.nextLine, b.nextLine)
+  && a.lyricData?.lyricLines === b.lyricData?.lyricLines
   && a.lyricRef?.syllableIndex === b.lyricRef?.syllableIndex && a.lyricRef?.isSilent === b.lyricRef?.isSilent;
 const sameLines = (a: LiveFrame, b: LiveFrame) => sameText(a.tickData, b.tickData)
   && (a.p2TickData && b.p2TickData ? sameText(a.p2TickData, b.p2TickData) : a.p2TickData === b.p2TickData);
@@ -36,36 +37,34 @@ const useLiveLines = (store: LiveStore) => {
   return useSyncExternalStore(store.subscribe, get, get);
 };
 
-export interface LiveLyricsProps {
-  store: LiveStore;
-  label?: React.ReactNode;
-  compact?: boolean;
-}
-
-export const LiveLyrics = ({ store, label, compact }: LiveLyricsProps) => {
-  const { tickData } = useLiveLines(store);
-  return <Lyrics tickData={tickData} store={store} pick={P1} label={label} compact={compact} />;
-};
-
 export interface LiveStageLyricsProps {
   store: LiveStore;
   p1Label?: React.ReactNode;
   p2Label?: React.ReactNode;
+  /** what the handle that sets the band's height is called */
+  resizeLabel?: string;
 }
 
 /**
- * The lyrics band at the bottom of the stage: the singer's current + next
- * line, or — while a second singer has a line — both singers' current lines
- * stacked and labelled, without the next-line preview so the band stays low.
+ * The lyrics band at the bottom of the stage, as tall as the viewer has made
+ * it: the singer's lines, the current one lit and the list moving up with the
+ * song, or — while a second singer has a line — both singers' lists stacked
+ * and labelled, each with half the band.
  */
-export const LiveStageLyrics = ({ store, p1Label, p2Label }: LiveStageLyricsProps) => {
+export const LiveStageLyrics = ({ store, p1Label, p2Label, resizeLabel }: LiveStageLyricsProps) => {
   const { tickData, p2TickData } = useLiveLines(store);
-  if (!p2TickData?.currentLine) return <Lyrics tickData={tickData} store={store} pick={P1} />;
+  if (!p2TickData?.currentLine) {
+    return (
+      <LyricsBand resizeLabel={resizeLabel}>
+        <Lyrics tickData={tickData} store={store} pick={P1} />
+      </LyricsBand>
+    );
+  }
   return (
-    <>
+    <LyricsBand duet resizeLabel={resizeLabel}>
       <Lyrics tickData={tickData} store={store} pick={P1} label={p1Label} compact />
       <Lyrics tickData={p2TickData} store={store} pick={P2} label={p2Label} compact />
-    </>
+    </LyricsBand>
   );
 };
 

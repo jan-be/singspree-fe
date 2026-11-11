@@ -1,48 +1,136 @@
+/* The band the lyrics are in: as tall as the lines the viewer asked for
+   (--rows, set by LyricsBand; dragged at its upper edge), else the line sung
+   and the next. Sizes follow the
+   viewport's width but are capped by its height too, so a phone in landscape
+   (wide but only ~400px tall) does not get desktop-sized lines that eat the
+   screen. It gives way where the stage has no room for all of it, down to
+   one line. */
+.band {
+    --rows: 2;
+    --line: 1.4;
+    --pad: 12px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 0 1 auto;
+    font-size: clamp(22px, min(5vw, 7vh), 40px);
+    font-weight: 600;
+    height: calc(var(--rows) * var(--line) * 1em + 2 * var(--pad));
+    min-height: calc(var(--line) * 1em + 2 * var(--pad));
+}
+
+/* A screen held upright, no wider than a tablet: lines are short there and
+   often break in two, and there is height to spare, so the band has a row
+   more (lyricRows.ts knows the same rule, for the handle's number) */
+@media (max-width: 820px) and (orientation: portrait) {
+    .band {
+        --rows: 3;
+    }
+}
+
+/* Two singers' lists, one above the other: room for a line of each, with
+   its label (two times a compact line, 1.3 x 0.8em, a label and the padding) */
+.duet {
+    min-height: calc(2.08em + 62px);
+}
+
+/* One part's lines. All of them are in the list, which is moved so that the
+   line sung now is in view (Lyrics.tsx); this box cuts off the rest. */
 .lyrics {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     /* The page background is already a heavily blurred image, so a translucent
        colour reads the same as the backdrop-filter this had, without
        re-blurring the video behind it on every frame. */
     background-color: rgba(10, 10, 26, 0.9);
     text-align: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid rgba(180, 74, 255, 0.2);
+    padding: var(--pad) 16px;
+    /* (a line under it that takes no room: the band's height is whole lines) */
+    box-shadow: inset 0 -1px 0 rgba(180, 74, 255, 0.2);
 }
 
-/* Sizes follow the viewport's width but are capped by its height too, so a
-   phone in landscape (wide but only ~400px tall) does not get desktop-sized
-   lines that eat the screen. */
-.lyrics1 {
-    position: relative;
-    font-size: clamp(22px, min(5vw, 7vh), 40px);
-    font-weight: 600;
-    line-height: 1.4;
-}
-
-/* Stacked duet lines: one line each, a little smaller and tighter */
+/* Stacked duet lines: a little smaller and tighter */
 .compact {
-    padding: 4px 16px 6px;
-}
-.compact .lyrics1 {
-    font-size: clamp(18px, min(4vw, 6vh), 32px);
-    line-height: 1.3;
+    padding: 9px 16px 6px;
+    font-size: 0.8em;
 }
 
 /* Short viewports (phones in landscape): tighter band */
 @media (max-height: 500px) {
-    .lyrics {
-        padding: 6px 12px;
+    .band {
+        --line: 1.25;
+        --pad: 6px;
     }
-    .lyrics1 {
-        line-height: 1.25;
+    .lyrics {
+        padding-left: 12px;
+        padding-right: 12px;
     }
 }
-.compact .trackLabel {
+
+.trackLabel {
+    font-size: 11px;
+    font-weight: 400;
     line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(180, 74, 255, 0.7);
+    margin-bottom: 2px;
+}
+
+/* What the lines have of the box: its height says how many are in view */
+.view {
+    flex: 1 1 0;
+    min-height: 0;
+    position: relative;
+}
+
+/* The list moves up a line when a new one starts. A transform, so the move
+   is the compositor's alone: nothing is laid out or painted on the way. */
+.list {
+    position: relative;
+    line-height: var(--line);
+    transition: transform 0.4s cubic-bezier(0.3, 0, 0.1, 1);
+}
+.compact .list {
+    line-height: 1.3;
+}
+
+/* A line: dim while it waits, lit while it is sung, dimmer in the sung
+   colour after. Opacity only, which fades without a repaint. A line coming
+   into view waits a moment, until it is clear of the box's edge. */
+.row {
+    position: relative;
+    color: #e0e0e0;
+    opacity: 0.5;
+    transition: opacity 0.3s ease 0.1s, visibility 0s;
+}
+.past {
+    color: #00e5ff;
+    opacity: 0.4;
+}
+.current {
+    opacity: 1;
+    /* (the cut: a line with more rows than the band, read through. Its upper
+       edge goes down the line as the list goes up, so it stays at the view's) */
+    transition: opacity 0.25s ease, clip-path 0.4s cubic-bezier(0.3, 0, 0.1, 1);
+}
+/* Not in view (set by Lyrics.tsx, which knows what fits): gone before the
+   list has carried it to the edge, so no line is seen cut off. And hidden
+   once it has faded: a whole song's lines only faded out were still walked
+   through at every paint, each frame of the sweep (paint +45 % in the trace). */
+.row[data-out] {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.14s ease, visibility 0s 0.14s;
 }
 
 /* Static glow: same text, invisible fill, only its shadow shows. Painted once
    per line instead of once per frame (the old drop-shadow filters re-ran on
-   every syllable update). */
+   every syllable update). The lines beside the sung one have theirs too,
+   unseen, so it can fade in and out. */
 .glow {
     position: absolute;
     inset: 0;
@@ -50,6 +138,15 @@
     text-shadow: 0 0 12px rgba(0, 229, 255, 0.7), 0 0 30px rgba(0, 229, 255, 0.3);
     pointer-events: none;
     user-select: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.current > .glow {
+    opacity: 1;
+}
+
+.line {
+    position: relative;
 }
 
 /* The sung line is a compositor layer of its own. Its sweeping syllable
@@ -58,13 +155,21 @@
    ratio most of the page's raster work. An opacity hint rather than a
    transform one: that would snap the line to whole device pixels and move
    wrapped rows by a fraction of one; this leaves every pixel as it was. */
-.line {
-    position: relative;
+.current > .line {
     will-change: opacity;
 }
 
+/* Every syllable of the sung line has a box of its own from the start (a
+   shadow that draws nothing asks for one). Without it the browser makes the
+   box when the syllable first gets its sweep, a background, and lays the
+   line out again for that: at every syllable, since each line's syllables
+   are new. (Chrome: a span that once had a box keeps it.) */
+.line > span {
+    box-shadow: 0 0 transparent;
+}
+
 /* Sweeping syllable: gradient text color via background-clip (the gradient
-   is set on the span by Lyrics.jsx, every frame) */
+   is set on the span by Lyrics.tsx, every frame) */
 .sweepText {
     background-clip: text;
     -webkit-background-clip: text;
@@ -79,17 +184,64 @@
     color: #e0e0e0;
 }
 
-.lyrics2 {
-    font-size: clamp(14px, min(3.5vw, 4.5vh), 28px);
-    color: #888;
-    line-height: 1.4;
-    margin-top: 4px;
+/* Placed at once (another song, a seek, a turned screen): no glide, no fade */
+.still .list,
+.still .row,
+.still .glow {
+    transition: none;
 }
 
-.trackLabel {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: rgba(180, 74, 255, 0.7);
-    margin-bottom: 2px;
+@media (prefers-reduced-motion: reduce) {
+    .list,
+    .row,
+    .row[data-out],
+    .glow {
+        transition: none;
+    }
+}
+
+/* The band's upper edge, to drag it taller or lower. Over the first line's
+   padding, so it takes no room of its own. */
+.handle {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 14px;
+    cursor: ns-resize;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.handle::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    width: 40px;
+    height: 4px;
+    margin-left: -20px;
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.22);
+    transition: background-color 0.15s ease;
+}
+.handle:hover::after,
+.handle:active::after {
+    background-color: rgba(255, 255, 255, 0.7);
+}
+/* A finger needs more to hold on to */
+@media (pointer: coarse) {
+    .handle {
+        height: 22px;
+    }
+}
+/* Focused from the keys, the grip lights up: a ring around the whole edge
+   would say little (index.css's ring for the arrow keys is taken off) */
+.handle:focus-visible,
+:global(html[data-keynav]) .handle:focus-visible {
+    outline: none;
+}
+.handle:focus-visible::after {
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
 }

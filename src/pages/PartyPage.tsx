@@ -3963,18 +3963,18 @@ const PartyPage = () => {
               blur reads the video every frame, and in landscape this box sits
               on the picture (the Galaxy A36 stuttered). A denser tint looks the same. */}
           <div
-            className="relative flex-shrink-0 rounded-3xl overflow-hidden bg-[rgba(24,19,52,0.84)] ring-1 ring-white/[0.12] shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
+            className="relative flex flex-col shrink min-h-20 rounded-3xl overflow-hidden bg-[rgba(24,19,52,0.84)] ring-1 ring-white/[0.12] shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
             lang={lyricsScript.on && !(duetMode && hasDuetLyrics) ? SCRIPT_LANG[lyricsScript.tag] : undefined}
           >
             {/* Lyrics (both singers' lines stacked in a duet) */}
-            <StageLyrics store={live} p1Label={partLabel(1)} p2Label={partLabel(2)} />
+            <StageLyrics store={live} p1Label={partLabel(1)} p2Label={partLabel(2)} resizeLabel={t('party.lyricsHeight')} />
 
             {/* Song timeline: sung stretches marked per singer; the host can seek.
                 On a compositor layer of its own: the cursor moves every few
                 frames, and sharing the box's layer made each move re-raster the
                 box's large blurred shadow too (at 2.625x on the CPU: raster
                 2.4 -> 1.0 ms a frame) */}
-            <div className="will-change-[opacity]">
+            <div className="shrink-0 will-change-[opacity]">
               <StageTimeline
                 store={live}
                 regions={timelineRegions}
