@@ -26,7 +26,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
     ),
   },
   {
-    href: "https://www.tiktok.com/@singpro.karaoke",
+    href: "https://www.tiktok.com/@singspree.com",
     label: "TikTok",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
