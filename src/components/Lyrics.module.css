@@ -184,10 +184,68 @@
     color: #e0e0e0;
 }
 
+/* The lead-in to a line after a pause: a small comet in the sweep's colour
+   that comes in from the side the line is read from and reaches the first
+   letter as its note starts (Lyrics.tsx moves it, by its transform, and
+   fades it in). It hangs on that first syllable, outside the text's flow,
+   on a layer of its own: moving it paints nothing. */
+.leadHost {
+    position: relative;
+}
+.lead {
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    width: 1.1em;
+    height: 0.14em;
+    margin: -0.03em 0.12em 0 0;
+    border-radius: 0.07em;
+    background-image: linear-gradient(90deg, rgba(0, 229, 255, 0), #00e5ff 80%);
+    transform-origin: 100% 50%;
+    will-change: transform, opacity;
+    opacity: 0;
+    pointer-events: none;
+}
+/* its head */
+.lead::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 0.3em;
+    height: 0.3em;
+    margin-top: -0.15em;
+    border-radius: 50%;
+    background-color: #00e5ff;
+    box-shadow: 0 0 0.3em rgba(0, 229, 255, 0.8);
+}
+/* (a line read from the right: from the right) */
+.leadRtl {
+    right: auto;
+    left: 100%;
+    margin: -0.03em 0 0 0.12em;
+    background-image: linear-gradient(270deg, rgba(0, 229, 255, 0), #00e5ff 80%);
+    transform-origin: 0 50%;
+}
+.leadRtl::after {
+    right: auto;
+    left: 0;
+}
+/* Arrived (Lyrics.tsx marks it), the sweep goes on from it: the comet is
+   drawn into the first letter. (The same two functions as the transform it
+   had on its way: otherwise there is nothing to go through, a scale of 0
+   cannot be taken apart, and it would be gone at once.) */
+.lead[data-gone] {
+    opacity: 0;
+    transform: translateX(0) scaleX(0);
+    transition: transform 0.22s ease-in, opacity 0.22s ease-in;
+}
+
 /* Placed at once (another song, a seek, a turned screen): no glide, no fade */
 .still .list,
 .still .row,
-.still .glow {
+.still .glow,
+.still .lead {
     transition: none;
 }
 
@@ -195,7 +253,8 @@
     .list,
     .row,
     .row[data-out],
-    .glow {
+    .glow,
+    .lead {
         transition: none;
     }
 }

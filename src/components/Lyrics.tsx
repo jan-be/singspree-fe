@@ -7,9 +7,17 @@ import {
   clampLyricRows, loadLyricRows, lyricRowsShown, placeLyricLines, storeLyricRows, usualLyricRows,
   MAX_LYRIC_ROWS, MIN_LYRIC_ROWS,
 } from '../logic/lyricRows';
+import { leadIn, leadProgress } from '../logic/lyricLeadIn';
 
 const CYAN = '#00e5ff';
 const GRAY = '#e0e0e0';
+
+// The lead-in mark (lyricLeadIn.ts): how far it travels at most, in the
+// line's letter size, the part of its way over which it comes into sight, and
+// what of the room before the line its head needs to be seen from the start
+const LEAD_WAY_EM = 5;
+const LEAD_FADE_IN = 0.2;
+const LEAD_HEAD_EM = 0.45;
 
 // "~" marks a held note, the previous syllable sung on (about 6 % of USDB
 // syllables): the note stays on the highway, the text shows the word once
@@ -18,7 +26,7 @@ const shown = (syllable: string) => syllable.replace(/~/g, '');
 const textOf = (line: LyricLine) => line.map(el => (el.isBreak ? '' : shown(el.syllable))).join('');
 
 // Hebrew, Arabic (Persian, Urdu) and Syriac letters: a syllable in them is read, and swept, from right to left
-const RTL = /[֐-ࣿיִ-﷿ﹰ-﻿]/;
+const RTL = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
 
 /** The sung syllable's colour at this frame: cyan as far as it has been sung (from its first letter), then gray. */
 const sweepAt = (tickFloat: TickData['tickFloat'], el: LyricElement) => {
@@ -40,25 +48,37 @@ interface RowProps {
   /** whether that syllable is being sung */
   sung: boolean;
   sweepRef: React.Ref<HTMLSpanElement>;
+  /** the current line's syllable the lead-in mark stands before (its first, after a pause), else -1 */
+  lead: number;
+  leadRef: React.Ref<HTMLSpanElement>;
 }
 
 /**
  * One line of the list. Only the line sung now is drawn syllable by syllable;
  * the others are plain text, and stay as they are (memo) while the song moves
  * through the current one.
+ *
+ * The lead-in mark hangs on the syllable it stands before, outside the text's
+ * flow (the line stays where it is): placed by the CSS at that syllable's
+ * outer edge, moved by Lyrics while it is on its way, and let go into the
+ * text by the CSS once Lyrics marks it `data-gone`.
  */
-const Row = React.memo(({ line, state, near, at, sung, sweepRef }: RowProps) => (
+const Row = React.memo(({ line, state, near, at, sung, sweepRef, lead, leadRef }: RowProps) => (
   <div className={state === 'next' ? css.row : `${css.row} ${css[state]}`}>
     {near && <div className={css.glow} dir="auto" aria-hidden="true">{textOf(line)}&nbsp;</div>}
     <div className={css.line} dir="auto">
       {state !== 'current' ? textOf(line) : line.map((el, i) => {
         if (el.isBreak) return null;
+        const mark = i === lead && (
+          <span ref={leadRef} aria-hidden="true" className={RTL.test(el.syllable) ? `${css.lead} ${css.leadRtl}` : css.lead} />
+        );
+        const host = mark ? ` ${css.leadHost}` : '';
         if (sung && i === at) {
-          return <span key={i} ref={sweepRef} data-at="" className={css.sweepText}>{shown(el.syllable)}</span>;
+          return <span key={i} ref={sweepRef} data-at="" className={css.sweepText + host}>{mark}{shown(el.syllable)}</span>;
         }
         return (
-          <span key={i} data-at={i === at ? '' : undefined} className={i < at ? css.pastText : css.futureText}>
-            {shown(el.syllable)}
+          <span key={i} data-at={i === at ? '' : undefined} className={(i < at ? css.pastText : css.futureText) + host}>
+            {mark}{shown(el.syllable)}
           </span>
         );
       })}
@@ -83,8 +103,8 @@ interface Placed {
 
 // What of a long line has moved above the view is cut off there, not at the
 // box's edge a padding further up, where half a row of it would still show.
-// The other sides stay open, for the glow.
-const cutOff = (px: number) => `inset(${px}px -60px -60px -60px)`;
+// The other sides stay open: for the glow, and at the sides for the lead-in mark.
+const cutOff = (px: number) => `inset(${px}px -100vw -60px -100vw)`;
 
 /**
  * Moves the list so that line `current` is in its place in the view, and
@@ -158,6 +178,13 @@ export interface LyricsProps {
  * as before: the browser restyles a changed inline background on a fast path
  * (a custom property for it made the style recalc dearer in the benchmark).
  *
+ * After a pause a line has a lead-in (lyricLeadIn.ts): a small mark that
+ * sets off before the line's first note, from the side the line is read
+ * from, and reaches the first letter as the note starts, where the sweep
+ * goes on from it. It follows the store too, frame by frame, so it stands
+ * still with a paused song; only its transform and opacity change, on a
+ * layer of its own.
+ *
  * `compact`: a little smaller and tighter — for stacked duet lists.
  * Each line takes its direction from its first letter (dir="auto"): an Arabic
  * or Hebrew line reads from the right, with its punctuation where it belongs.
@@ -209,6 +236,54 @@ const Lyrics = ({ tickData, store, pick, label, compact }: LyricsProps) => {
     if (boxRef.current && viewRef.current && listRef.current) place(boxRef.current, viewRef.current, listRef.current, was, rows, current);
   }, [rows, current, at]);
 
+  // The lead-in mark of a line that comes after a pause
+  const ticksPerSecond = (tickData.lyricData?.bpm ?? 0) / 60;
+  const lead = useMemo(() => (current >= 0 ? leadIn(rows, current, ticksPerSecond) : null), [rows, current, ticksPerSecond]);
+  const leadRef = useRef<HTMLSpanElement>(null);
+
+  useLayoutEffect(() => {
+    const mark = leadRef.current, box = boxRef.current, host = mark?.parentElement;
+    if (!mark || !box || !host || !lead) return undefined;
+    const fromRight = mark.classList.contains(css.leadRtl);
+    // Its way: the room before the line, a few letters at most (measured as it sets off)
+    const measure = () => {
+      const hostBox = host.getBoundingClientRect(), outer = box.getBoundingClientRect();
+      const room = fromRight ? outer.right - hostBox.right : hostBox.left - outer.left;
+      const em = parseFloat(getComputedStyle(mark).fontSize) || 0;
+      return Math.max(0, Math.min(room - LEAD_HEAD_EM * em, LEAD_WAY_EM * em));
+    };
+    let way: number | null = null;
+    let phase: 'way' | 'gone' | null = null;
+    let shownX: number | null = null, shownOpacity: string | null = null;
+    const update = () => {
+      const td = pick(store.getFrame());
+      if (!td || td.currentLine !== line || td.rawTickFloat === undefined) return;
+      // The first note has started: the CSS takes the mark from where it is
+      // and draws it into the text. By the frame's own tick, not by the
+      // syllable sung: a chart's first note is at tick 0, where the counted
+      // tick stands through the whole intro.
+      if (td.rawTickFloat >= lead.to) {
+        if (phase === 'gone') return;
+        phase = 'gone';
+        mark.setAttribute('data-gone', '');
+        mark.style.transform = '';
+        mark.style.opacity = '';
+        shownX = shownOpacity = null;
+        return;
+      }
+      if (phase !== 'way') { phase = 'way'; mark.removeAttribute('data-gone'); }
+      const progress = leadProgress(lead, td.rawTickFloat);
+      if (progress > 0) way ??= measure();
+      const x = Math.round((1 - progress) * (way ?? 0) * 10) / 10;
+      // (the scale is for the CSS, which takes it to 0 from here: function for function, or it would jump)
+      if (x !== shownX) { mark.style.transform = `translateX(${fromRight ? x : -x}px) scaleX(1)`; shownX = x; }
+      const opacity = Math.min(1, progress / LEAD_FADE_IN).toFixed(2);
+      if (opacity !== shownOpacity) { mark.style.opacity = opacity; shownOpacity = opacity; }
+    };
+    update();
+    return store.subscribe(update);
+  }, [store, pick, line, lead]);
+
   // And again when the view is another size (the band dragged, the screen
   // turned) or the lines break anew (the list's height). Read in a
   // ResizeObserver callback or a resize event, where layout is done anyway.
@@ -241,6 +316,8 @@ const Lyrics = ({ tickData, store, pick, label, compact }: LyricsProps) => {
               at={i === current ? at : -1}
               sung={i === current && sungIndex >= 0}
               sweepRef={sweepRef}
+              lead={i === current && lead ? lead.first : -1}
+              leadRef={leadRef}
             />
           ))}
         </div>
