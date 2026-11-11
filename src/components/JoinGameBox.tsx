@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { apiUrl } from "../GlobalConsts";
 import { useAuth } from "../logic/AuthContext";
+import { onStage, ownSeatName } from "../logic/seatName";
 
 /** autoFocus: the code field takes the focus (a box opened on demand) */
 const JoinGameBox = ({ autoFocus = false }: { autoFocus?: boolean }) => {
@@ -47,10 +48,14 @@ const JoinGameBox = ({ autoFocus = false }: { autoFocus?: boolean }) => {
       const data = await resp.json();
       const party = data.data ?? data;
 
+      // Signed in while the account's name is singing there already (their other
+      // device, the host's big screen): a seat beside it, "Ann 2" (seatName.ts)
+      const seat = user && onStage(user.username, party?.players) ? ownSeatName(user.username, party?.players) : name;
+
       // Navigate directly to PartyPage with party state
       const song = party?.currentSong;
       navigate(song?.songId ? `/sing/${song.songId}` : '/sing/none', {
-        state: { partyId: partyId.toUpperCase(), currentUserName: name, isHost: false },
+        state: { partyId: partyId.toUpperCase(), currentUserName: seat, isHost: false },
       });
     } catch {
       setError(t('join.connectionFailed'));

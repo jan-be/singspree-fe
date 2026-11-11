@@ -6,6 +6,7 @@ import WrapperPage from "./WrapperPage";
 import { apiUrl } from "../GlobalConsts";
 import { useAuth } from "../logic/AuthContext";
 import { LockIcon } from "../components/Icons";
+import { onStage, ownSeatName, seatNumber } from "../logic/seatName";
 import type { PartyStateData } from "../types/party-messages";
 
 /** GET /parties/:partyId: the party as the server serialises it (partyManager.ts serializeParty) */
@@ -34,13 +35,8 @@ const JoinPage = () => {
   }, [party, partyId, navigate]);
 
   // A name that is on stage right now belongs to someone else's device: the
-  // server seats one player per name, so joining under it would take over that
-  // seat (the host's big screen loses its socket, both microphones feed one
-  // score, and a duet part picked on one device silently applies to the other)
-  const nameTaken = useCallback((name: string) => {
-    const wanted = name.trim().toLowerCase();
-    return !!party?.players?.some(p => p.connected && p.username.trim().toLowerCase() === wanted);
-  }, [party]);
+  // server seats one device per name, and refuses another one that asks for it
+  const nameTaken = useCallback((name: string) => onStage(name, party?.players), [party]);
 
   // The host switched joining off (the QR code card): only someone already in
   // the party gets back in (the server knows their browser or account), so
@@ -52,15 +48,19 @@ const JoinPage = () => {
   const playerCount = party?.players?.filter(p => p.connected && !p.extra).length ?? 0;
 
   // Signed in: no name to ask for, straight into the party under the account
-  // name, unless that name is already singing here (the host, on their big
-  // screen): then this device is asked for a name of its own
-  const accountNameTaken = !!user?.username && !!party && (nameTaken(user.username) || refusedName === user.username);
+  // name. Where that name is singing here already (their other device, the
+  // host on the big screen), or the server just kept its seat for another
+  // browser, this device sits beside it under the name with a number ("Ann 2",
+  // seatName.ts): both seats are the account's
+  const accountNameTaken = !!user?.username && !!party && (nameTaken(user.username) || seatNumber(user.username, refusedName) > 0);
+  const joinName = !user?.username || !party ? null
+    : accountNameTaken ? ownSeatName(user.username, party.players, refusedName) : user.username;
   const autoJoined = useRef(false);
   useEffect(() => {
-    if (loading || authLoading || error || !party || closed || !user?.username || accountNameTaken || autoJoined.current) return;
+    if (loading || authLoading || error || closed || !joinName || autoJoined.current) return;
     autoJoined.current = true;
-    join(user.username);
-  }, [loading, authLoading, error, party, closed, user?.username, accountNameTaken, join]);
+    join(joinName);
+  }, [loading, authLoading, error, closed, joinName, join]);
 
   useEffect(() => {
     (async () => {
@@ -82,8 +82,8 @@ const JoinPage = () => {
   }, [partyId]);
 
   const typedNameTaken = username.trim() !== '' && nameTaken(username);
-  // the name that is singing here already: the one typed, else the account's
-  const takenName = typedNameTaken ? username.trim() : accountNameTaken ? user?.username : refusedName && username.trim() === '' ? refusedName : undefined;
+  // the name that is singing here already: the one typed, else the one the server refused
+  const takenName = typedNameTaken ? username.trim() : refusedName && username.trim() === '' ? refusedName : undefined;
 
   const handleJoin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -91,7 +91,7 @@ const JoinPage = () => {
     join(username.trim());
   };
 
-  if (loading || authLoading || (user?.username && !accountNameTaken && !error && !closed)) {
+  if (loading || authLoading || (user?.username && !error && !closed)) {
     return (
       <WrapperPage>
         <div className="flex items-center justify-center py-20">
@@ -166,9 +166,9 @@ const JoinPage = () => {
             </div>
           )}
 
-          {closed && user?.username && !accountNameTaken ? (
-            <button type="button" onClick={() => join(user.username)} className="btn btn-ghost btn-lg w-full">
-              {t('join.backInAs', { name: user.username })}
+          {closed && joinName ? (
+            <button type="button" onClick={() => join(joinName)} className="btn btn-ghost btn-lg w-full">
+              {t('join.backInAs', { name: joinName })}
             </button>
           ) : (
           <form onSubmit={handleJoin} className="space-y-4">
