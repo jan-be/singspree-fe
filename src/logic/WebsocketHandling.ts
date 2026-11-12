@@ -2,12 +2,12 @@ import { getGuestId } from './sessionId';
 import type { Difficulty } from './difficulty';
 import type { VoiceReport, VoiceSignal } from './voiceLink';
 import type { NoteCounts } from './noteLink';
+import { socketUrl } from './sites';
 
 // Same origin as the page (ws for http, wss for https), so the dev server,
-// `vite preview` and production all reach the backend through /api/ws.
-const wsUrl = typeof window !== 'undefined'
-  ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/api/ws`
-  : '';
+// `vite preview` and production all reach the backend through /api/ws. A
+// party at another site is reached under that site's path (sites.ts socketUrl).
+const defaultUrl = () => socketUrl();
 
 // --- Binary protocol constants ---
 // High-frequency pitch messages use a compact binary format to reduce
@@ -63,8 +63,8 @@ const OPEN = 1; // WebSocket.OPEN
  * happens a render later), so until then every message is kept in `backlog`;
  * the handler replays it when it takes over.
  */
-const createSocket = (): PartySocket => {
-  const ws = new WebSocket(wsUrl);
+const createSocket = (url: string = defaultUrl()): PartySocket => {
+  const ws = new WebSocket(url);
   ws.binaryType = 'arraybuffer'; // receive binary as ArrayBuffer
   const backlog: MessageEvent[] = [];
   const wss: PartySocket = Object.assign(ws, {
@@ -115,6 +115,8 @@ export interface KeptWindow {
 export interface KeepWebSocketOptions<S extends KeptSocket = PartySocket> {
   onOpen: (ws: S, info: { reconnect: boolean }) => void;
   onDown?: () => void;
+  /** the socket's address at the party's site (sites.ts socketUrl); the page's own /api/ws without one */
+  url?: string;
   create?: () => S;
   win?: KeptWindow | null;
   random?: () => number;
@@ -136,7 +138,7 @@ export interface KeptWebSocket {
  * back from the back/forward cache connects again).
  * `create`, `win` and `random` are for tests (keepSocket keeps any socket `create` makes).
  */
-export const keepWebSocket = ({ create = createSocket, ...options }: KeepWebSocketOptions): KeptWebSocket => keepSocket(create, options);
+export const keepWebSocket = ({ create, url, ...options }: KeepWebSocketOptions): KeptWebSocket => keepSocket(create ?? (() => createSocket(url || undefined)), options);
 
 /** keepWebSocket with the sockets `create` makes (tests: fake ones) */
 export const keepSocket = <S extends KeptSocket>(create: () => S, {

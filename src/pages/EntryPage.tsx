@@ -12,6 +12,7 @@ import { DuetIcon } from "../components/Icons";
 import WrapperPage from "./WrapperPage";
 import Wordmark from "../components/Wordmark";
 import { apiUrl } from "../GlobalConsts";
+import { loadSites, partyApi } from "../logic/sites";
 import { loadPartySession, clearPartySession } from "../logic/partySession";
 import { useAuth } from "../logic/AuthContext";
 import StarRating from "../components/StarRating";
@@ -458,7 +459,8 @@ const EntryPage = () => {
     let cancelled = false;
     const poll = async () => {
       try {
-        const r = await fetch(`${apiUrl}/parties/${hostParty.partyId}`);
+        await loadSites(); // the party's site, by its code
+        const r = await fetch(`${partyApi(hostParty.partyId)}/parties/${hostParty.partyId}`);
         if (cancelled) return;
         if (r.status === 404) { clearPartySession(); setHostParty(null); return; } // closed meanwhile
         const j = await r.json();
@@ -476,7 +478,7 @@ const EntryPage = () => {
     setHostParty(null);
     clearPartySession();
     try {
-      await fetch(`${apiUrl}/parties/${p.partyId}/close`, {
+      await fetch(`${partyApi(p.partyId)}/parties/${p.partyId}/close`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ owner: p.username }),
       });
     } catch { /* the sweep closes it eventually */ }

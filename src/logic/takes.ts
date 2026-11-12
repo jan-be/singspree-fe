@@ -1,4 +1,4 @@
-import { apiUrl } from '../GlobalConsts';
+import { apiFor, apiWhenKnown } from './sites';
 import { ApiError } from './authApi';
 import type { MelodyNote } from './shareImage';
 
@@ -29,7 +29,10 @@ export const storeSaveRecordings = (on: boolean) => {
  * it with; under it the browser keeps the take a week (a new way of mixing
  * is a new address).
  */
-export const takeAudioUrl = (id: string, mix?: number) => `${apiUrl}/takes/${encodeURIComponent(id)}/audio${mix != null ? `?v=${encodeURIComponent(mix)}` : ''}`;
+const takeAudioPath = (id: string, mix?: number) => `/takes/${encodeURIComponent(id)}/audio${mix != null ? `?v=${encodeURIComponent(mix)}` : ''}`;
+// (at the home site, where the recordings are: logic/sites.ts. A page that does not know the sites yet asks the
+// nearest one, which sends a request like this on.)
+export const takeAudioUrl = (id: string, mix?: number) => `${apiFor(takeAudioPath(id, mix))}${takeAudioPath(id, mix)}`;
 
 /** A note of a play's melody outline for its share card (backend cardMelody.ts): start, end and pitch, all 0..1 */
 export type CardMelodyNote = MelodyNote;
@@ -58,12 +61,12 @@ const answered = (body: TakesBody | null) => {
   return body;
 };
 const request = async (method: string, path: string, init: RequestInit = {}) => {
-  try { return await fetch(`${apiUrl}${path}`, { method, ...init }); } catch { throw new ApiError('network', 'Could not reach the server', 0); }
+  try { return await fetch(`${await apiWhenKnown(path)}${path}`, { method, ...init }); } catch { throw new ApiError('network', 'Could not reach the server', 0); }
 };
 
 /** A take's audio as a Blob (for sharing it): what takeAudioUrl plays, from the browser's cache when it has it */
 export async function takeAudioBlob(id: string, mix?: number) {
-  const r = await request('GET', takeAudioUrl(id, mix).slice(apiUrl.length));
+  const r = await request('GET', takeAudioPath(id, mix));
   if (!r.ok) await json(r); // throws the server's reason
   return r.blob();
 }
