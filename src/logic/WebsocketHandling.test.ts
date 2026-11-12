@@ -1,6 +1,6 @@
 import { assert, describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BIN_PLAYER_NOTE, BIN_NOTES_BATCH, sendPlayerNote, sendPartyJoin, sendQueueReorder, sendVideoTime, parseBinaryBatch, parseStanding, reconnectDelay, keepSocket,
-  sendSongAdvance, sendSongSkip, sendSongAgain, sendPlaybackControl, sendCohost, sendPartySettings, type KeptWebSocket, type ObjSocket } from './WebsocketHandling';
+  sendSongAdvance, sendSongSkip, sendSongAgain, sendPlaybackControl, sendCohost, sendPartySettings, MOVED_CLOSE_CODE, type KeptWebSocket, type ObjSocket } from './WebsocketHandling';
 import { getGuestId } from './sessionId';
 
 /** A message as a test reads it back */
@@ -68,6 +68,23 @@ describe('keepWebSocket', () => {
     last().drop();
     vi.advanceTimersByTime(9_999);
     expect(sockets).toHaveLength(7); // and the backoff goes on from where it was, at its 10 s
+  });
+
+  it('a party that moved to another site (4010) is rejoined at once, without climbing the backoff', () => {
+    start();
+    last().open();
+    last().drop(MOVED_CLOSE_CODE);
+    expect(downs).toBe(1);
+    vi.advanceTimersByTime(124);
+    expect(sockets).toHaveLength(1);
+    vi.advanceTimersByTime(1);
+    expect(sockets).toHaveLength(2); // 50 ms + 0.5 of a further 150
+    // the other site has not taken the party in yet: that try fails, and the usual first wait follows
+    last().drop();
+    vi.advanceTimersByTime(499);
+    expect(sockets).toHaveLength(2);
+    vi.advanceTimersByTime(1);
+    expect(sockets).toHaveLength(3);
   });
 
   it('connects at once and hands every socket that opens to onOpen, saying whether it is a reconnect', () => {

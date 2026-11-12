@@ -81,6 +81,13 @@ export const RECONNECT_FIRST_MS = 500;
 export const RECONNECT_MAX_MS = 10_000;
 
 /**
+ * The server closes a party's sockets with this when the party moved to another site (its own site is being
+ * updated; the backend's partyMoves.ts). The party is there in a moment: the page reconnects at once, and the
+ * edge router leads it to the site that has the party now.
+ */
+export const MOVED_CLOSE_CODE = 4010;
+
+/**
  * The wait before reconnect attempt `n` (0 first): 0.5 s, 1 s, 2 s … at most
  * 10 s, each ±25 % so a party's phones do not all knock at the same moment
  * after a server restart.
@@ -168,7 +175,12 @@ export const keepSocket = <S extends KeptSocket>(create: () => S, {
     // 1013: the server is busy with a crowd coming back and asks for a moment.
     // That says nothing about the connection, so this does not climb the backoff,
     // which after a long outage would keep a singer away for ten seconds more.
-    timer = setTimeout(connect, code === 1013 ? 500 + random() * 1000 : reconnectDelay(attempt++, random));
+    // MOVED_CLOSE_CODE: the party went to another site. Nothing is wrong with the
+    // connection either, and every wait here is a gap in the song: back at once
+    // (a moment apart, so a party's phones do not all knock in the same instant).
+    // Should the other site not have it yet, that try fails and the usual waits follow.
+    timer = setTimeout(connect, code === MOVED_CLOSE_CODE ? 50 + random() * 150
+      : code === 1013 ? 500 + random() * 1000 : reconnectDelay(attempt++, random));
   };
 
   function connect() {
