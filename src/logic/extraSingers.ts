@@ -16,7 +16,7 @@ import { createBleedController, FALLBACK_DELAY } from './bleedController';
 import { DEFAULT_DIFFICULTY, isDifficulty, loadDifficulty } from './difficulty';
 import { createSingingGate } from './singingGate';
 import { keepWebSocket, sendPartyJoin, sendPartyLeave, sendPingReply, sendPlayerDifficulty, sendPlayerNote, sendRtcSignal } from './WebsocketHandling';
-import { partyApi, socketUrl } from './sites';
+import { socketUrl } from './sites';
 import { randomId } from './sessionId';
 import type { MicErrorKind, MicInput, MicStats, ProcessedPitch } from './MicrophoneInput';
 import type { BleedController } from './bleedController';
@@ -258,7 +258,7 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
   const giveTrack = () => voice?.onTrack?.(voiceOn && mic?.track ? mic.track : null);
 
   const socket = keep({
-    url: socketUrl(partyApi(partyId)), // the party's site, as the page's own socket
+    url: socketUrl(partyId), // the party named, as on the page's own socket
     onOpen: (sock) => {
       ws = sock;
       sock.onmessage = (e) => {

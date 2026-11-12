@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSongNames } from "../logic/useSongNames";
 import WrapperPage from "./WrapperPage";
-import { loadSites, partyApi } from "../logic/sites";
+import { apiUrl } from "../GlobalConsts";
 import { useAuth } from "../logic/AuthContext";
 import { LockIcon } from "../components/Icons";
 import { onStage, ownSeatName, seatNumber } from "../logic/seatName";
@@ -65,8 +65,7 @@ const JoinPage = () => {
   useEffect(() => {
     (async () => {
       try {
-        await loadSites(); // the party's site, by its code
-        const resp = await fetch(`${partyApi(partyId)}/parties/${partyId}`);
+        const resp = await fetch(`${apiUrl}/parties/${partyId}`);
         if (!resp.ok) {
           setError(t('join.partyNotFound'));
           setLoading(false);

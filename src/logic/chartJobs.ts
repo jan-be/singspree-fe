@@ -1,5 +1,5 @@
 import { ApiError } from './authApi';
-import { apiWhenKnown } from './sites';
+import { apiUrl } from '../GlobalConsts';
 
 /**
  * Charts for YouTube videos nobody has charted yet (backend routes/chartJobs.ts):
@@ -94,8 +94,7 @@ interface ApiAnswer {
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
   let r: Response;
   try {
-    // (a chart is asked for at the home site, where the generator is: logic/sites.ts)
-    r = await fetch(`${await apiWhenKnown(path)}${path}`, {
+    r = await fetch(`${apiUrl}${path}`, {
       method,
       headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
       body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -149,7 +148,7 @@ let accessPromise: Promise<ChartAccess> | null = null;
 
 /** { enabled, access: 'off' | 'admins' | 'everyone', maxPending }, asked once per page load */
 export function getChartAccess(): Promise<ChartAccess> {
-  accessPromise ??= apiWhenKnown('/chart-jobs/access').then(api => fetch(`${api}/chart-jobs/access`))
+  accessPromise ??= fetch(`${apiUrl}/chart-jobs/access`)
     .then(r => (r.ok ? r.json() as Promise<{ success?: boolean; enabled?: unknown; access?: string; maxPending?: unknown }> : null))
     .then((j): ChartAccess => (j?.success
       ? { enabled: Boolean(j.enabled), access: j.access === 'off' || j.access === 'everyone' ? j.access : 'admins', maxPending: Number(j.maxPending) || 0 }

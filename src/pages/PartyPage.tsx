@@ -18,7 +18,7 @@ import VideoPlayer from "../components/VideoPlayer";
 import PartyBar from "../components/PartyBar";
 import { shuffle } from "../logic/RandomUtility";
 import { apiUrl } from "../GlobalConsts";
-import { homeAtOf, nearestSite, partyApi, rememberHomePass, siteApi, socketUrl, stemUrls, useSitesReady, type HomeAt } from "../logic/sites";
+import { homePassOf, partyUrl, rememberHomePass, socketUrl, stemUrls } from "../logic/sites";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { startAtFromSearch, searchWithoutStartAt, startPoint, resumeTime } from "../logic/startAt";
 import Wordmark from "../components/Wordmark";
@@ -303,8 +303,6 @@ const PartyPage = () => {
   );
   // A signed-in host plays under the account name; joiners chose theirs on the join page
   const { user: authUser, loading: authLoading, refresh: refreshAuth, refreshBest } = useAuth();
-  // The sites there are (logic/sites.ts): the party's socket waits for the list, its address depends on it
-  const sitesReady = useSitesReady();
   const { open: appTestCardOpen } = useAppTestPrompt();
   const { open: feedbackCardOpen } = useFeedbackPrompt();
   // (a new one when the account is renamed mid-party: player:renamed)
@@ -386,8 +384,8 @@ const PartyPage = () => {
     let cancelled = false;
     (async () => {
       const id = await makeParty(async () => {
-        // At the site that answers this page fastest (logic/sites.ts): the singers' notes take that way to the screen
-        const resp = await fetch(`${siteApi(await nearestSite())}/parties`, {
+        // (where there are several sites, the nearest one answers and the party lives there: logic/sites.ts)
+        const resp = await fetch(`${apiUrl}/parties`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           // the browser's guest id: a party started by someone a share link brought counts for it (backend referrals.ts)
@@ -683,8 +681,8 @@ const PartyPage = () => {
   // a song change the last song's answer is no answer about this one (it used
   // to be, and a song without stems after one with them asked for stems that
   // are not there, failed, and switched stems off for the rest of the session)
-  // at: the home site, which has the stems, where that is not the party's own (sites.ts)
-  const [stemsFor, setStemsFor] = useState<{ songId: string | null; has: boolean; at?: HomeAt | null }>({ songId: null, has: false });
+  // pass: this browser's pass for them at the site that has them, where that is not the party's own (sites.ts)
+  const [stemsFor, setStemsFor] = useState<{ songId: string | null; has: boolean; pass?: string | null }>({ songId: null, has: false });
   const stemsKnown = stemsFor.songId === activeSongId;
   const hasStems = stemsKnown && stemsFor.has;
   const hasStemsRef = useRef(false); // quick ref for use in callbacks
@@ -827,7 +825,7 @@ const PartyPage = () => {
     // (an experiment: whether Safari decodes the Ogg file at all); the
     // server answers with the Ogg file where it has no CAF one.
     const format = document.createElement('audio').canPlayType('audio/x-caf; codecs="opus"') ? '?format=caf' : '';
-    debugLog('stems', `loading stems for ${activeSongId}${format ? ', asking for caf' : ''}${stemsFor.at ? `, from ${stemsFor.at.site}${stemsFor.at.pass ? '' : ' (no pass)'}` : ''}`);
+    debugLog('stems', `loading stems for ${activeSongId}${format ? ', asking for caf' : ''}${stemsFor.pass ? ', with a pass for the site that has them' : ''}`);
 
     // Streamed by two <audio> elements, or on Apple's WebKit fetched and
     // decoded whole first (stemPlayback.ts); until the player is ready the
@@ -845,7 +843,7 @@ const PartyPage = () => {
     stemPlayerRef.current = player;
     const loadStartedAt = performance.now();
     stemsLoadRef.current = { state: 'loading', startedAt: loadStartedAt };
-    player.load(stemUrls(partyIdRef.current, activeSongId, { at: stemsFor.at, caf: Boolean(format) }), { log: (line: string) => debugLog('stems', line) }).then(() => {
+    player.load(stemUrls(activeSongId, { pass: stemsFor.pass, caf: Boolean(format) }), { log: (line: string) => debugLog('stems', line) }).then(() => {
       if (stemPlayerRef.current !== player) return; // the song changed meanwhile
       stemsLoadRef.current = { state: player.mode, ms: Math.round(performance.now() - loadStartedAt) };
       syncBleedSong(activeSongId);
@@ -1860,7 +1858,7 @@ const PartyPage = () => {
         await partyAccess.wait();
         if (cancelled) return;
         // (the party as it is now, not as it was when this effect began: a host's page had none then)
-        const resp = await fetchInParty(`${partyApi(partyIdRef.current)}/songs/${activeSongId}`);
+        const resp = await fetchInParty(partyUrl(`${apiUrl}/songs/${activeSongId}`, partyIdRef.current));
         if (!resp.ok && resp.status !== 404) throw new Error(`songs/${activeSongId}: HTTP ${resp.status}`);
         const jsonObj: { data: SongApiData | null; home?: unknown } = resp.status === 404 ? { data: null } : await resp.json();
 
@@ -1895,10 +1893,10 @@ const PartyPage = () => {
         });
         skipSegmentsRef.current = jsonObj.data.skipSegments ?? [];
         setActiveSkipSegment(null);
-        // (the song's stems and this page's take of it are the home site's: where that is, and the pass for it)
-        const homeAt = homeAtOf(jsonObj.home);
-        rememberHomePass(activeSongId, homeAt);
-        setStemsFor({ songId: activeSongId, has: Boolean(jsonObj.data.hasStems) && WEB_AUDIO_SUPPORTED && !stemsUnplayableRef.current, at: homeAt });
+        // (the chart came from a site without the stems: this browser's pass for them, and for its take, at the site that has them)
+        const homePass = homePassOf(jsonObj.home);
+        rememberHomePass(activeSongId, homePass);
+        setStemsFor({ songId: activeSongId, has: Boolean(jsonObj.data.hasStems) && WEB_AUDIO_SUPPORTED && !stemsUnplayableRef.current, pass: homePass });
 
         const { artist, title } = jsonObj.data;
 
@@ -2857,7 +2855,7 @@ const PartyPage = () => {
   // name, colour and duet part in use now: the server gives a known name its
   // seat back (a party that is gone answers "not found", handled below).
   useEffect(() => {
-    if (!partyId || authLoading || !sitesReady) return;
+    if (!partyId || authLoading) return;
 
     const onOpen = (wsInstance: PartySocket) => {
       sendPartyJoin(wsInstance, { partyId, username: currentUserNameRef.current, isShowingVideo: true, color: ownColorRef.current, part: myPartRef.current, difficulty: difficultyRef.current });
@@ -2886,8 +2884,8 @@ const PartyPage = () => {
       setConnLost(false);
     };
 
-    // (at the party's site: its code says which, logic/sites.ts)
-    const conn = keepWebSocket({ onOpen, onDown: () => setConnLost(true), url: socketUrl(partyApi(partyId)) });
+    // (the party named: the edge router sends the socket to the site the party lives at, logic/sites.ts)
+    const conn = keepWebSocket({ onOpen, onDown: () => setConnLost(true), url: socketUrl(partyId) });
     connRef.current = conn;
     return () => {
       conn.close();
@@ -2898,7 +2896,7 @@ const PartyPage = () => {
     // on the upgrade, so signing in (or out) reconnects. Not the name: a
     // rename (player:renamed) is the server's already, and a reconnect would
     // only cost the song a moment.
-  }, [partyId, isHost, authLoading, sitesReady, authUser?.id, joinAttempt, announceSong]);
+  }, [partyId, isHost, authLoading, authUser?.id, joinAttempt, announceSong]);
 
   // Handle WebSocket messages
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { startRegistration, startAuthentication, browserSupportsWebAuthn, browserSupportsWebAuthnAutofill } from '@simplewebauthn/browser';
 import type { PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser';
-import { apiWhenKnown } from './sites';
+import { apiUrl } from '../GlobalConsts';
 import { getGuestId } from './sessionId';
 import { parseAvatarPath } from './avatar';
 import type { PrivacySettings, Visibility } from './statsPrivacy';
@@ -659,8 +659,7 @@ async function call<T = Envelope>(method: string, path: string, body?: unknown):
   // A Blob (a picture) goes as itself, with its own type; anything else as JSON
   const raw = typeof Blob !== 'undefined' && body instanceof Blob;
   try {
-    // (the admin pages' requests go to the home site where there is one: logic/sites.ts)
-    r = await fetch(`${await apiWhenKnown(path)}${path}`, {
+    r = await fetch(`${apiUrl}${path}`, {
       method,
       headers: body !== undefined ? { 'Content-Type': raw ? body.type : 'application/json' } : undefined,
       body: body !== undefined ? (raw ? body : JSON.stringify(body)) : undefined,

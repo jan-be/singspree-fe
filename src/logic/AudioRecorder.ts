@@ -354,9 +354,8 @@ export class UserAudioRecorder {
           formData.append('audio', blob, `recording.${ext}`);
           formData.append('metadata', JSON.stringify(payload));
 
-          // (to the home site, where the recordings are kept, with the song's pass; where there is none, to the
-          // party's own site: logic/sites.ts)
-          const res = await fetch(await recordingUrl(typeof metadata.partyId === 'string' ? metadata.partyId : null, typeof metadata.songId === 'string' ? metadata.songId : null), {
+          // (with the song's pass for the site that keeps the recordings, if its chart came with one: logic/sites.ts)
+          const res = await fetch(recordingUrl(typeof metadata.songId === 'string' ? metadata.songId : null), {
             method: 'POST',
             body: formData,
           });

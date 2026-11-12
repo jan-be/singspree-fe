@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { loadSites, partyApi } from "../logic/sites";
+import { apiUrl } from "../GlobalConsts";
 import { useAuth } from "../logic/AuthContext";
 import { onStage, ownSeatName } from "../logic/seatName";
 
@@ -39,8 +39,7 @@ const JoinGameBox = ({ autoFocus = false }: { autoFocus?: boolean }) => {
 
     try {
       // Validate party exists
-      await loadSites(); // the party's site, by its code
-      const resp = await fetch(`${partyApi(partyId)}/parties/${partyId}`);
+      const resp = await fetch(`${apiUrl}/parties/${partyId}`);
       if (!resp.ok) {
         setError(t('join.partyNotFound'));
         setLoading(false);

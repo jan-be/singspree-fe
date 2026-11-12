@@ -1,6 +1,5 @@
 import { apiUrl } from '../GlobalConsts';
 import { getGuestId } from './sessionId';
-import { apiWhenKnown } from './sites';
 import { takeAudioUrl } from './takes';
 
 /**
@@ -73,9 +72,7 @@ export async function loadRecap(partyId: string): Promise<PartyRecapData | null>
  */
 export async function takeSource(partyId: string, takeId: string, { keptBy }: { keptBy: string | undefined }): Promise<{ src: string; revoke: () => void }> {
   if (keptBy === 'account') return { src: takeAudioUrl(takeId), revoke: () => {} };
-  // (at the home site, where the recordings are: logic/sites.ts)
-  const path = `/parties/${encodeURIComponent(partyId)}/recap/takes/${encodeURIComponent(takeId)}/audio`;
-  const resp = await fetch(`${await apiWhenKnown(path)}${path}`, {
+  const resp = await fetch(`${apiUrl}/parties/${encodeURIComponent(partyId)}/recap/takes/${encodeURIComponent(takeId)}/audio`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ guestId: getGuestId() }),

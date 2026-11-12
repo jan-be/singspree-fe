@@ -6,7 +6,7 @@ import { socketUrl } from './sites';
 
 // Same origin as the page (ws for http, wss for https), so the dev server,
 // `vite preview` and production all reach the backend through /api/ws. A
-// party at another site is reached under that site's path (sites.ts socketUrl).
+// party's socket names its party, for the edge router (sites.ts socketUrl).
 const defaultUrl = () => socketUrl();
 
 // --- Binary protocol constants ---
