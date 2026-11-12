@@ -9,6 +9,7 @@ import AdminVisitors from '../components/AdminVisitors';
 import AdminInbox from '../components/AdminInbox';
 import AdminChartJobs from '../components/AdminChartJobs';
 import AdminAccounts from '../components/AdminAccounts';
+import AdminSites from '../components/AdminSites';
 import { Notice, type AdminActions } from '../components/AdminParts';
 import { useAuth } from '../logic/AuthContext';
 import { getAdminOverview } from '../logic/authApi';
@@ -19,7 +20,7 @@ import type { AdminOverview } from '../logic/authApi';
  * /admin, for accounts with the admin flag (backend routes/admin.ts), in tabs
  * with an address each (/admin, /admin/trends, …): the overview with the
  * parties running right now, the trends, the visitors, the inbox of reports
- * and feedback, the AI charts and the accounts. A tab reads its numbers when
+ * and feedback, the AI charts, the accounts and the sites SingSpree runs at. A tab reads its numbers when
  * it is opened; the overview is read every few seconds on every tab, for the
  * counts on the tabs. Everyone else gets the 404 page, so the URL gives
  * nothing away.
@@ -28,7 +29,7 @@ import type { AdminOverview } from '../logic/authApi';
 const REFRESH_MS = 5000; // parties come and go; the numbers ride along
 
 /** The tabs in their order; each but the first has its name as its address below /admin */
-const TABS = ['overview', 'trends', 'visitors', 'inbox', 'charts', 'accounts'] as const;
+const TABS = ['overview', 'trends', 'visitors', 'inbox', 'charts', 'accounts', 'sites'] as const;
 type Tab = typeof TABS[number];
 const tabPath = (tab: Tab) => (tab === 'overview' ? '/admin' : `/admin/${tab}`);
 /** The tab an address names (none: the overview); null when it names none we have */
@@ -124,6 +125,7 @@ const AdminConsole = ({ myId, tab }: { myId: number; tab: Tab }) => {
     overview: overview?.partiesRunning ? { n: overview.partiesRunning } : undefined,
     inbox: waiting ? { n: waiting, urgent: true } : undefined,
     charts: overview?.chartJobsActive ? { n: overview.chartJobsActive } : undefined,
+    sites: overview?.siteProblems?.length ? { n: overview.siteProblems.length, urgent: true } : undefined,
   };
 
   return (
@@ -149,6 +151,7 @@ const AdminConsole = ({ myId, tab }: { myId: number; tab: Tab }) => {
         {tab === 'inbox' && <AdminInbox openReports={overview?.reportsOpen} openAvatarReports={overview?.avatarReportsOpen} waitingTesters={overview?.androidTestersWaiting} iosSignups={overview?.iosSignups} actions={actions} />}
         {tab === 'charts' && <AdminChartJobs active={overview?.chartJobsActive} />}
         {tab === 'accounts' && <AdminAccounts myId={myId} overview={overview} actions={actions} />}
+        {tab === 'sites' && <AdminSites onError={fail} />}
       </div>
     </WrapperPage>
   );

@@ -327,6 +327,112 @@ export interface AdminOverview {
   parties: AdminParty[];
   /** the sites, where there are several */
   sites?: AdminSite[];
+  /** what wants a look of them (the Sites tab says more); missing where there is one site */
+  siteProblems?: SiteProblem[];
+  /** the singers' ping (one way, ms) over the last day and the last 7: the middle one of everybody's songs; null when nobody's was kept */
+  pingDay?: number | null;
+  pingWeek?: number | null;
+}
+
+/** Something about a site that wants a look (backend siteStatus.ts siteProblems); `detail`: the other site of a link, a build, a number */
+export interface SiteProblem {
+  site: string;
+  kind: 'quiet' | 'never' | 'backend' | 'frontend' | 'link' | 'stale' | 'setAside' | 'pages' | 'disk';
+  detail?: string;
+}
+
+/** What a site last said of itself (backend siteStatus.ts SiteReport); times are ms since 1970, sizes bytes */
+export interface SiteReport {
+  /** the commits its backend and frontend were built from; null if the image does not say */
+  revision: string | null;
+  frontend: string | null;
+  startedAt: number;
+  home: boolean;
+  parties: number;
+  /** parties with a song playing */
+  playing: number;
+  /** singers connected */
+  players: number;
+  sockets: number;
+  /** the backend's own memory, and the machine's free and whole */
+  memory: { rss: number; free: number; total: number };
+  disk: { free: number; total: number } | null;
+  /** the crawler pages: what they were made from, when, and (at a copying site) when the last copy arrived */
+  pages: { hash: string | null; at: number | null; copiedAt: number | null } | null;
+  /** songs with stems the site knows of */
+  stems: number;
+  db: {
+    version: string;
+    spock: string | null;
+    sizeBytes: number;
+    /** each site this one follows, with the link's state ("replicating" is the good one) */
+    links: { from: string; status: string }[];
+    /** per site followed: bytes received and not yet applied, and when a change of that site was last applied here */
+    received: { from: string; behindBytes: number; lastChangeAt: number | null }[];
+    /** per site that follows this one: bytes still kept for it */
+    kept: { to: string; bytes: number }[];
+    /** rows that arrived and could not be applied */
+    setAside: number;
+    /** times the same row was written at two sites and one write won */
+    conflicts: number;
+    lastConflictAt: number | null;
+  } | null;
+}
+
+/** A site as GET /admin/sites lists it */
+export interface AdminSiteStatus {
+  name: string;
+  number: number;
+  /** the site that answered */
+  here: boolean;
+  /** the site with the disk and the chart generator */
+  home: boolean;
+  /** the first characters of the party codes it makes */
+  codes: string;
+  firstAt: number | null;
+  reportedAt: number | null;
+  /** it has not reported for longer than a running site ever leaves it (or never did) */
+  quiet: boolean;
+  report: SiteReport | null;
+}
+
+/** A site's parties, songs, singers, song time (seconds) and ping over the window (backend siteUsage.ts) */
+export interface SiteUsage {
+  site: string;
+  parties: number;
+  plays: number;
+  singers: number;
+  seconds: number;
+  /** the singers' ping (one way, ms): the middle one, and the one nine in ten stay under; null without a measured song */
+  ping: number | null;
+  pingP90: number | null;
+  /** singers' songs the ping is of */
+  measured: number;
+}
+
+/** A country's ping at one site */
+export interface CountryPing { ping: number; measured: number; parties: number }
+
+/** A country parties were hosted from: its ping before there were sites, and since, per site (null: a code no site makes) */
+export interface CountryUsage {
+  country: string;
+  before: CountryPing | null;
+  since: (CountryPing & { site: string | null })[];
+}
+
+/** GET /admin/sites */
+export interface AdminSites {
+  now: number;
+  days: number;
+  /** since when parties live at their nearest site (ms since 1970); null before a second site reported */
+  since: number | null;
+  /** where the numbers start: the window's start, or `since` if that is later */
+  from: number | null;
+  /** how many days before `since` the countries' "before" ping reaches back */
+  beforeDays: number;
+  sites: AdminSiteStatus[];
+  problems: SiteProblem[];
+  usage: { bySite: SiteUsage[]; byCountry: CountryUsage[] };
 }
 
 /** A song played, for the admin list (backend routes/admin.ts playRow) */
@@ -364,6 +470,8 @@ export interface AdminPlay {
   country: string | null;
   /** a song whose chart the AI made */
   generated: boolean;
+  /** the site the play's party lived at, since parties live at their nearest site; null before, and where there is one site */
+  site?: string | null;
 }
 
 /** What narrows the recently sung list: a party, a song, whoever sang a play (its id), those with a score */
@@ -857,6 +965,8 @@ export const markNotificationsSeen = (until: string) => post('/notifications/see
 
 /** Numbers for the tiles plus every party running right now. */
 export const getAdminOverview = () => get<{ data: AdminOverview }>('/admin/overview').then(j => j.data);
+/** How each site stands and where people sang over the last `days`; null where there is one site */
+export const getAdminSites = (days = 7) => get<{ data: AdminSites | null }>(`/admin/sites?days=${days}`).then(j => j.data);
 /** One row of counts per day (in Berlin) for the last `days` and the `days` before, with each range's totals (logic/trends.ts reads them). */
 export const getAdminTrends = (days = 30) => get<{ data: TrendsData }>(`/admin/trends?days=${days}`).then(j => j.data);
 export const getAdminPlays = (offset = 0, limit = 20, { party, song, singer, scored }: AdminPlayFilter = {}) => {

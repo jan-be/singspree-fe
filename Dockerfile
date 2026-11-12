@@ -30,3 +30,10 @@ FROM nginx:alpine-slim
 
 COPY --from=build-stage /app/build/ /files
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# The commit this image was built from (the workflow passes it, and so does a
+# build by hand for another site: --build-arg REVISION=<commit>), at
+# /version.json: the site's backend reads it there, and the admin page's Sites
+# tab shows which build each site serves.
+ARG REVISION=
+RUN printf '{"revision":"%s"}\n' "$REVISION" > /files/version.json

@@ -6,6 +6,8 @@ import Avatar from './Avatar';
 import DifficultyTag from './DifficultyTag';
 import { DropdownChevron } from './Dropdown';
 import { btn, StatTile, Section, Badge, Notice, Thumb, Hint, Loading, FilterButtons, countryFlag, countryLabel, panel, list, useAgo, useName, type AdminActions } from './AdminParts';
+import { SiteProblemLines } from './AdminSites';
+import { partyNumbers } from '../logic/siteStatus';
 import { formatDuration } from '../logic/duration';
 import { formatTime } from '../logic/songRegions';
 import { deviceLabel } from '../logic/deviceLabel';
@@ -16,7 +18,8 @@ import type { AdminOverview, AdminParty, AdminPlay, AdminPlayFilter } from '../l
 
 /**
  * /admin's first tab: today's and this week's numbers, the parties running
- * right now (the page reads them every few seconds) and the songs sung last.
+ * right now (the page reads them every few seconds), each site's share of
+ * them where there are several, and the songs sung last.
  */
 
 const PAGE = 20;
@@ -220,7 +223,7 @@ const PlayRow = ({ play, open, onToggle, scope, running, onNarrow }: {
           <span className="block text-xs text-white/45 truncate">
             <span className={`tabular-nums ${play.seconds != null ? 'text-white/75' : 'text-white/35'}`}>{play.seconds != null ? formatTime(play.seconds) : '–:––'}</span>
             {play.ping != null ? ` · ${t('admin.ping', { ms: play.ping })}` : ''}
-            {play.partyId ? ` · ${t('admin.plays.inParty', { partyId: play.partyId })}` : ''} · {ago(play.at)}
+            {play.partyId ? ` · ${t('admin.plays.inParty', { partyId: play.partyId })}` : ''}{play.site ? ` (${play.site})` : ''} · {ago(play.at)}
           </span>
         </span>
         <DropdownChevron open={open} />
@@ -295,9 +298,18 @@ const AdminOverviewTab = ({ overview, reload, actions }: { overview: AdminOvervi
   };
 
   const loading = <Loading>{t('sections.loading')}</Loading>;
+  const now = useMemo(() => partyNumbers(overview?.parties ?? []), [overview?.parties]);
+  /** A small word after a tile's number */
+  const aside = (text: string) => <span className="ml-1.5 text-sm font-normal text-white/45">{text}</span>;
 
   return (
     <>
+      {overview?.siteProblems && overview.siteProblems.length > 0 && (
+        <Notice tone="error" className="mb-4">
+          <SiteProblemLines problems={overview.siteProblems} />
+          <Link to="/admin/sites" className="mt-1 inline-block text-red-100 underline underline-offset-2 hover:text-white">{t('admin.sites.open')}</Link>
+        </Notice>
+      )}
       {!overview
         ? loading
         : (
@@ -321,6 +333,31 @@ const AdminOverviewTab = ({ overview, reload, actions }: { overview: AdminOvervi
           <StatTile label={t('admin.stats.slidersMovedWeek')} value={<Share n={overview.slidersMovedWeek} of={overview.stemPlaysWeek} />} accent="text-neon-purple" />
           <StatTile label={t('admin.stats.vocalsDownWeek')} value={<Share n={overview.vocalsDownWeek} of={overview.stemPlaysWeek} />} />
           <Hint className="col-span-2 self-center">{t('admin.stats.slidersHint')}</Hint>
+        </div>
+      )}
+
+      {overview && (
+        // Right now: who is in the middle of a song (a restart would cut it off), the singers' ping, and each site's share
+        <div className="mt-2 sm:mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
+          <StatTile label={t('admin.stats.singingNow')} value={now.singing} accent={now.singing > 0 ? 'text-neon-green' : undefined} />
+          <StatTile
+            label={t('admin.stats.pingDay')}
+            value={overview.pingDay == null ? '–' : <>{overview.pingDay} ms{overview.pingWeek != null && aside(t('admin.stats.pingWeek', { ms: overview.pingWeek }))}</>}
+          />
+          {overview.sites?.map((s) => {
+            const there = partyNumbers(overview.parties.filter(p => p.site === s.name));
+            return (
+              <StatTile
+                key={s.name}
+                label={t('admin.stats.site', { site: s.name })}
+                accent={s.silent ? 'text-red-400' : 'text-neon-cyan'}
+                warn={s.silent}
+                value={s.silent
+                  ? '?'
+                  : <>{there.parties}{aside(t('admin.stats.siteNow', { count: there.singers }) + (there.ping !== null ? ` · ${there.ping} ms` : ''))}</>}
+              />
+            );
+          })}
         </div>
       )}
 

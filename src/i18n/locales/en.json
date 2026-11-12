@@ -845,13 +845,16 @@
       "inbox": "Inbox",
       "charts": "AI charts",
       "accounts": "Accounts",
+      "sites": "Sites",
       "counts": {
         "overview_one": "{{count}} party running",
         "overview_other": "{{count}} parties running",
         "inbox_one": "{{count}} waiting",
         "inbox_other": "{{count}} waiting",
         "charts_one": "{{count}} job running or waiting",
-        "charts_other": "{{count}} jobs running or waiting"
+        "charts_other": "{{count}} jobs running or waiting",
+        "sites_one": "{{count}} thing wants a look",
+        "sites_other": "{{count}} things want a look"
       }
     },
     "showMore": "Show more",
@@ -1244,7 +1247,13 @@
       "signInCode": "E-mail code only",
       "signInPasskey": "Passkey",
       "signInPassword": "Password",
-      "signInGoogle": "Google"
+      "signInGoogle": "Google",
+      "singingNow": "Singing right now",
+      "pingDay": "Ping today (median)",
+      "pingWeek": "week {{ms}}",
+      "site": "Parties at {{site}}",
+      "siteNow_one": "{{count}} singer",
+      "siteNow_other": "{{count}} singers"
     },
     "parties": {
       "title": "Running parties",
@@ -1474,6 +1483,81 @@
       "top": "Who brought the most people",
       "guest": "guest",
       "topLine": "{{arrivals}} came · {{singers}} sang · {{parties}} hosted · {{accounts}} signed up · {{sent}} sent"
+    },
+    "sites": {
+      "open": "Open the Sites tab",
+      "oneSite": "This installation runs at one site.",
+      "allFine_one": "The site reports and nothing wants a look.",
+      "allFine_other": "All {{count}} sites report, run the same builds and copy from each other.",
+      "nearest": "Your browser's pages and plain requests are answered by {{site}}, the nearest site as Cloudflare sees it. A party's requests go to the site its code names; this console is always answered by the home site.",
+      "homeSite": "home site",
+      "quiet": "not reporting",
+      "never": "Has never reported.",
+      "lastReport": "Last report {{ago}}. It may be down.",
+      "runningSince": "Backend started {{ago}}",
+      "reported": "Reported {{ago}}",
+      "parties": "Parties now",
+      "partiesNow": "{{parties}} · {{singing}} singing · {{singers}} singers",
+      "codes": "Its party codes start with",
+      "backend": "Backend build",
+      "frontend": "Frontend build",
+      "memory": "Memory",
+      "memoryLine": "backend {{backend}} · {{free}} free of {{total}}",
+      "disk": "Disk",
+      "freeOf": "{{free}} free of {{total}}",
+      "pages": "Crawler pages",
+      "pagesState": {
+        "written": "written here {{ago}}",
+        "same": "the home site's, copied {{copied}}",
+        "arriving": "new ones at the home site, the copy is due",
+        "behind": "behind the home site's (last copy {{copied}})",
+        "none": "none",
+        "unknown": "copied {{copied}}"
+      },
+      "stems": "Songs with stems",
+      "database": "Database",
+      "copiesFrom": "Copies from {{site}}",
+      "copying": "copying",
+      "lastChange": "last change {{ago}}",
+      "behind": "{{size}} to apply",
+      "kept": "Still to send",
+      "setAside": "Rows set aside",
+      "conflicts": "Conflicts settled",
+      "lastOne": "last {{ago}}",
+      "problems": {
+        "quiet": "{{site}} has stopped reporting. It may be down.",
+        "never": "{{site}} has never reported.",
+        "backend": "{{site}} runs another backend build ({{detail}}) than the home site.",
+        "frontend": "{{site}} serves another frontend build ({{detail}}) than the home site.",
+        "link": "{{site}} is not copying the database from {{detail}}.",
+        "stale": "{{site}} says it copies from {{detail}}, but nothing has arrived for minutes.",
+        "setAside": "{{site}} set {{detail}} rows aside that it could not apply.",
+        "pages": "{{site}}'s copy of the crawler pages is behind the home site's.",
+        "disk": "{{site}} has {{detail}} MB of disk left."
+      },
+      "usage": {
+        "title": "Where people sing",
+        "hint": "By the site a party lived at, which its code says. The ping is one way, singer to site: the middle one of all singers' songs, and the one nine in ten stayed under.",
+        "since": "Counted since {{date}}, when parties began to live at their nearest site.",
+        "notYet": "Nothing to count yet: no second site has reported.",
+        "site": "Site",
+        "parties": "Parties",
+        "plays": "Songs",
+        "singers": "Singers",
+        "time": "Song time",
+        "ping": "Ping",
+        "pingP90": "9 in 10 under",
+        "measured_one": "from {{count}} singer's song",
+        "measured_other": "from {{count}} singers' songs"
+      },
+      "countries": {
+        "title": "Ping by country",
+        "hint": "By the country a party was hosted from: the median ping in the {{days}} days before there were several sites, when everybody sang at one, and since then at each site parties from there lived at.",
+        "none": "Nobody's ping has been kept yet.",
+        "country": "Country",
+        "before": "Before",
+        "since": "Since, by site"
+      }
     }
   },
   "settings": {

@@ -845,13 +845,16 @@
       "inbox": "Eingang",
       "charts": "KI-Charts",
       "accounts": "Konten",
+      "sites": "Standorte",
       "counts": {
         "overview_one": "{{count}} Party läuft",
         "overview_other": "{{count}} Partys laufen",
         "inbox_one": "{{count}} wartet",
         "inbox_other": "{{count}} warten",
         "charts_one": "{{count}} Job läuft oder wartet",
-        "charts_other": "{{count}} Jobs laufen oder warten"
+        "charts_other": "{{count}} Jobs laufen oder warten",
+        "sites_one": "{{count}} Sache zum Nachsehen",
+        "sites_other": "{{count}} Sachen zum Nachsehen"
       }
     },
     "showMore": "Mehr anzeigen",
@@ -1244,7 +1247,13 @@
       "signInCode": "Nur E-Mail-Code",
       "signInPasskey": "Passkey",
       "signInPassword": "Passwort",
-      "signInGoogle": "Google"
+      "signInGoogle": "Google",
+      "singingNow": "Singen gerade",
+      "pingDay": "Ping heute (Median)",
+      "pingWeek": "Woche {{ms}}",
+      "site": "Partys in {{site}}",
+      "siteNow_one": "{{count}} Sänger",
+      "siteNow_other": "{{count}} Sänger"
     },
     "parties": {
       "title": "Laufende Partys",
@@ -1474,6 +1483,81 @@
       "top": "Wer die meisten Leute gebracht hat",
       "guest": "Gast",
       "topLine": "{{arrivals}} gekommen · {{singers}} gesungen · {{parties}} Party gestartet · {{accounts}} angemeldet · {{sent}} gesendet"
+    },
+    "sites": {
+      "open": "Zum Tab Standorte",
+      "oneSite": "Diese Installation läuft an einem Standort.",
+      "allFine_one": "Der Standort meldet sich, nichts ist nachzusehen.",
+      "allFine_other": "Alle {{count}} Standorte melden sich, laufen mit demselben Stand und kopieren voneinander.",
+      "nearest": "Seiten und einfache Anfragen deines Browsers beantwortet {{site}}, der nächste Standort aus Sicht von Cloudflare. Die Anfragen einer Party gehen an den Standort, den ihr Code nennt; diese Konsole beantwortet immer der Heimatstandort.",
+      "homeSite": "Heimatstandort",
+      "quiet": "meldet sich nicht",
+      "never": "Hat sich noch nie gemeldet.",
+      "lastReport": "Letzte Meldung {{ago}}. Vielleicht läuft er nicht.",
+      "runningSince": "Backend gestartet {{ago}}",
+      "reported": "Gemeldet {{ago}}",
+      "parties": "Partys jetzt",
+      "partiesNow": "{{parties}} · {{singing}} singen · {{singers}} Sänger",
+      "codes": "Seine Partycodes beginnen mit",
+      "backend": "Backend-Stand",
+      "frontend": "Frontend-Stand",
+      "memory": "Speicher",
+      "memoryLine": "Backend {{backend}} · {{free}} frei von {{total}}",
+      "disk": "Platte",
+      "freeOf": "{{free}} frei von {{total}}",
+      "pages": "Seiten für Crawler",
+      "pagesState": {
+        "written": "hier geschrieben {{ago}}",
+        "same": "die des Heimatstandorts, kopiert {{copied}}",
+        "arriving": "neue am Heimatstandort, die Kopie steht an",
+        "behind": "hinter denen des Heimatstandorts (letzte Kopie {{copied}})",
+        "none": "keine",
+        "unknown": "kopiert {{copied}}"
+      },
+      "stems": "Songs mit Stems",
+      "database": "Datenbank",
+      "copiesFrom": "Kopiert von {{site}}",
+      "copying": "kopiert",
+      "lastChange": "letzte Änderung {{ago}}",
+      "behind": "{{size}} noch anzuwenden",
+      "kept": "Noch zu senden",
+      "setAside": "Zurückgelegte Zeilen",
+      "conflicts": "Entschiedene Konflikte",
+      "lastOne": "zuletzt {{ago}}",
+      "problems": {
+        "quiet": "{{site}} meldet sich nicht mehr. Vielleicht läuft der Standort nicht.",
+        "never": "{{site}} hat sich noch nie gemeldet.",
+        "backend": "{{site}} läuft mit einem anderen Backend-Stand ({{detail}}) als der Heimatstandort.",
+        "frontend": "{{site}} liefert einen anderen Frontend-Stand ({{detail}}) aus als der Heimatstandort.",
+        "link": "{{site}} kopiert die Datenbank nicht von {{detail}}.",
+        "stale": "{{site}} kopiert angeblich von {{detail}}, aber seit Minuten kommt nichts an.",
+        "setAside": "{{site}} hat {{detail}} Zeilen zurückgelegt, die sich nicht anwenden ließen.",
+        "pages": "Die Kopie der Crawler-Seiten in {{site}} ist hinter der des Heimatstandorts.",
+        "disk": "{{site}} hat noch {{detail}} MB Platz auf der Platte."
+      },
+      "usage": {
+        "title": "Wo gesungen wird",
+        "hint": "Nach dem Standort, an dem eine Party lief; ihr Code sagt ihn. Der Ping gilt für eine Richtung, vom Sänger zum Standort: der mittlere aller gesungenen Songs und der, unter dem neun von zehn blieben.",
+        "since": "Gezählt seit {{date}}; seitdem laufen Partys an ihrem nächsten Standort.",
+        "notYet": "Noch nichts zu zählen: Es hat sich kein zweiter Standort gemeldet.",
+        "site": "Standort",
+        "parties": "Partys",
+        "plays": "Songs",
+        "singers": "Sänger",
+        "time": "Songzeit",
+        "ping": "Ping",
+        "pingP90": "9 von 10 unter",
+        "measured_one": "aus {{count}} gesungenen Song",
+        "measured_other": "aus {{count}} gesungenen Songs"
+      },
+      "countries": {
+        "title": "Ping nach Land",
+        "hint": "Nach dem Land, aus dem eine Party gehostet wurde: der mittlere Ping in den {{days}} Tagen, bevor es mehrere Standorte gab und alle an einem sangen, und seitdem an jedem Standort, an dem Partys von dort liefen.",
+        "none": "Bisher wurde kein Ping festgehalten.",
+        "country": "Land",
+        "before": "Vorher",
+        "since": "Seitdem, nach Standort"
+      }
     }
   },
   "settings": {
