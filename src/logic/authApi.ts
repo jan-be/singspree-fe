@@ -277,6 +277,22 @@ export interface AdminParty {
   currentSong: { songId: string; title: string; artist: string; videoId: string; isPlaying: boolean; ended?: boolean; startedAt?: number } | null;
   queueLength: number;
   players: { username: string; connected: boolean; score: number; signedIn: boolean; latencyMs: number; avatar?: string }[];
+  /** the site the party lives at; null (or missing) where there is one site */
+  site?: string | null;
+  /** a party at another site than the one that answered, as that site last saved it (ms since 1970): the card is that old */
+  asOf?: number;
+}
+
+/** One site's parties as the console counts them (backend routes/admin.ts) */
+export interface AdminSite {
+  name: string;
+  /** the site that answered: its parties are as they are this moment */
+  here: boolean;
+  parties: number;
+  /** when the site last saved its parties (ms since 1970); null for this site, or one that never did */
+  asOf: number | null;
+  /** it has not saved for longer than a running site ever leaves it: it is not running, and none of its parties are shown */
+  silent: boolean;
 }
 
 /** GET /admin/overview: the tiles' numbers and the parties */
@@ -307,7 +323,10 @@ export interface AdminOverview {
   chartJobsActive: number;
   partiesRunning: number;
   playersOnline: number;
+  /** every site's parties: the answering site's as they are, the others' as they last saved them */
   parties: AdminParty[];
+  /** the sites, where there are several */
+  sites?: AdminSite[];
 }
 
 /** A song played, for the admin list (backend routes/admin.ts playRow) */

@@ -1265,7 +1265,10 @@
       "queue_other": "{{count}} Songs in der Warteschlange",
       "close": "Party beenden",
       "closeConfirm": "Party {{partyId}} beenden und alle nach Hause schicken?",
-      "closed": "Party {{partyId}} wurde beendet"
+      "closed": "Party {{partyId}} wurde beendet",
+      "asOf": "Stand {{ago}}",
+      "siteSilent": "Der Standort {{site}} hat seine Partys zuletzt {{ago}} gemeldet. Vielleicht läuft er nicht; seine Partys werden nicht angezeigt.",
+      "siteNever": "Der Standort {{site}} hat noch nie Partys gemeldet."
     },
     "plays": {
       "title": "Zuletzt gesungen",

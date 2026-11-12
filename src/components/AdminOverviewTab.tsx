@@ -5,7 +5,7 @@ import AiBadge from './AiBadge';
 import Avatar from './Avatar';
 import DifficultyTag from './DifficultyTag';
 import { DropdownChevron } from './Dropdown';
-import { btn, StatTile, Section, Badge, Thumb, Hint, Loading, FilterButtons, countryFlag, countryLabel, panel, list, useAgo, useName, type AdminActions } from './AdminParts';
+import { btn, StatTile, Section, Badge, Notice, Thumb, Hint, Loading, FilterButtons, countryFlag, countryLabel, panel, list, useAgo, useName, type AdminActions } from './AdminParts';
 import { formatDuration } from '../logic/duration';
 import { formatTime } from '../logic/songRegions';
 import { deviceLabel } from '../logic/deviceLabel';
@@ -44,9 +44,14 @@ const PartyCard = ({ party, busy, onClose }: { party: AdminParty; busy: boolean;
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <Link to={`/join/${party.partyId}`} className="font-mono text-xl font-semibold text-neon-cyan hover:text-neon-cyan tracking-[0.2em] hover:underline underline-offset-4">{party.partyId}</Link>
+            {party.site && <Badge tone="cyan">{party.site}</Badge>}
             {!party.hostConnected && <Badge tone="red">{party.hostAway ? t('admin.parties.hostAway') : t('admin.parties.hostGone')}</Badge>}
           </div>
-          <div className="text-xs text-white/55 truncate mt-0.5">{t('admin.parties.host', { username: name(party.owner) })} · {ago(party.createdAt)}</div>
+          <div className="text-xs text-white/55 truncate mt-0.5">
+            {t('admin.parties.host', { username: name(party.owner) })} · {ago(party.createdAt)}
+            {/* another site's party is shown as that site last saved it */}
+            {party.asOf ? ` · ${t('admin.parties.asOf', { ago: ago(party.asOf) })}` : ''}
+          </div>
         </div>
         <button type="button" disabled={busy} onClick={() => onClose(party)} className={btn.danger}>{t('admin.parties.close')}</button>
       </div>
@@ -240,6 +245,7 @@ const ScopeChip = ({ onClear, children }: { onClear: () => void; children: React
 const AdminOverviewTab = ({ overview, reload, actions }: { overview: AdminOverview | null; reload: () => Promise<void>; actions: AdminActions }) => {
   const { t, i18n } = useTranslation();
   const name = useName();
+  const ago = useAgo();
   const { busy, run, say, fail } = actions;
   const [scope, setScope] = useState<PlayScope>({});
   const [scored, setScored] = useState(false);
@@ -318,7 +324,20 @@ const AdminOverviewTab = ({ overview, reload, actions }: { overview: AdminOvervi
         </div>
       )}
 
-      <Section title={t('admin.parties.title')} aside={overview && <span className="text-xs text-white/40">{t('admin.parties.count', { count: overview.parties.length })}</span>}>
+      <Section
+        title={t('admin.parties.title')}
+        aside={overview && (
+          <span className="text-xs text-white/40">
+            {t('admin.parties.count', { count: overview.parties.length })}
+            {overview.sites && ` (${overview.sites.map(s => `${s.name} ${s.silent ? '?' : s.parties}`).join(' · ')})`}
+          </span>
+        )}
+      >
+        {overview?.sites?.filter(s => s.silent).map(s => (
+          <Notice key={s.name} tone="error" className="mb-3">
+            {s.asOf ? t('admin.parties.siteSilent', { site: s.name, ago: ago(s.asOf) }) : t('admin.parties.siteNever', { site: s.name })}
+          </Notice>
+        ))}
         {!overview
           ? loading
           : overview.parties.length === 0

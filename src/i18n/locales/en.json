@@ -1265,7 +1265,10 @@
       "queue_other": "{{count}} songs queued",
       "close": "Close party",
       "closeConfirm": "Close party {{partyId}} and send everyone home?",
-      "closed": "Party {{partyId}} was closed"
+      "closed": "Party {{partyId}} was closed",
+      "asOf": "as of {{ago}}",
+      "siteSilent": "The site {{site}} last reported its parties {{ago}}. It may be down; its parties are not shown.",
+      "siteNever": "The site {{site}} has never reported its parties."
     },
     "plays": {
       "title": "Recently sung",
