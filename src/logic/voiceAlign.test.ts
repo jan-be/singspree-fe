@@ -123,6 +123,20 @@ describe('createSingerDelay', () => {
     expect(d).toBeCloseTo(0.21, 6);
   });
 
+  it("the windows' lead comes off the fixed delay and the bleed's, not off the singing's own", async () => {
+    const c = await chart();
+    const p = createSingerDelay({ fallback: 0.1, lead: 0.008 });
+    expect(p.next()).toBeCloseTo(0.092, 9);
+    p.update({ confident: true, delay: 0.2, z: 9, chunks: 3 });
+    expect(p.next()).toBeCloseTo(0.192, 9);
+    // the singing is timed on the pitches as they come: the same answer with a lead and without
+    const plain = createSingerDelay({ fallback: 0.1 });
+    let d = 0, e = 0;
+    for (const w of singer(c, 0.3, 40)) { p.pushNote(c, w.t, w.freq); d = p.next(); plain.pushNote(c, w.t, w.freq); e = plain.next(); }
+    expect(p.state().source).toBe('voice');
+    expect(d).toBeCloseTo(e, 3);
+  });
+
   it('with neither, the fixed delay stays', async () => {
     const c = await chart();
     const p = createSingerDelay({ fallback: 0.1 });

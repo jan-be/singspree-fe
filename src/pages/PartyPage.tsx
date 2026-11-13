@@ -2465,6 +2465,7 @@ const PartyPage = () => {
       micActiveRef.current = true;
       bleedRef.current?.dispose();
       const bleed = createBleedController({
+        lead: result.delayLead,
         onEstimate: (e) => debugLog('delay', `bleed ${Math.round(e.measured * 1000)} ms z=${e.z.toFixed(1)} chunks=${e.chunks}${e.confident ? ' (sure)' : ''}`),
       });
       bleedRef.current = bleed;
@@ -2634,7 +2635,8 @@ const PartyPage = () => {
       const frame = live.frame;
       const td = myPartRef.current === 2 && frame.p2TickData ? frame.p2TickData : frame.tickData;
       bleed?.pushNote(td.lyricData, videoTime, freq);
-      const delay = (bleed ? bleed.nextDelay() : FALLBACK_DELAY) - delayLeadRef.current;
+      // (the windows' lead is off the bleed's delay already, and not off the singing's own: createSingerDelay)
+      const delay = bleed ? bleed.nextDelay() : FALLBACK_DELAY - delayLeadRef.current;
       lastDelayRef.current = delay;
       const noteTime = videoTime - delay;
 

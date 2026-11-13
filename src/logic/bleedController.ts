@@ -31,6 +31,8 @@ export interface BleedControllerState extends DelayPolicyState {
 
 export interface BleedControllerOptions {
   fallback?: number;
+  /** s: what the microphone's windows take off the fixed delay and the bleed's (MicInput.delayLead; createSingerDelay) */
+  lead?: number;
   /** the estimator's options, handed to the worker with each song */
   options?: BleedEstimatorOptions;
   /** every estimate the worker sends */
@@ -133,11 +135,11 @@ export function forgetKeptReference(): void { kept = null; }
  */
 export const fetchStem = (url: string): Promise<Response> => fetch(url, { headers: { Range: 'bytes=0-' } });
 
-export function createBleedController({ fallback = FALLBACK_DELAY, options, onEstimate }: BleedControllerOptions = {}): BleedController {
+export function createBleedController({ fallback = FALLBACK_DELAY, lead = 0, options, onEstimate }: BleedControllerOptions = {}): BleedController {
   let worker: Worker | null = null;
   try { worker = new BleedWorker(); } catch { worker = null; } // no workers: no bleed, the fixed delay and the singing
   let epoch = 0;
-  let policy = createSingerDelay({ fallback });
+  let policy = createSingerDelay({ fallback, lead });
   let hops: Float32Array[] = [], posEnds: number[] = [], pos: number[] = [], stamps: number[] = [];
   let reference: BleedReferenceState = 'none'; // 'none' | 'loading' | 'ready' | 'unavailable'
 
@@ -187,7 +189,7 @@ export function createBleedController({ fallback = FALLBACK_DELAY, options, onEs
     startSong() {
       flush();
       epoch++;
-      policy = createSingerDelay({ fallback });
+      policy = createSingerDelay({ fallback, lead });
       reference = 'none';
       worker?.postMessage({ type: 'reset', epoch, options } satisfies BleedWorkerRequest);
     },

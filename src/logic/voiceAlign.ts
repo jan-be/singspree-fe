@@ -107,13 +107,20 @@ export interface SingerDelay extends DelayPolicy {
  * The delay for one singer and one song: the fixed one, the bleed's as soon as
  * that is sure (createDelayPolicy), and the singing's as soon as it speaks. It
  * has the last word: the bleed's later estimates only move where it starts from.
+ *
+ * `lead` (s): how much newer the sound in a pitch window is than the fixed
+ * delay and the bleed count on (MicInput.delayLead, the short window's 8 ms).
+ * It comes off those two here. The singing's delay is measured on the pitches
+ * as they come, lead and all, so nothing comes off that one: taken off after
+ * the fact it would be counted twice whenever the singing has the say.
  */
-export function createSingerDelay({ fallback }: { fallback: number }): SingerDelay {
-  const policy = createDelayPolicy({ fallback });
+export function createSingerDelay({ fallback, lead = 0 }: { fallback: number, lead?: number }): SingerDelay {
+  const policy = createDelayPolicy({ fallback: fallback - lead });
   const aligner = createVoiceAligner();
-  let prior = fallback, source: DelaySource = 'fixed', voiced = false;
+  let prior = fallback - lead, source: DelaySource = 'fixed', voiced = false;
   return {
-    update(estimate: DelayEstimate) {
+    update(given: DelayEstimate) {
+      const estimate = lead ? { ...given, delay: given.delay - lead } : given;
       if (estimate.confident) { prior = estimate.delay; source = 'bleed'; }
       policy.update(voiced ? { ...estimate, confident: false } : estimate);
     },
