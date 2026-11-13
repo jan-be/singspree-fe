@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pickPitch, createVoicingTracker, CONFIDENCE_THRESHOLD, MIN_PITCH_HZ, MAX_PITCH_HZ } from './pitchModel';
+import { pickPitch, createVoicingTracker, createModelWindows, CONFIDENCE_THRESHOLD, MIN_PITCH_HZ, MAX_PITCH_HZ, MODEL_SAMPLES, WINDOW_SAMPLES, HOP_SAMPLES } from './pitchModel';
 
 // One window's model output: earlier frames first, the window's own pitch last
 const win = (hz: number, conf: number, prevHz = 0, prevConf = 0): [Float32Array, Float32Array] => [new Float32Array([prevHz, hz]), new Float32Array([prevConf, conf])];
@@ -94,5 +94,44 @@ describe('pickPitch', () => {
   it('handles empty output', () => {
     expect(pickPitch(new Float32Array(0), new Float32Array(0))).toBe(0);
     expect(pickPitch(undefined, undefined)).toBe(0);
+  });
+});
+
+describe('createModelWindows', () => {
+  const win = (from: number) => Float32Array.from({ length: WINDOW_SAMPLES }, (_, i) => from + i + 1);
+
+  it('puts the 320 samples before a window in front of it, from the window before', () => {
+    const w = createModelWindows();
+    w.next(win(0));
+    const x = w.next(win(HOP_SAMPLES)); // samples 481 … 1440
+    expect(x.length).toBe(MODEL_SAMPLES);
+    expect(x[0]).toBe(HOP_SAMPLES + 1 - (MODEL_SAMPLES - WINDOW_SAMPLES));
+    for (let i = 1; i < MODEL_SAMPLES; i++) expect(x[i] - x[i - 1]).toBe(1);
+    expect(x[MODEL_SAMPLES - 1]).toBe(HOP_SAMPLES + WINDOW_SAMPLES);
+  });
+
+  it('takes the past from a window that was not judged, too', () => {
+    const w = createModelWindows();
+    w.skip(win(0));
+    expect(w.next(win(HOP_SAMPLES))[0]).toBe(HOP_SAMPLES + 1 - (MODEL_SAMPLES - WINDOW_SAMPLES));
+  });
+
+  it('has silence before the first window and after a reset', () => {
+    const w = createModelWindows();
+    expect(Array.from(w.next(win(0)).subarray(0, MODEL_SAMPLES - WINDOW_SAMPLES)).every(v => v === 0)).toBe(true);
+    w.reset();
+    const x = w.next(win(5000));
+    expect(Array.from(x.subarray(0, MODEL_SAMPLES - WINDOW_SAMPLES)).every(v => v === 0)).toBe(true);
+    expect(x[MODEL_SAMPLES - WINDOW_SAMPLES]).toBe(5001);
+  });
+
+  it('hands out a new array each time, and keeps its own copy of the past', () => {
+    const w = createModelWindows();
+    const first = win(0);
+    const a = w.next(first);
+    first.fill(-1);
+    const b = w.next(win(HOP_SAMPLES));
+    expect(a).not.toBe(b);
+    expect(b[0]).toBe(HOP_SAMPLES + 1 - (MODEL_SAMPLES - WINDOW_SAMPLES));
   });
 });

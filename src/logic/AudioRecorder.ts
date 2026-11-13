@@ -22,6 +22,8 @@ export interface RecordingCapture {
   path: string;
   /** which pitch worker ran: 'wasm-min' | 'webgpu' (older recordings: 'wasm', 'wasm-1.18') */
   pitch?: string;
+  /** which swift-f0 network it ran: '0.3' (the WASM worker from Nov 13 2026 on); none: '0.1' */
+  model?: string;
   sampleRate: number;
   /** the browser's own estimate, where it gives one */
   inputLatency: number | null;

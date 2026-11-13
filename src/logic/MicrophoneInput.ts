@@ -5,7 +5,7 @@ import PitchWorkerGpuUrl from "./PitchWorkerGpu.ts?worker";
 import MicCaptureWorker from "./MicCaptureWorker.ts?worker";
 import { UserAudioRecorder } from "./AudioRecorder";
 import type { RecordingCapture } from "./AudioRecorder";
-import { WINDOW_SAMPLES, HOP_SAMPLES, SHORT_WINDOW_SAMPLES } from "./pitchModel";
+import { WINDOW_SAMPLES, HOP_SAMPLES, MODEL_SAMPLES, MODEL_DELAY_LEAD, createModelWindows } from "./pitchModel";
 import { createInferenceScheduler } from "./inferenceScheduler";
 import { createLevelCalibration } from "./levelCalibration";
 import { createFrameAgeMeter, createLagWatch, createMicCapture } from "./micChunker";
@@ -327,7 +327,7 @@ async function initViaAudioWorklet(stream: MediaStream, display: DisplayOptions 
 export const openMicCapture = (stream: MediaStream): Promise<MicCaptureHandle> => (hasTrackProcessor ? initViaTrackProcessor(stream) : initViaAudioWorklet(stream));
 
 /** Start a pitch worker and wait for its model to load. Resolves { worker, provider }. */
-const startPitchWorker = (WorkerCtor: new () => Worker, modelPath: string, samples?: number) => new Promise<{ worker: Worker, provider: string }>((resolve, reject) => {
+const startPitchWorker = (WorkerCtor: new () => Worker, modelPath: string) => new Promise<{ worker: Worker, provider: string }>((resolve, reject) => {
   const worker = new WorkerCtor();
   worker.onmessage = ({ data }: MessageEvent<PitchWorkerResponse>) => {
     if (data.type !== 'init') return;
@@ -335,7 +335,7 @@ const startPitchWorker = (WorkerCtor: new () => Worker, modelPath: string, sampl
     else { worker.terminate(); reject(new Error(data.error)); }
   };
   worker.onerror = (e) => { worker.terminate(); reject(new Error(e.message || 'pitch worker failed to load')); };
-  worker.postMessage({ type: 'init', modelUrl: new URL(modelPath, window.location.origin).href, samples } satisfies PitchWorkerRequest);
+  worker.postMessage({ type: 'init', modelUrl: new URL(modelPath, window.location.origin).href } satisfies PitchWorkerRequest);
 });
 
 /**
@@ -356,12 +356,11 @@ export const micErrorKind = (e: unknown): MicErrorKind => {
  *   gpu: try the WebGPU pitch worker first (opt-in, see pitchGpuFlag.ts); WASM if it cannot start
  *   provisional: the highway's earlier pitch (opt-in, see fastPitchFlag.ts)
  *   earlyContext: start the AudioWorklet path's AudioContext before the microphone (opt-in, see fastPitchFlag.ts)
- *   shortWindow: the scored windows hold SHORT_WINDOW_SAMPLES (opt-in, see fastPitchFlag.ts); not on the WebGPU worker, whose model has 960
  *   onPhase: 'starting' while the browser opens the microphone (and may ask
  *     for permission), 'loading' while the pitch detector loads, which the
  *     first time means downloading ~1 MB (runtime and model, compressed)
  */
-export const initMicInput = async ({ deviceId, gpu = false, provisional = false, earlyContext = false, shortWindow = false, onPhase }: { deviceId?: string, gpu?: boolean, provisional?: boolean, earlyContext?: boolean, shortWindow?: boolean, onPhase?: (phase: MicPhase) => void } = {}): Promise<MicInput> => {
+export const initMicInput = async ({ deviceId, gpu = false, provisional = false, earlyContext = false, onPhase }: { deviceId?: string, gpu?: boolean, provisional?: boolean, earlyContext?: boolean, onPhase?: (phase: MicPhase) => void } = {}): Promise<MicInput> => {
   onPhase?.('starting');
   const earlyAudioContext = earlyContext && !hasTrackProcessor ? await startContextEarly() : null;
   const stream = await navigator.mediaDevices.getUserMedia({
@@ -391,7 +390,7 @@ export const initMicInput = async ({ deviceId, gpu = false, provisional = false,
     try {
       // Our minimal ONNX Runtime (tools/ort-minimal): single-threaded, so it
       // starts on old Safari too, where the stock runtimes needed a fallback
-      ({ worker: onnxWorker, provider } = await startPitchWorker(PitchWorkerMinimalUrl, '/model.ort', shortWindow ? SHORT_WINDOW_SAMPLES : undefined));
+      ({ worker: onnxWorker, provider } = await startPitchWorker(PitchWorkerMinimalUrl, '/model.ort'));
     } catch (e) {
       stream.getTracks().forEach(t => t.stop()); // no detector: let go of the microphone
       earlyAudioContext?.close();
@@ -412,7 +411,11 @@ export const initMicInput = async ({ deviceId, gpu = false, provisional = false,
     }
   }
 
-  const scoredSamples = shortWindow && provider !== 'webgpu' ? SHORT_WINDOW_SAMPLES : WINDOW_SAMPLES;
+  // The WASM worker's model (swift-f0 0.3.0) reads each window with the samples
+  // before it, and its pitch is 4 ms newer (pitchModel.ts); the WebGPU worker's
+  // (0.1.x) the window alone
+  const secondNetwork = provider !== 'webgpu';
+  const modelWindows = secondNetwork ? createModelWindows() : null;
 
   // Callback that the consumer sets via setOnProcessing
   let processingCallback: PitchCallback | null = null;
@@ -512,7 +515,8 @@ export const initMicInput = async ({ deviceId, gpu = false, provisional = false,
     pitch: provider,                             // which pitch worker ran: 'wasm-min' | 'webgpu' (older recordings: 'wasm', 'wasm-1.18')
     sampleRate: capture.nativeSampleRate,
     inputLatency: track?.getSettings?.().latency ?? null, // the browser's own estimate, where it gives one
-    windowSeconds: scoredSamples / TARGET_SAMPLE_RATE,
+    windowSeconds: (secondNetwork ? MODEL_SAMPLES : WINDOW_SAMPLES) / TARGET_SAMPLE_RATE,
+    ...(secondNetwork ? { model: '0.3' } : {}),
     hopSeconds: HOP_SECONDS,
   };
   const recorder = new UserAudioRecorder(stream, {
@@ -566,15 +570,17 @@ export const initMicInput = async ({ deviceId, gpu = false, provisional = false,
 
     if (noiseGate.shouldGate(volume)) {
       stats.gatedChunks++;
+      modelWindows?.skip(audio);
       if (processingCallback) {
         processingCallback({ data: { freq: 0, volume, fric, pos } });
       }
       return;
     }
 
+    const input = modelWindows ? modelWindows.next(audio) : audio;
     const gain = calibration.gain();
-    if (gain !== 1) for (let i = 0; i < audio.length; i++) audio[i] *= gain;
-    scheduler.submit({ audio, volume, t: chunkClock, fric, pos });
+    if (gain !== 1) for (let i = 0; i < input.length; i++) input[i] *= gain;
+    scheduler.submit({ audio: input, volume, t: chunkClock, fric, pos });
   });
 
   // Song playing → full pipeline; song paused → capture idles (level only),
@@ -587,6 +593,7 @@ export const initMicInput = async ({ deviceId, gpu = false, provisional = false,
     stats.active = next;
     if (next) chunkClock += PAUSE_CLOCK_JUMP_S;
     else scheduler.clear();
+    modelWindows?.reset();
     fast.reset();
     lagWatch.restart();
     // the capture position stands still while paused, like the recording
@@ -605,7 +612,7 @@ export const initMicInput = async ({ deviceId, gpu = false, provisional = false,
     stats,
     recorder,
     track,
-    delayLead: (WINDOW_SAMPLES - scoredSamples) / TARGET_SAMPLE_RATE,
+    delayLead: secondNetwork ? MODEL_DELAY_LEAD : 0,
     stopMicInput: () => {
       processingCallback = null;
       provisionalCallback = null;

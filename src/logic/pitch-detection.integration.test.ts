@@ -338,7 +338,9 @@ describe('Pitch accuracy: iris2.mp3', () => {
 //   1280 → ~5 output frames, 960 → ~3-4, 640 → ~2-3, 480 → ~1-2, 320 → ~1, 256 → ~1
 
 describe('Sample size benchmark: inference time + accuracy', () => {
-  const WINDOW_SIZES = [1280, 960, 640, 480, 320, 256];
+  // The wrapped second network (tools/ort-minimal/make_model.py) needs at least
+  // 768 samples; the app sends 1280 (scored) and 768 (the opt-in provisional pitch)
+  const WINDOW_SIZES = [1280, 1024, 960, 768];
   let audio16k: Float32Array;
   // Baseline pitches at 1280 for comparison
   let baselinePitches1280: number[];
@@ -438,7 +440,7 @@ describe('Sample size benchmark: inference time + accuracy', () => {
 // --- Accuracy at different window sizes against lyrics ---
 
 describe('Sample size accuracy against lyrics', () => {
-  const WINDOW_SIZES_ACCURACY = [1280, 960, 640];
+  const WINDOW_SIZES_ACCURACY = [1280, 960, 768];
 
   for (const winSize of WINDOW_SIZES_ACCURACY) {
     it(`window=${winSize}: octave-adjusted accuracy against Iris lyrics`, async () => {
@@ -491,7 +493,7 @@ describe('Sample size accuracy against lyrics', () => {
       console.log(`    Oct-adj accuracy: ${counts.correctOctave}/${counts.totalNotes} (${(octAcc*100).toFixed(1)}%)`);
       console.log(`    Of detected: ${counts.correctOctave}/${counts.detected} (${(detAcc*100).toFixed(1)}%)`);
 
-      // Minimum bar: all tested sizes (≥640) should detect something
+      // Minimum bar: all tested sizes (≥768) should detect something
       expect(counts.detected).toBeGreaterThan(0);
       // 1280 and 960 should maintain high accuracy
       if (winSize >= 960) {
@@ -502,10 +504,12 @@ describe('Sample size accuracy against lyrics', () => {
 });
 
 // --- Gain invariance tests ---
-// Verify that swift-f0 ONNX model produces the same pitch regardless of
-// audio amplitude. This confirms the model is gain-invariant and that
-// the adaptive noise gate (used in the live pipeline) is the only component
-// that needs to handle varying mic gain levels.
+// How far the model's pitch holds when the same singing comes in quieter. The
+// first swift-f0 network was gain-invariant (100 % even at 0.1x). The second
+// is not quite: on this mix 99 % at 0.5x, 93 % at 0.25x, 63 % at 0.1x, and it
+// gives up more windows as the level drops. The live pipeline's level
+// calibration (levelCalibration.ts) lifts a quiet voice toward one level
+// before the model; these bars only keep the model from getting worse.
 
 describe('Gain invariance: ONNX model pitch consistency', () => {
   let baselinePitches: number[];
@@ -538,6 +542,7 @@ describe('Gain invariance: ONNX model pitch consistency', () => {
     }
   }, 120000);
 
+  const BAR: Record<number, number> = { 0.5: 0.95, 0.25: 0.85 };
   for (const gain of [0.5, 0.25]) {
     it(`at ${gain}x gain, detected pitches match 1.0x baseline within ±1 MIDI`, async () => {
       const startSample = 25 * SAMPLE_RATE;
@@ -570,8 +575,7 @@ describe('Gain invariance: ONNX model pitch consistency', () => {
       }
 
       console.log(`  Gain ${gain}x: ${matches}/${compared} pitches match baseline (${(matches/compared*100).toFixed(1)}%)`);
-      // All detected pitches should match — model is gain-invariant
-      expect(matches / compared).toBeGreaterThan(0.95);
+      expect(matches / compared).toBeGreaterThan(BAR[gain]);
     }, 120000);
   }
 });

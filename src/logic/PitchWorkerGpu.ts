@@ -2,8 +2,10 @@
 // protocol as PitchWorkerMinimal.ts; opt-in (see pitchGpuFlag.ts), and MicrophoneInput
 // falls back to the WASM worker when this one cannot start.
 //
-// It needs the GPU-resident model (public/model-gpu.onnx, derived from
-// model.onnx by bench/ort-webgpu/make_gpu_model.py): the original's STFT and
+// It runs the first swift-f0 network (0.1.x), not the second the WASM worker
+// runs since November 2026 (pitchModel.ts): public/model-gpu.onnx was derived
+// from that network's model.onnx (git history before 2026-11-13) by
+// bench/ort-webgpu/make_gpu_model.py: the original's STFT and
 // int64 ops would bounce to the CPU on every run, which made WebGPU five
 // times slower than WASM. With everything on the GPU the inference itself
 // takes ~1 ms; the rest of each run is the browser's GPU→CPU readback.

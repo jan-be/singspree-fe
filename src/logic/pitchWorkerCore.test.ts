@@ -43,14 +43,6 @@ describe('servePitchRequests', () => {
     expect(inputs[0].length).toBe(960);
   });
 
-  it('runs the newest samples of a window when told how many', async () => {
-    servePitchRequests(fakeRuntime([220, 220, 220], [0.99, 0.99, 0.99]), 'test');
-    await send({ type: 'init', modelUrl: 'x', samples: 832 });
-    await send(detect(960));
-    expect(inputs[0].length).toBe(832);
-    expect(inputs[0][831]).toBe(959);
-  });
-
   it('answers a display window with the model alone: the voicing tracker never hears of it', async () => {
     servePitchRequests(fakeRuntime([220, 220, 220], [0.99, 0.99, 0.99]), 'test');
     await send({ type: 'init', modelUrl: 'x' });
@@ -62,10 +54,11 @@ describe('servePitchRequests', () => {
     expect(answer.rawConf).toBe(0.99);
   });
 
-  it('lets a display window through whole next to shorter scored ones', async () => {
+  it('runs a window of any length whole', async () => {
     servePitchRequests(fakeRuntime([220, 220, 220], [0.99, 0.99, 0.99]), 'test');
-    await send({ type: 'init', modelUrl: 'x', samples: 832 });
+    await send({ type: 'init', modelUrl: 'x' });
+    await send(detect(1280));
     await send(detect(500, { display: 1 }));
-    expect(inputs[0].length).toBe(500);
+    expect(inputs.map(x => x.length)).toEqual([1280, 500]);
   });
 });

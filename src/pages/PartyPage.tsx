@@ -28,7 +28,7 @@ import { keepScreenAwake } from "../logic/screenAwake";
 import { createBleedController, FALLBACK_DELAY } from "../logic/bleedController";
 import { createSingingGate } from "../logic/singingGate";
 import { confirmProvisional } from "../logic/provisionalPitch";
-import { isEarlyContextEnabled, isFastPitchEnabled, isShortWindowEnabled } from "../logic/fastPitchFlag";
+import { isEarlyContextEnabled, isFastPitchEnabled } from "../logic/fastPitchFlag";
 import { isPitchGpuEnabled } from "../logic/pitchGpuFlag";
 import { createExtraSinger, loadExtraMics, saveExtraMics } from "../logic/extraSingers";
 import { usePartyVoices } from "../logic/usePartyVoices";
@@ -2450,7 +2450,7 @@ const PartyPage = () => {
     joiningRef.current = true;
     setMicError(null);
     try {
-      const result = await initMicInput({ deviceId: deviceId || undefined, gpu: isPitchGpuEnabled(), provisional: isFastPitchEnabled(), earlyContext: isEarlyContextEnabled(), shortWindow: isShortWindowEnabled(), onPhase: setMicPhase });
+      const result = await initMicInput({ deviceId: deviceId || undefined, gpu: isPitchGpuEnabled(), provisional: isFastPitchEnabled(), earlyContext: isEarlyContextEnabled(), onPhase: setMicPhase });
       micOpenedAtRef.current = performance.now();
       stopMicRef.current = result.stopMicInput;
       micStatsRef.current = result.stats;

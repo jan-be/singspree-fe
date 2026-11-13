@@ -1,7 +1,8 @@
 // pitchWorkerCore.ts — the message protocol of the WASM pitch worker
 // (PitchWorkerMinimal.ts, on our minimal ONNX Runtime build): `init` loads
-// swift-f0, `detect` runs one 16 kHz chunk with its time on the chunk clock
-// and returns the pitch the voicing tracker accepts (0 = none).
+// swift-f0, `detect` runs one 16 kHz window (MODEL_SAMPLES, pitchModel.ts)
+// with its time on the chunk clock and returns the pitch the voicing tracker
+// accepts (0 = none).
 // MicrophoneInput sends one chunk at a time (inferenceScheduler.ts), so there
 // is never a queue here.
 
@@ -28,7 +29,6 @@ export interface PitchRuntime<T> {
  */
 export function servePitchRequests<T>(ort: PitchRuntime<T>, provider: string): void {
   let session: PitchSession<T> | null = null;
-  let samples = 0;
   const voicing = createVoicingTracker();
 
   self.onmessage = async ({ data }: MessageEvent<PitchWorkerRequest>) => {
@@ -37,7 +37,6 @@ export function servePitchRequests<T>(ort: PitchRuntime<T>, provider: string): v
     if (type === 'init') {
       try {
         session = await ort.InferenceSession.create(data.modelUrl, { executionProviders: ['wasm'] });
-        samples = data.samples ?? 0;
         self.postMessage({ type: 'init', status: 'ok', provider } satisfies PitchWorkerResponse);
       } catch (err) {
         self.postMessage({ type: 'init', status: 'error', error: (err as Error).message } satisfies PitchWorkerResponse);
@@ -49,8 +48,7 @@ export function servePitchRequests<T>(ort: PitchRuntime<T>, provider: string): v
       const t0 = performance.now();
       try {
         const { audio, volume, t } = data; // audio: Float32Array (16kHz), volume: number, t: chunk clock (s)
-        const input = samples && !data.display ? audio.subarray(audio.length - samples) : audio;
-        const inputTensor = new ort.Tensor('float32', input, [1, input.length]);
+        const inputTensor = new ort.Tensor('float32', audio, [1, audio.length]);
         const results = await session.run({ input_audio: inputTensor });
         const hz = results.pitch_hz.data, conf = results.confidence.data;
         if (data.display) { // nothing of it may reach the tracker: the scored stream's state

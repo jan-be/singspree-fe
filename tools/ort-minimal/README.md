@@ -1,7 +1,10 @@
 # Minimal ONNX Runtime for the pitch worker
 
 The pitch worker (`src/logic/PitchWorkerMinimal.ts`) runs swift-f0 on our own
-build of ONNX Runtime 1.31.1 for WebAssembly instead of onnxruntime-web's:
+build of ONNX Runtime 1.31.1 for WebAssembly instead of onnxruntime-web's.
+Since 2026-11-13 that is swift-f0 0.3.0, upstream's second network, wrapped
+for live windows by `make_model.py` (below); the numbers further down from
+before that date are the first network's (0.1.x).
 
 - **single-threaded, ordinary memory.** Since 1.19 onnxruntime-web ships only
   its threaded build, whose memory is a shared `WebAssembly.Memory` of up to
@@ -14,9 +17,26 @@ build of ONNX Runtime 1.31.1 for WebAssembly instead of onnxruntime-web's:
 - **three speed patches** (`*.patch`, see Patches): a faster convolution
   input expansion, convolutions that skip the products with the zero
   padding of a narrow image, and an inline complex product in the STFT:
-  together about half the time per inference.
+  together about half the time per inference of the first network. The
+  second has no STFT operator (its transforms are MatMuls, folded to constant
+  matrices by the conversion), so the third patch no longer matters.
 
-The results are bit-identical to the stock runtime's (see Verifying).
+With the first network the results were bit-identical to the stock
+runtime's. With the second they differ by float rounding (the conversion
+folds the graph differently from the stock runtime's load-time
+optimizations): on every 1280-sample window of `iris.mp3` in Chrome and
+WebKit, pitch by at most 0.003 cents, confidence by 1e-5, no voicing
+decision (see Verifying).
+
+The second network, measured 2026-11-13 (`bench/ort-minimal`, Chrome 157,
+desktop; the first network on its runtime in the same session):
+
+| | first network, 960 samples | second network, 1280 samples |
+|---|---|---|
+| `.wasm` | 1,190,691 B (gzip 452,156) | 1,180,241 B (gzip 438,614, brotli 334,971) |
+| model | `model.ort` 414,960 B (gzip 368,975) | `model.ort` 1,199,464 B (gzip 150,384, brotli 116,953): constant matrices compress well |
+| worker start (no cache) | 24 ms | 46–57 ms |
+| one inference | 1.26 ms (mean) | 2.17 ms (mean); WebKit 2.07 ms |
 
 Measured 2026-10-26 with 1.30.0 (the 1.29 numbers of 2026-10-04 are under
 Choices, measured):
@@ -32,6 +52,15 @@ Choices, measured):
 
 ## Files
 
+- `make_model.py`: upstream's swift-f0 0.3.0 model (`swift_f0/model.onnx`
+  in the PyPI wheel `swift_f0-0.3.0`, checked by its SHA-256) →
+  `public/model.onnx`: 1280 samples in, the network's frames 16 to 48 ms
+  behind the newest sample out, with the newest 512 samples mirrored after
+  the input as the future the network wants, its pitch decoded in float32, no
+  confidence on digital silence, and its confidence mapped onto the first
+  network's scale (all in the graph; its docstring has the details).
+  `--check <audio.f32>` compares the result with upstream's model run by hand.
+  Needs `onnx` and `onnxruntime` in its Python (requirements.txt has both).
 - `build.py`: the whole build (below). Pins ONNX Runtime (tag and commit)
   and Emscripten.
 - `requirements.txt`: what `build.py` needs in its Python.
@@ -55,6 +84,7 @@ Choices, measured):
 ```
 python -m venv ../claude-generated/ort-build/venv
 ../claude-generated/ort-build/venv/Scripts/pip install -r tools/ort-minimal/requirements.txt
+../claude-generated/ort-build/venv/Scripts/python tools/ort-minimal/make_model.py <swift_f0 0.3.0 model.onnx>
 ../claude-generated/ort-build/venv/Scripts/python tools/ort-minimal/build.py --work ../claude-generated/ort-build/work
 ```
 
@@ -221,8 +251,8 @@ inferences in Chrome.
 
 - `bun bench/ort-minimal/serve.ts` and `bun bench/ort-minimal/run.ts`
   (Chrome is the installed one; Firefox and WebKit are Playwright's,
-  `bunx playwright install firefox webkit`): every 960-sample window of
-  `../iris.mp3` through the stock runtime and the minimal one in Chrome,
+  `bunx playwright install firefox webkit`): every 1280-sample window of
+  `../iris.mp3` (or `AUDIO=`) through the stock runtime and the minimal one in Chrome,
   Firefox and WebKit, in a worker each; prints worker init time, inference
   times and, for every pair of runtimes, the differences of the raw outputs
   and of the app's decisions (`pickPitch`, and the voicing tracker the worker

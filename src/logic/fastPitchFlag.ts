@@ -1,4 +1,4 @@
-// fastPitchFlag.ts — three opt-in changes to how the singer's microphone is read,
+// fastPitchFlag.ts — two opt-in changes to how the singer's microphone is read,
 // to try on real devices. The choices live in localStorage so they survive the
 // join → party navigation; `?x=0` turns one off again.
 //
@@ -12,13 +12,12 @@
 // device, and a context that starts before the mic may be taken over by the
 // audio session's change when capture starts, hence the switch.
 //
-// `?shortwindow=1`: the scored stream's windows hold 832 samples instead of
-// 960 (SHORT_WINDOW_SAMPLES), so each pitch is 8 ms newer, on every screen.
-// Unlike the two above this one touches what is scored, see pitchModel.ts.
+// (`?shortwindow=1`, 832-sample windows for 8 ms newer pitches, went with the
+// first swift-f0 network: the second's newest frame is set inside the model,
+// pitchModel.ts.)
 
 const FAST_KEY = 'singspree_fast_pitch';
 const EARLY_KEY = 'singspree_early_context';
-const SHORT_KEY = 'singspree_short_window';
 
 const syncOne = (param: string, key: string) => {
   try {
@@ -29,11 +28,10 @@ const syncOne = (param: string, key: string) => {
   } catch { /* */ }
 };
 
-/** Call once at startup: ?fastpitch=, ?earlycontext= and ?shortwindow= update the stored choices. */
+/** Call once at startup: ?fastpitch= and ?earlycontext= update the stored choices. */
 export function syncMicFlagsFromUrl(): void {
   syncOne('fastpitch', FAST_KEY);
   syncOne('earlycontext', EARLY_KEY);
-  syncOne('shortwindow', SHORT_KEY);
 }
 
 export function isFastPitchEnabled(): boolean {
@@ -42,8 +40,4 @@ export function isFastPitchEnabled(): boolean {
 
 export function isEarlyContextEnabled(): boolean {
   try { return localStorage.getItem(EARLY_KEY) === '1'; } catch { return false; }
-}
-
-export function isShortWindowEnabled(): boolean {
-  try { return localStorage.getItem(SHORT_KEY) === '1'; } catch { return false; }
 }

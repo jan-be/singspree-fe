@@ -25,11 +25,12 @@
 import { CONFIDENCE_THRESHOLD, HOP_SAMPLES, MIN_PITCH_HZ, MAX_PITCH_HZ } from './pitchModel';
 
 export const PROVISIONAL = {
-  // 768 samples, not the scored stream's 960, and no dearer: the model pads
-  // 384 zeros at each end and reads 1024 samples every 256, so both make 3
-  // frames, and the newest frame is centred 8 ms behind the newest sample here
-  // against 20 ms there. Over real sung note starts that shows as the same
-  // confidence 12 ms sooner.
+  // 768 samples. Measured with the first swift-f0 network, whose newest frame
+  // sat 8 ms behind the newest sample here against 20 ms in a scored window:
+  // the same confidence 12 ms sooner on real note starts. The second network
+  // (pitchModel.ts) reads its frame 16 ms behind the newest sample whatever the
+  // length, and wants 1280 samples where this has 768: not measured with it,
+  // and off unless ?fastpitch=1.
   samples: 768,
   hopSamples: 160,  // a window every 10 ms, the mic's frames on most devices
   entry: CONFIDENCE_THRESHOLD,

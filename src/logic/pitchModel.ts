@@ -1,21 +1,29 @@
 // pitchModel.ts — what both pitch workers share about swift-f0's output.
+//
+// The WASM worker runs swift-f0 0.3.0 (upstream's second network, September
+// 2026) as tools/ort-minimal/make_model.py wraps it into public/model.onnx:
+// MODEL_SAMPLES in, three frames out (16 ms apart, newest last), confidence on
+// the first network's scale, which everything below was tuned on. The opt-in
+// WebGPU worker still runs the first network (0.1.x) on WINDOW_SAMPLES.
 
-export const WINDOW_SAMPLES = 960; // 60 ms at 16 kHz, the window MicrophoneInput feeds
+export const WINDOW_SAMPLES = 960; // 60 ms at 16 kHz, the window MicrophoneInput's capture cuts
 // A new window every 30 ms. How often the voice is sampled does not change the
 // score (each note counts for the time since the previous one), so this is the
 // cheapest rate that keeps scores steady: half the model calls of the 15 ms it
 // used to be. PitchFinderWorklet.ts keeps its own copy of the constant.
 export const HOP_SAMPLES = 480;
-// The newest samples only (fastPitchFlag.ts). The model pads 384 zeros at each
-// end and reads 1024 samples every 256, so 832 samples make as many frames as
-// 960 and cost the same, and the newest frame is centred 12 ms behind the newest
-// sample instead of 20 ms: every pitch is 8 ms newer. To keep scoring what the
-// same sound scored, a note is stamped 8 ms less back (delayLead). 768 samples
-// would be 12 ms newer, but real plays replayed with them lose 20 points on
-// average, 39 on Windows; with 832 they come out even (+9, none on Windows).
-export const SHORT_WINDOW_SAMPLES = 832;
+// What the WASM worker's model reads: each window with the 320 samples before
+// it (80 ms). The second network judges a frame from the frames around it and
+// wants that much past; the model itself appends the newest 512 samples once
+// more, backwards, as the future it would like (make_model.py).
+export const MODEL_SAMPLES = 1280;
+const PAST_SAMPLES = MODEL_SAMPLES - WINDOW_SAMPLES;
+// Its newest frame is centred 16 ms behind the newest sample; the first
+// network's, which the singing delays were set on, 20 ms. So every pitch is
+// 4 ms newer, and a note is stamped 4 ms less back (MicInput.delayLead).
+export const MODEL_DELAY_LEAD = 0.004;
 
-// swift-f0 constants (from core.py)
+// The voicing threshold (on the first network's scale, which make_model.py maps the second's onto) and the range
 export const CONFIDENCE_THRESHOLD = 0.85;
 export const MIN_PITCH_HZ = 46.875;
 export const MAX_PITCH_HZ = 2093.75;
@@ -38,8 +46,8 @@ export interface PitchDetectRequest {
   display?: 1;
 }
 
-/** Messages to a pitch worker: load the model (`samples`: run it on this many of each window's newest samples), then one window at a time */
-export type PitchWorkerRequest = { type: 'init', modelUrl: string, samples?: number } | PitchDetectRequest;
+/** Messages to a pitch worker: load the model, then one window at a time */
+export type PitchWorkerRequest = { type: 'init', modelUrl: string } | PitchDetectRequest;
 
 /** A pitch worker's answer to one window */
 export interface PitchDetectResult {
@@ -106,13 +114,44 @@ export interface VoicingTracker {
   pick(pitchHz: PitchFrames, confidence: PitchFrames, t: number): number;
 }
 
+/** The scored stream's model input, window by window (createModelWindows) */
+export interface ModelWindows {
+  /** A window (WINDOW_SAMPLES, each HOP_SAMPLES newer than the last) → MODEL_SAMPLES: the samples before it, then it. A new array. */
+  next(window: Float32Array): Float32Array<ArrayBuffer>;
+  /** A window that is not judged (the noise gate's): its samples are still the past of the next. */
+  skip(window: Float32Array): void;
+  /** The stream broke off (a pause): silence before the next window, as before the first. */
+  reset(): void;
+}
+
+/**
+ * Puts the PAST_SAMPLES before each window in front of it, out of the window
+ * before (its samples [HOP - PAST, HOP)), so the model gets MODEL_SAMPLES of
+ * continuous sound without the capture cutting longer windows.
+ */
+export function createModelWindows(): ModelWindows {
+  let past: Float32Array | null = null;
+  const keep = (window: Float32Array) => { past = window.slice(HOP_SAMPLES - PAST_SAMPLES, HOP_SAMPLES); };
+  return {
+    next(window) {
+      const out = new Float32Array(MODEL_SAMPLES);
+      if (past) out.set(past);
+      out.set(window.subarray(window.length - WINDOW_SAMPLES), PAST_SAMPLES);
+      keep(window);
+      return out;
+    },
+    skip: keep,
+    reset() { past = null; },
+  };
+}
+
 const semitones = (hz: number) => 12 * Math.log2(hz / 440);
 const inRange = (p: number) => p >= MIN_PITCH_HZ && p <= MAX_PITCH_HZ;
 
 /**
  * The voicing decision for a stream of windows, replacing pickPitch.
  *
- * swift-f0 judges every 60 ms window alone, and a sung phrase loses each
+ * swift-f0 judges every window alone, and a sung phrase loses each
  * window where the model wavers below 0.85: fast rap and soft or breathy
  * singing most of all. The tracker keeps listening for a moment after a window
  * it is sure of, and asks borderline windows to continue something, which is

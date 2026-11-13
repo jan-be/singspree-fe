@@ -5,9 +5,9 @@
 <script type="module">
 // window.__run({ rt, n }) starts a fresh worker for one runtime, times it from
 // new Worker() until its session is ready, feeds it n windows of the test
-// audio (960 samples every 480, as MicrophoneInput does) and returns the
+// audio (1280 samples every 480, the model input MicrophoneInput builds: pitchModel.ts) and returns the
 // timings and the raw model outputs (base64 float32).
-const WIN = 960, HOP = 480;
+const WIN = 1280, HOP = 480;
 const audio = new Float32Array(await (await fetch('/audio.f32')).arrayBuffer());
 const maxWindows = Math.floor((audio.length - WIN) / HOP) + 1;
 const b64 = (f32) => {
