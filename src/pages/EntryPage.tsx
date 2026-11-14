@@ -709,7 +709,7 @@ const EntryPage = () => {
 
     {/* Fixed footer: compliance links, SingSpree elsewhere, the language switcher.
         One line where it fits; on narrow phones the links take a line of their own */}
-    {!inApp && <div className="fixed bottom-0 left-0 right-0 z-40 bg-ink/80 backdrop-blur-md border-t border-white/[0.06]">
+    {!inApp && <div data-out="home-bar" className="fixed bottom-0 left-0 right-0 z-40 bg-ink/80 backdrop-blur-md border-t border-white/[0.06]">
       <div className="flex flex-wrap justify-center items-center gap-x-4 sm:gap-x-6 gap-y-0 px-4 py-1 text-xs sm:text-[13px]">
         <div className="flex items-center gap-4 sm:gap-6">
           <Link to="/privacy-policy" className="text-white/45 hover:text-white transition-colors">

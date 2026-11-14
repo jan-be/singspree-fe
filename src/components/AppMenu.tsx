@@ -120,7 +120,7 @@ const AppMenu = () => {
             ))}
           </div>
           {!tv && (
-            <div className="mt-1 pt-1 border-t border-white/10 flex justify-center">
+            <div data-out="app-menu" className="mt-1 pt-1 border-t border-white/10 flex justify-center">
               <SocialLinks />
             </div>
           )}

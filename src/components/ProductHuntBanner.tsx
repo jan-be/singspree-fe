@@ -36,7 +36,7 @@ const ProductHuntBanner = () => {
   const date = (iso: string) => new Date(iso).toLocaleDateString(i18n.language, { month: 'long', day: 'numeric' });
 
   return (
-    <div data-product-hunt="" className="relative mt-6 max-w-md mx-auto rounded-2xl bg-panel border border-white/10 pl-4 pr-2 py-3 flex items-center gap-3 text-left">
+    <div data-product-hunt="" data-out="ph-banner" className="relative mt-6 max-w-md mx-auto rounded-2xl bg-panel border border-white/10 pl-4 pr-2 py-3 flex items-center gap-3 text-left">
       <ProductHuntLogo />
       <div className="min-w-0 flex-1">
         <div className="text-white text-sm font-semibold">{t('productHunt.title')}</div>

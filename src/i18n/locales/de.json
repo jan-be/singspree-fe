@@ -1558,6 +1558,28 @@
         "before": "Vorher",
         "since": "Seitdem, nach Standort"
       }
+    },
+    "outbound": {
+      "title": "Links nach draußen",
+      "hint": "Klicks auf Links, die SingSpree verlassen, von allen Standorten: wohin, und die Stelle auf der Seite (sonst die Seite). Gezählt seit dem 14.11.2026; „In neuem Tab öffnen“ aus dem Menü zählt nicht.",
+      "clicks": "Klicks",
+      "none": "Noch kein Klick auf einen Link nach draußen.",
+      "places": {
+        "ph-banner": "Product-Hunt-Karte",
+        "ph-settings": "Angebot in den Einstellungen",
+        "footer": "Fußzeile",
+        "home-bar": "Leiste der Startseite",
+        "app-menu": "App-Menü",
+        "home": "Startseite",
+        "settings": "Einstellungen",
+        "party": "Party",
+        "u": "Profil",
+        "android": "Android-Seite",
+        "ios": "iOS-Seite",
+        "contact": "Kontakt",
+        "privacy-policy": "Datenschutz",
+        "tos": "Nutzungsbedingungen"
+      }
     }
   },
   "settings": {

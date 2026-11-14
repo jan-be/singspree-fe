@@ -21,6 +21,7 @@ import { syncMicFlagsFromUrl } from "./logic/fastPitchFlag";
 import { watchInstallPrompt } from "./logic/installPrompt";
 import { installSpatialNav } from "./logic/spatialNav";
 import { applySeason } from "./seasons/seasons";
+import { watchOutboundClicks } from "./logic/outboundClicks";
 
 // ?gpu=1 / ?gpu=0 on any URL switches the opt-in GPU pitch detection for this browser
 syncPitchGpuFlagFromUrl();
@@ -43,6 +44,8 @@ watchInstallPrompt();
 installSpatialNav();
 // Halloween and the like: the season's colours on the page while its dates last (src/seasons, ?season=<id> to preview one)
 applySeason();
+// Clicks on links to other sites (Product Hunt, Instagram, TikTok, the stores...), for the admin page (outboundClicks.ts)
+watchOutboundClicks();
 
 const container = document.getElementById('root');
 if (!container) throw new Error('The page has no #root to render into'); // (index.html has it)

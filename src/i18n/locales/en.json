@@ -1558,6 +1558,28 @@
         "before": "Before",
         "since": "Since, by site"
       }
+    },
+    "outbound": {
+      "title": "Links out",
+      "hint": "Clicks on links that leave SingSpree, from every site: where to, and the spot on the page (else the page). Counted since Nov 14, 2026; “open in new tab” from the menu is not counted.",
+      "clicks": "clicks",
+      "none": "No click on a link out yet.",
+      "places": {
+        "ph-banner": "Product Hunt card",
+        "ph-settings": "Settings offer",
+        "footer": "Footer",
+        "home-bar": "Home page bar",
+        "app-menu": "App menu",
+        "home": "Home page",
+        "settings": "Settings",
+        "party": "Party",
+        "u": "Profile",
+        "android": "Android page",
+        "ios": "iOS page",
+        "contact": "Contact",
+        "privacy-policy": "Privacy policy",
+        "tos": "Terms"
+      }
     }
   },
   "settings": {

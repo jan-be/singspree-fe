@@ -442,7 +442,7 @@ const AiChartsSection = () => {
           </div>
         )}
         {!quota.bonus && offerDue() && (
-          <div className="mt-5 pt-4 border-t border-white/10 flex items-center gap-3" data-ai-charts-offer="">
+          <div className="mt-5 pt-4 border-t border-white/10 flex items-center gap-3" data-ai-charts-offer="" data-out="ph-settings">
             <ProductHuntLogo size={24} />
             <p className="text-sm text-white/80 flex-1 min-w-0">{t('settings.aiChartsOffer', { count: quota.bonusDaily, days: quota.bonusDays })}</p>
             <a href={PRODUCT_HUNT_URL} target="_blank" rel="noopener" onClick={claim} className={`${sm(btn.primary)} flex-shrink-0`}>{t('productHunt.visit')}</a>

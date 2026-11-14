@@ -19,7 +19,7 @@ const PrivacyPolicyContent = () => (
     <div className="max-w-[65ch] text-[15px] sm:text-base leading-[1.7] text-white/75 space-y-9">
       <header className="space-y-2">
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-[-0.025em] leading-tight text-white">Privacy Policy</h1>
-        <p className="text-sm text-white/40">Last updated: 7 November 2026</p>
+        <p className="text-sm text-white/40">Last updated: 14 November 2026</p>
       </header>
 
       <section className="space-y-3">
@@ -49,7 +49,7 @@ const PrivacyPolicyContent = () => (
         <p>We use both to check and improve our pitch detection and scoring.</p>
         <p><strong className={strong}>Your voice on the speakers.</strong> If you turn on &ldquo;My voice on the speakers&rdquo;, your microphone goes live to the host&apos;s screen, directly or through Cloudflare. That sound isn&apos;t stored. Your device and the host&apos;s screen can see each other&apos;s IP address.</p>
         <p><strong className={strong}>Things you choose to use.</strong> Share videos are made on our server from your recording and score card. Share links carry a code that lets us count how many people they bring in. Camera footage stays in your browser unless you put it in a share video, and it isn&apos;t kept on our server after that. Song recognition listens for at most 12 seconds and stores no sound. If you ask for an AI chart, we store who asked and which video it was for.</p>
-        <p><strong className={strong}>How the site is used.</strong> Which songs are played, what&apos;s searched for, how songs were chosen, where visitors came from and roughly which country they&apos;re in. Some of this is linked to your account or browser id. We keep your IP address and browser details with these records, and our web server logs requests.</p>
+        <p><strong className={strong}>How the site is used.</strong> Which songs are played, what&apos;s searched for, how songs were chosen, which links to other sites are clicked, where visitors came from and roughly which country they&apos;re in. Some of this is linked to your account or browser id. We keep your IP address and browser details with these records, and our web server logs requests.</p>
         <p><strong className={strong}>What you send us.</strong> Feedback and reports, with the name you used, your IP address and browser details. If you sign up to test an app or hear about one, your e-mail address.</p>
         <p><strong className={strong}>In your browser.</strong> Your language, settings and recent parties stay on your device.</p>
       </section>

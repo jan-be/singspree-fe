@@ -4,14 +4,14 @@ import AdminShares from './AdminShares';
 import { Section, Hint, Loading, FilterButtons, card, cardLabel, countryLabel } from './AdminParts';
 import { sourceRows as buildSourceRows } from '../logic/originRows';
 import { deviceRows } from '../logic/deviceRows';
-import { getAdminOrigins, getAdminDevices, getAdminDiscovery } from '../logic/authApi';
-import type { AdminDevices, AdminDiscovery, AdminOrigins } from '../logic/authApi';
+import { getAdminOrigins, getAdminDevices, getAdminDiscovery, getAdminOutbound } from '../logic/authApi';
+import type { AdminDevices, AdminDiscovery, AdminOrigins, AdminOutbound } from '../logic/authApi';
 import type { OriginRow } from '../logic/originRows';
 
 /**
  * /admin's visitors: where they come from, what they sing on and how they
- * find their songs, all three over the days picked at the first, and the
- * share links (AdminShares.tsx, with days of its own).
+ * find their songs, which links out they click, all over the days picked at
+ * the first, and the share links (AdminShares.tsx, with days of its own).
  */
 
 const WAYS = ['search', 'browse', 'youtube-url', 'queue-search', 'queue-similar', 'auto-similar', 'sing-again', 'for-you', 'season'];
@@ -78,6 +78,22 @@ const AdminVisitors = ({ onError }: { onError: (e: unknown) => void }) => {
     : [];
   const youtube: Record<string, number> = discovery ? Object.fromEntries(discovery.youtube.map(y => [y.match, y.lookups])) : {};
   const youtubeTotal = Object.values(youtube).reduce((a, b) => a + b, 0);
+
+  const [outbound, setOutbound] = useState<AdminOutbound | null>(null); // { links: [{ host, path, place, clicks, browsers }] }
+  useEffect(() => {
+    let active = true;
+    setOutbound(null);
+    getAdminOutbound(days).then(o => { if (active) setOutbound(o); }).catch(onError);
+    return () => { active = false; };
+  }, [days, onError]);
+  // A link: its site and path (www. left off), and the spot it was in
+  const outboundRows = outbound
+    ? outbound.links.map(l => ({
+      key: `${l.host}${l.path ?? ''} ${l.place ?? ''}`,
+      label: `${l.host.replace(/^www\./, '')}${l.path && l.path !== '/' ? l.path : ''}${l.place ? ` · ${t(`admin.outbound.places.${l.place}`, { defaultValue: l.place })}` : ''}`,
+      sessions: l.clicks, plays: l.browsers,
+    }))
+    : [];
 
   const loading = <Loading>{t('sections.loading')}</Loading>;
   const sameDays = <span className="text-xs text-white/40">{t('admin.origins.days', { count: days })}</span>;
@@ -174,6 +190,17 @@ const AdminVisitors = ({ onError }: { onError: (e: unknown) => void }) => {
                     : t('admin.discovery.youtube', { lookups: youtubeTotal, exact: youtube.exact ?? 0, title: youtube.title ?? 0, none: youtube.none ?? 0 })}
                 </div>
               </div>
+            </div>
+          )}
+      </Section>
+
+      <Section title={t('admin.outbound.title')} aside={sameDays}>
+        <Hint>{t('admin.outbound.hint')}</Hint>
+        {!outbound
+          ? loading
+          : (
+            <div className={card} data-admin-outbound="">
+              <OriginList rows={outboundRows} empty={t('admin.outbound.none')} labels={[t('admin.outbound.clicks'), t('admin.discovery.browsersUnit')]} />
             </div>
           )}
       </Section>

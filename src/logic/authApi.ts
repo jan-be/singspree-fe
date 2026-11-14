@@ -540,6 +540,12 @@ export interface AdminDiscovery {
   youtube: { match: string; lookups: number }[];
 }
 
+/** Clicks on links that leave the site (backend GET /admin/outbound): per link and spot (data-out, else the page) */
+export interface AdminOutbound {
+  days: number;
+  links: { host: string; path: string | null; place: string | null; clicks: number; browsers: number }[];
+}
+
 /** A share link kind's or a sharer's numbers (backend referrals.ts) */
 export interface ShareCounts {
   links: number;
@@ -997,6 +1003,7 @@ export const getAdminShares = (days = 28) => get<{ data: AdminShares }>(`/admin/
 export const getAdminDevices = (days = 30) => get<{ data: AdminDevices }>(`/admin/devices?days=${days}`).then(j => j.data);
 /** How songs were found in the last `days`: { days, picks, searches, topMissed, topAsked, youtube }. */
 export const getAdminDiscovery = (days = 30) => get<{ data: AdminDiscovery }>(`/admin/discovery?days=${days}`).then(j => j.data);
+export const getAdminOutbound = (days = 30) => get<{ data: AdminOutbound }>(`/admin/outbound?days=${days}`).then(j => j.data);
 /** { data: reports, hasMore, counts: { open, resolved, dismissed } }; status 'open' | 'resolved' | 'dismissed' | 'all' */
 export const getAdminReports = (status: SongReportStatus | 'all' = 'open', offset = 0, limit = 20) =>
   get<ReportsPage<AdminSongReport, SongReportStatus>>(`/admin/reports?status=${status}&offset=${offset}&limit=${limit}`);
