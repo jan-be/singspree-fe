@@ -845,7 +845,14 @@
     "googleOff": "Tidak terhubung",
     "googleConnect": "Hubungkan",
     "googleDisconnect": "Putuskan",
-    "copyInvite": "Salin tautan"
+    "copyInvite": "Salin tautan",
+    "aiCharts": "Karaoke buatan AI",
+    "aiChartsLeft": "Sisa",
+    "aiChartsCount": "Sisa {{left}} dari {{daily}}",
+    "aiChartsHint": "AI kami membuat karaoke untuk video YouTube yang belum ada di SingSpree. Kamu bisa membuat {{daily}} per hari, dan masing-masing dihitung selama 24 jam.",
+    "aiChartsNext": "Kamu sudah memakai semua {{daily}}. Yang berikutnya tersedia pukul {{time}}.",
+    "aiChartsBonus": "{{count}} per hari sampai {{date}}: terima kasih kami karena sudah mampir di Product Hunt.",
+    "aiChartsOffer": "Mampir ke Product Hunt, dan sebagai ucapan terima kasih kamu bisa membuat {{count}} per hari selama {{days}} hari."
   },
   "camera": {
     "title": "Kamera",
@@ -868,5 +875,14 @@
     "delete": "Hapus video kamera",
     "deleteConfirm": "Hapus?",
     "turnOff": "Matikan kamera"
+  },
+  "productHunt": {
+    "title": "SingSpree baru saja meluncur di Product Hunt",
+    "text": "Mampir dan sapa kami! Sebagai ucapan terima kasih, kamu bisa membuat {{count}} karaoke buatan AI per hari selama sebulan.",
+    "visit": "Sapa kami",
+    "thanks": "Terima kasih! Kamu bisa membuat {{count}} karaoke buatan AI per hari sampai {{date}}.",
+    "thanksShort": "Terima kasih!",
+    "thanksSignIn": "Terima kasih! {{count}} karaoke buatan AI per hari menunggumu:",
+    "close": "Tutup"
   }
 }

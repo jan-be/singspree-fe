@@ -134,6 +134,25 @@ export const startErrorKey = (e: unknown): string => {
 };
 export const getChartJob = (id: number) => call<{ job: ChartJob }>('GET', `/chart-jobs/${id}`).then(j => j.job);
 
+/** The signed-in account's AI charts per 24 h (backend chartJobs.ts ChartQuota) */
+export interface ChartQuota {
+  /** charts per 24 h now: bonusDaily while the bonus runs */
+  daily: number;
+  /** made in the last 24 h */
+  used: number;
+  left: number;
+  /** while none is left: when the oldest of them drops out of the 24 h (ISO) */
+  nextAt: string | null;
+  /** the Product Hunt bonus, once claimed (also after it ran out) */
+  bonus: { until: string; active: boolean } | null;
+  bonusDaily: number;
+  bonusDays: number;
+}
+
+export const getChartQuota = () => call<{ quota: ChartQuota }>('GET', '/chart-jobs/quota').then(r => r.quota);
+/** The Product Hunt bonus (logic/productHunt.ts), once per account: a second claim changes nothing */
+export const claimChartBonus = () => call<{ quota: ChartQuota }>('POST', '/chart-jobs/bonus').then(r => r.quota);
+
 /**
  * YouTube's search, run by the backend, for a song that is not here (the entry page's hint): videos that could become
  * charts -> [{ videoId, title, channel, duration, views, songId? }] (songId: a song here already)

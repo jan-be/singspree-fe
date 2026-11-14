@@ -850,7 +850,14 @@
     "googleOff": "नहीं जुड़ा",
     "googleConnect": "जोड़ें",
     "googleDisconnect": "हटाएँ",
-    "copyInvite": "लिंक कॉपी करें"
+    "copyInvite": "लिंक कॉपी करें",
+    "aiCharts": "AI कराओके",
+    "aiChartsLeft": "बाकी",
+    "aiChartsCount": "{{daily}} में से {{left}} बाकी",
+    "aiChartsHint": "हमारा AI उन YouTube वीडियो के लिए कराओके बनाता है जो SingSpree में अभी नहीं हैं। आप रोज़ {{daily}} बना सकते हैं, और हर एक 24 घंटे तक गिना जाता है।",
+    "aiChartsNext": "आपने सभी {{daily}} बना लिए हैं। अगला {{time}} पर खाली होगा।",
+    "aiChartsBonus": "{{date}} तक रोज़ {{count}}: Product Hunt पर आने के लिए हमारा धन्यवाद।",
+    "aiChartsOffer": "Product Hunt पर आइए, और धन्यवाद के तौर पर {{days}} दिनों तक रोज़ {{count}} बनाइए।"
   },
   "camera": {
     "title": "कैमरा",
@@ -874,5 +881,14 @@
     "delete": "फ़ुटेज हटाएँ",
     "deleteConfirm": "हटाएँ?",
     "turnOff": "कैमरा बंद करें"
+  },
+  "productHunt": {
+    "title": "SingSpree अभी-अभी Product Hunt पर लॉन्च हुआ है",
+    "text": "आइए, हैलो कहिए! आने के लिए धन्यवाद के तौर पर आप एक महीने तक रोज़ {{count}} AI कराओके बना सकते हैं।",
+    "visit": "हैलो कहें",
+    "thanks": "धन्यवाद! आप {{date}} तक रोज़ {{count}} AI कराओके बना सकते हैं।",
+    "thanksShort": "धन्यवाद!",
+    "thanksSignIn": "धन्यवाद! आपके रोज़ के {{count}} AI कराओके आपका इंतज़ार कर रहे हैं:",
+    "close": "बंद करें"
   }
 }

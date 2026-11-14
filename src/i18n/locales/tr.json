@@ -850,7 +850,14 @@
     "googleOff": "Bağlı değil",
     "googleConnect": "Bağla",
     "googleDisconnect": "Bağlantıyı kes",
-    "copyInvite": "Bağlantıyı kopyala"
+    "copyInvite": "Bağlantıyı kopyala",
+    "aiCharts": "Yapay zekâ karaokeleri",
+    "aiChartsLeft": "Kalan",
+    "aiChartsCount": "{{daily}} haktan {{left}} kaldı",
+    "aiChartsHint": "Yapay zekâmız, SingSpree'de henüz olmayan YouTube videoları için karaoke oluşturur. Günde {{daily}} tane oluşturabilirsin; her biri 24 saat boyunca sayılır.",
+    "aiChartsNext": "{{daily}} hakkın hepsini kullandın. Sıradaki şu saatte açılır: {{time}}.",
+    "aiChartsBonus": "{{date}} tarihine kadar günde {{count}}: Product Hunt'a uğradığın için teşekkürümüz.",
+    "aiChartsOffer": "Product Hunt'a uğra; teşekkür olarak {{days}} gün boyunca günde {{count}} tane oluşturabilirsin."
   },
   "camera": {
     "title": "Kamera",
@@ -874,5 +881,14 @@
     "delete": "Görüntüleri sil",
     "deleteConfirm": "Silinsin mi?",
     "turnOff": "Kamerayı kapat"
+  },
+  "productHunt": {
+    "title": "SingSpree Product Hunt'ta yeni yayında",
+    "text": "Gelip merhaba de! Ziyaretin için teşekkür olarak bir ay boyunca günde {{count}} yapay zekâ karaokesi oluşturabilirsin.",
+    "visit": "Merhaba de",
+    "thanks": "Teşekkürler! {{date}} tarihine kadar günde {{count}} yapay zekâ karaokesi oluşturabilirsin.",
+    "thanksShort": "Teşekkürler!",
+    "thanksSignIn": "Teşekkürler! Günde {{count}} yapay zekâ karaokesi seni bekliyor:",
+    "close": "Kapat"
   }
 }

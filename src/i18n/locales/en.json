@@ -1580,7 +1580,14 @@
     "googleOff": "Not connected",
     "googleConnect": "Connect",
     "googleDisconnect": "Disconnect",
-    "copyInvite": "Copy link"
+    "copyInvite": "Copy link",
+    "aiCharts": "AI charts",
+    "aiChartsLeft": "Left to make",
+    "aiChartsCount": "{{left}} of {{daily}} left",
+    "aiChartsHint": "Our AI makes karaoke charts for YouTube videos SingSpree doesn't have yet. You can make {{daily}} a day, and each one counts for 24 hours.",
+    "aiChartsNext": "You've made all {{daily}}. The next one frees up at {{time}}.",
+    "aiChartsBonus": "{{count}} a day until {{date}}: our thank-you for stopping by on Product Hunt.",
+    "aiChartsOffer": "Stop by on Product Hunt, and as a thank-you you can make {{count}} a day for {{days}} days."
   },
   "camera": {
     "title": "Camera",
@@ -1604,5 +1611,14 @@
     "delete": "Delete footage",
     "deleteConfirm": "Delete?",
     "turnOff": "Turn the camera off"
+  },
+  "productHunt": {
+    "title": "SingSpree just launched on Product Hunt",
+    "text": "Come say hi! As a thank-you for stopping by, you can make {{count}} AI karaoke charts a day for a month.",
+    "visit": "Say hi",
+    "thanks": "Thank you! You can make {{count}} AI karaoke charts a day until {{date}}.",
+    "thanksShort": "Thank you!",
+    "thanksSignIn": "Thank you! Your {{count}} AI karaoke charts a day are waiting for you:",
+    "close": "Close"
   }
 }

@@ -845,7 +845,14 @@
     "googleOff": "Chưa kết nối",
     "googleConnect": "Kết nối",
     "googleDisconnect": "Ngắt kết nối",
-    "copyInvite": "Sao chép liên kết"
+    "copyInvite": "Sao chép liên kết",
+    "aiCharts": "Karaoke do AI tạo",
+    "aiChartsLeft": "Còn lại",
+    "aiChartsCount": "Còn {{left}} trên {{daily}}",
+    "aiChartsHint": "AI của chúng mình tạo karaoke cho các video YouTube mà SingSpree chưa có. Bạn có thể tạo {{daily}} bài mỗi ngày, và mỗi bài được tính trong 24 giờ.",
+    "aiChartsNext": "Bạn đã dùng hết {{daily}} bài. Bài tiếp theo sẽ có lúc {{time}}.",
+    "aiChartsBonus": "{{count}} bài mỗi ngày đến {{date}}: lời cảm ơn vì bạn đã ghé Product Hunt.",
+    "aiChartsOffer": "Ghé Product Hunt, và để cảm ơn, bạn có thể tạo {{count}} bài mỗi ngày trong {{days}} ngày."
   },
   "camera": {
     "title": "Camera",
@@ -868,5 +875,14 @@
     "delete": "Xóa đoạn quay",
     "deleteConfirm": "Xóa?",
     "turnOff": "Tắt camera"
+  },
+  "productHunt": {
+    "title": "SingSpree vừa ra mắt trên Product Hunt",
+    "text": "Ghé qua chào chúng mình nhé! Để cảm ơn bạn đã ghé thăm, bạn có thể tạo {{count}} bài karaoke do AI tạo mỗi ngày trong một tháng.",
+    "visit": "Ghé chào",
+    "thanks": "Cảm ơn bạn! Bạn có thể tạo {{count}} bài karaoke do AI tạo mỗi ngày đến {{date}}.",
+    "thanksShort": "Cảm ơn bạn!",
+    "thanksSignIn": "Cảm ơn bạn! {{count}} bài karaoke do AI tạo mỗi ngày đang chờ bạn:",
+    "close": "Đóng"
   }
 }

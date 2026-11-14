@@ -850,7 +850,14 @@
     "googleOff": "Non collegato",
     "googleConnect": "Collega",
     "googleDisconnect": "Scollega",
-    "copyInvite": "Copia link"
+    "copyInvite": "Copia link",
+    "aiCharts": "Karaoke con l'IA",
+    "aiChartsLeft": "Ancora disponibili",
+    "aiChartsCount": "{{left}} di {{daily}} disponibili",
+    "aiChartsHint": "La nostra IA crea karaoke per i video di YouTube che SingSpree non ha ancora. Puoi crearne {{daily}} al giorno, e ognuno conta per 24 ore.",
+    "aiChartsNext": "Li hai creati tutti e {{daily}}. Il prossimo si libera alle {{time}}.",
+    "aiChartsBonus": "{{count}} al giorno fino al {{date}}: il nostro grazie per la visita su Product Hunt.",
+    "aiChartsOffer": "Passa su Product Hunt e, come ringraziamento, potrai crearne {{count}} al giorno per {{days}} giorni."
   },
   "camera": {
     "title": "Fotocamera",
@@ -874,5 +881,14 @@
     "delete": "Elimina le riprese",
     "deleteConfirm": "Eliminare?",
     "turnOff": "Spegni la fotocamera"
+  },
+  "productHunt": {
+    "title": "SingSpree è appena arrivato su Product Hunt",
+    "text": "Passa a salutarci! Come ringraziamento per la visita, puoi creare {{count}} karaoke con l'IA al giorno per un mese.",
+    "visit": "Saluta",
+    "thanks": "Grazie! Puoi creare {{count}} karaoke con l'IA al giorno fino al {{date}}.",
+    "thanksShort": "Grazie!",
+    "thanksSignIn": "Grazie! I tuoi {{count}} karaoke con l'IA al giorno ti aspettano:",
+    "close": "Chiudi"
   }
 }

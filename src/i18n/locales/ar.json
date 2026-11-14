@@ -870,7 +870,14 @@
     "googleOff": "غير مرتبط",
     "googleConnect": "ربط",
     "googleDisconnect": "إلغاء الربط",
-    "copyInvite": "نسخ الرابط"
+    "copyInvite": "نسخ الرابط",
+    "aiCharts": "كاريوكي بالذكاء الاصطناعي",
+    "aiChartsLeft": "المتبقي",
+    "aiChartsCount": "تبقّى {{left}} من {{daily}}",
+    "aiChartsHint": "يُنشئ ذكاؤنا الاصطناعي أغاني كاريوكي لمقاطع YouTube غير الموجودة في SingSpree بعد. يمكنك إنشاء {{daily}} يوميًا، وتُحتسب كل واحدة لمدة 24 ساعة.",
+    "aiChartsNext": "استخدمت كل الـ{{daily}}. تتاح التالية عند {{time}}.",
+    "aiChartsBonus": "{{count}} يوميًا حتى {{date}}: شكرًا لزيارتك لنا على Product Hunt.",
+    "aiChartsOffer": "زُرنا على Product Hunt، وشكرًا لك يمكنك إنشاء {{count}} يوميًا لمدة {{days}} يومًا."
   },
   "camera": {
     "title": "الكاميرا",
@@ -898,5 +905,14 @@
     "delete": "حذف اللقطات",
     "deleteConfirm": "حذف؟",
     "turnOff": "إطفاء الكاميرا"
+  },
+  "productHunt": {
+    "title": "أطلقنا SingSpree للتو على Product Hunt",
+    "text": "مرّ وقل مرحبًا! شكرًا لزيارتك، يمكنك إنشاء {{count}} أغانٍ كاريوكي بالذكاء الاصطناعي يوميًا لمدة شهر.",
+    "visit": "قل مرحبًا",
+    "thanks": "شكرًا لك! يمكنك إنشاء {{count}} أغانٍ كاريوكي بالذكاء الاصطناعي يوميًا حتى {{date}}.",
+    "thanksShort": "شكرًا لك!",
+    "thanksSignIn": "شكرًا لك! {{count}} أغانٍ كاريوكي بالذكاء الاصطناعي يوميًا بانتظارك:",
+    "close": "إغلاق"
   }
 }

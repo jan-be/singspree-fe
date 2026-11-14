@@ -845,7 +845,14 @@
     "googleOff": "未連結",
     "googleConnect": "連結",
     "googleDisconnect": "取消連結",
-    "copyInvite": "複製連結"
+    "copyInvite": "複製連結",
+    "aiCharts": "AI 卡拉OK",
+    "aiChartsLeft": "剩餘",
+    "aiChartsCount": "還剩 {{left}} / {{daily}}",
+    "aiChartsHint": "我們的 AI 會為 SingSpree 還沒有的 YouTube 影片製作卡拉OK。你每天可以製作 {{daily}} 首，每首計入 24 小時。",
+    "aiChartsNext": "{{daily}} 首已全部用完。下一首將在 {{time}} 可用。",
+    "aiChartsBonus": "{{date}} 之前每天 {{count}} 首：感謝你來 Product Hunt 看我們。",
+    "aiChartsOffer": "來 Product Hunt 看看我們，作為感謝，{{days}} 天內每天可以製作 {{count}} 首。"
   },
   "camera": {
     "title": "相機",
@@ -868,5 +875,14 @@
     "delete": "刪除拍攝畫面",
     "deleteConfirm": "刪除？",
     "turnOff": "關閉相機"
+  },
+  "productHunt": {
+    "title": "SingSpree 剛剛在 Product Hunt 上線",
+    "text": "來打個招呼吧！為了感謝你的造訪，一個月內你每天可以製作 {{count}} 首 AI 卡拉OK。",
+    "visit": "去打招呼",
+    "thanks": "謝謝！在 {{date}} 之前，你每天可以製作 {{count}} 首 AI 卡拉OK。",
+    "thanksShort": "謝謝！",
+    "thanksSignIn": "謝謝！每天 {{count}} 首 AI 卡拉OK 正等著你：",
+    "close": "關閉"
   }
 }

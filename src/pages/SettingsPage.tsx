@@ -17,6 +17,10 @@ import { appDomain } from '../GlobalConsts';
 import { inTvApp } from '../logic/tvApp';
 import { deleteAllTakes, loadSaveRecordings, storeSaveRecordings } from '../logic/takes';
 import { errorMessage } from './AuthPage';
+import { useChartOffer } from '../logic/useChartOffer';
+import { getChartQuota, type ChartQuota } from '../logic/chartJobs';
+import { PRODUCT_HUNT_URL, claimBonus, offerDue, useClaimRememberedBonus } from '../logic/productHunt';
+import { ProductHuntLogo } from '../components/ProductHuntBanner';
 import type { Me } from '../logic/authApi';
 import type { PrivacySection as PrivacyPart, Visibility } from '../logic/statsPrivacy';
 
@@ -379,6 +383,77 @@ const AccountSection = ({ user, editor, avatarNote, onDeleted }: { user: Me; edi
   );
 };
 
+// ── AI charts ──────────────────────────────────────────────────────────
+
+/**
+ * Your AI charts (made for YouTube videos SingSpree does not have yet,
+ * logic/chartJobs.ts): how many are left of the day's (each counts for 24
+ * hours, so "the next one" frees up at a time, not at midnight), and the
+ * Product Hunt bonus (logic/productHunt.ts): its end, or the offer while the
+ * launch runs. Only for whoever may make charts.
+ */
+const AiChartsSection = () => {
+  const { t, i18n } = useTranslation();
+  const offer = useChartOffer();
+  const [quota, setQuota] = useState<ChartQuota | null>(null);
+  const [note, setNote] = useState<Note | null>(null);
+  useEffect(() => {
+    if (offer !== 'offer') return undefined;
+    let on = true;
+    getChartQuota().then(q => { if (on) setQuota(q); }).catch(() => {});
+    return () => { on = false; };
+  }, [offer]);
+  useClaimRememberedBonus(setQuota);
+  if (offer !== 'offer' || !quota) return null;
+
+  const date = (iso: string) => new Date(iso).toLocaleDateString(i18n.language, { month: 'long', day: 'numeric' });
+  const time = (iso: string) => {
+    const d = new Date(iso);
+    const today = d.toDateString() === new Date().toDateString();
+    return d.toLocaleString(i18n.language, today ? { hour: 'numeric', minute: '2-digit' } : { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+  };
+  // The link itself opens Product Hunt; this only claims the bonus
+  const claim = () => { setNote(null); claimBonus().then(setQuota).catch(e => setNote({ text: errorMessage(t, e), error: true })); };
+
+  return (
+    <Section id="ai-charts" title={t('settings.aiCharts')}>
+      <div className={panelBox} data-ai-charts="">
+        <div className="flex items-end justify-between gap-4">
+          <div className="min-w-0">
+            <div className={settingName}>{t('settings.aiChartsLeft')}</div>
+            <p className={`${hint} mt-0.5`}>
+              {quota.left === 0 && quota.nextAt ? t('settings.aiChartsNext', { daily: quota.daily, time: time(quota.nextAt) }) : t('settings.aiChartsHint', { daily: quota.daily })}
+            </p>
+          </div>
+          <div className="flex-shrink-0 tabular-nums" data-ai-charts-left={quota.left}>
+            <span aria-hidden="true"><span className="text-2xl font-semibold text-white">{quota.left}</span><span className="text-sm text-white/60"> / {quota.daily}</span></span>
+            <span className="sr-only">{t('settings.aiChartsCount', { left: quota.left, daily: quota.daily })}</span>
+          </div>
+        </div>
+        {/* One segment per chart of the day, lit while it is still to make */}
+        <div className="flex gap-1 mt-3" aria-hidden="true">
+          {Array.from({ length: quota.daily }, (_, i) => <div key={i} className={`h-1.5 flex-1 rounded-full ${i < quota.left ? 'fill-hot' : 'bg-white/10'}`} />)}
+        </div>
+
+        {quota.bonus?.active && (
+          <div className="mt-5 pt-4 border-t border-white/10 flex items-center gap-3" data-ai-charts-bonus="">
+            <ProductHuntLogo size={24} />
+            <p className="text-sm text-white/80">{t('settings.aiChartsBonus', { count: quota.bonusDaily, date: date(quota.bonus.until) })}</p>
+          </div>
+        )}
+        {!quota.bonus && offerDue() && (
+          <div className="mt-5 pt-4 border-t border-white/10 flex items-center gap-3" data-ai-charts-offer="">
+            <ProductHuntLogo size={24} />
+            <p className="text-sm text-white/80 flex-1 min-w-0">{t('settings.aiChartsOffer', { count: quota.bonusDaily, days: quota.bonusDays })}</p>
+            <a href={PRODUCT_HUNT_URL} target="_blank" rel="noopener" onClick={claim} className={`${sm(btn.primary)} flex-shrink-0`}>{t('productHunt.visit')}</a>
+          </div>
+        )}
+        <RowNote note={note} />
+      </div>
+    </Section>
+  );
+};
+
 // ── Experimental ───────────────────────────────────────────────────────
 
 const CameraIcon = () => (
@@ -491,6 +566,7 @@ const SettingsPage = () => {
 
       <PrivacySection />
       <AccountSection user={user} editor={editor} avatarNote={avatarNote} onDeleted={() => setDeleted(true)} />
+      <AiChartsSection />
       <ExperimentalSection user={user} />
       {editor.ui}
     </WrapperPage>

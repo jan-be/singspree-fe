@@ -25,6 +25,7 @@ import SingAgainCard from "../components/SingAgainCard";
 import AfterSongsPrompt from "../components/AfterSongsPrompt";
 import ForYouRow from "../components/ForYouRow";
 import SeasonRow from "../components/SeasonRow";
+import ProductHuntBanner from "../components/ProductHuntBanner";
 import { useSeason } from "../seasons/seasons";
 import type { SongNamesSource } from "../logic/lyricsScripts";
 import type { SearchBarHandle } from "../components/SearchBar";
@@ -608,6 +609,9 @@ const EntryPage = () => {
             {t('party.youtubeBlocked')}
           </div>
         )}
+
+        {/* SingSpree's launch on Product Hunt: stop by, more AI charts as a thank-you (logic/productHunt.ts) */}
+        <ProductHuntBanner />
       </div>
 
       {/* Search and filters stay at the top while the grid scrolls under them.

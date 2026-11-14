@@ -850,7 +850,14 @@
     "googleOff": "Niet gekoppeld",
     "googleConnect": "Koppelen",
     "googleDisconnect": "Ontkoppelen",
-    "copyInvite": "Link kopiëren"
+    "copyInvite": "Link kopiëren",
+    "aiCharts": "AI-karaoke",
+    "aiChartsLeft": "Nog over",
+    "aiChartsCount": "{{left}} van {{daily}} over",
+    "aiChartsHint": "Onze AI maakt karaoke voor YouTube-video's die SingSpree nog niet heeft. Je kunt er {{daily}} per dag maken, en elk telt 24 uur mee.",
+    "aiChartsNext": "Je hebt ze alle {{daily}} gemaakt. De volgende komt vrij om {{time}}.",
+    "aiChartsBonus": "{{count}} per dag tot {{date}}: ons bedankje voor je bezoek op Product Hunt.",
+    "aiChartsOffer": "Kom langs op Product Hunt en maak als bedankje {{days}} dagen lang {{count}} per dag."
   },
   "camera": {
     "title": "Camera",
@@ -874,5 +881,14 @@
     "delete": "Camerabeelden verwijderen",
     "deleteConfirm": "Verwijderen?",
     "turnOff": "Camera uitzetten"
+  },
+  "productHunt": {
+    "title": "SingSpree is net gelanceerd op Product Hunt",
+    "text": "Kom even gedag zeggen! Als bedankje voor je bezoek kun je een maand lang {{count}} AI-karaokenummers per dag maken.",
+    "visit": "Gedag zeggen",
+    "thanks": "Bedankt! Je kunt tot {{date}} {{count}} AI-karaokenummers per dag maken.",
+    "thanksShort": "Bedankt!",
+    "thanksSignIn": "Bedankt! Je {{count}} AI-karaokenummers per dag liggen klaar:",
+    "close": "Sluiten"
   }
 }

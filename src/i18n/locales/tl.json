@@ -850,7 +850,14 @@
     "googleOff": "Hindi nakakonekta",
     "googleConnect": "Ikonekta",
     "googleDisconnect": "Idiskonekta",
-    "copyInvite": "Kopyahin ang link"
+    "copyInvite": "Kopyahin ang link",
+    "aiCharts": "Karaoke ng AI",
+    "aiChartsLeft": "Natitira",
+    "aiChartsCount": "{{left}} sa {{daily}} ang natitira",
+    "aiChartsHint": "Gumagawa ang aming AI ng karaoke para sa mga YouTube video na wala pa sa SingSpree. Puwede kang gumawa ng {{daily}} bawat araw, at bawat isa ay binibilang nang 24 oras.",
+    "aiChartsNext": "Nagamit mo na ang lahat ng {{daily}}. Magbubukas ang susunod nang {{time}}.",
+    "aiChartsBonus": "{{count}} bawat araw hanggang {{date}}: aming pasasalamat sa pagdaan mo sa Product Hunt.",
+    "aiChartsOffer": "Dumaan sa Product Hunt, at bilang pasasalamat puwede kang gumawa ng {{count}} bawat araw sa loob ng {{days}} araw."
   },
   "camera": {
     "title": "Camera",
@@ -874,5 +881,14 @@
     "delete": "Burahin ang footage",
     "deleteConfirm": "Burahin?",
     "turnOff": "I-off ang camera"
+  },
+  "productHunt": {
+    "title": "Kakalunsad lang ng SingSpree sa Product Hunt",
+    "text": "Dumaan ka at mag-hi! Bilang pasasalamat sa pagbisita, puwede kang gumawa ng {{count}} karaoke ng AI bawat araw sa loob ng isang buwan.",
+    "visit": "Mag-hi",
+    "thanks": "Salamat! Puwede kang gumawa ng {{count}} karaoke ng AI bawat araw hanggang {{date}}.",
+    "thanksShort": "Salamat!",
+    "thanksSignIn": "Salamat! Naghihintay sa iyo ang {{count}} karaoke ng AI bawat araw:",
+    "close": "Isara"
   }
 }

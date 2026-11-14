@@ -850,7 +850,14 @@
     "googleOff": "Inte ansluten",
     "googleConnect": "Anslut",
     "googleDisconnect": "Koppla från",
-    "copyInvite": "Kopiera länk"
+    "copyInvite": "Kopiera länk",
+    "aiCharts": "AI-karaoke",
+    "aiChartsLeft": "Kvar",
+    "aiChartsCount": "{{left}} av {{daily}} kvar",
+    "aiChartsHint": "Vår AI gör karaoke till YouTube-videor som SingSpree inte har än. Du kan göra {{daily}} om dagen, och varje räknas i 24 timmar.",
+    "aiChartsNext": "Du har gjort alla {{daily}}. Nästa blir ledig kl. {{time}}.",
+    "aiChartsBonus": "{{count}} om dagen till den {{date}}: vårt tack för att du tittade förbi på Product Hunt.",
+    "aiChartsOffer": "Titta förbi på Product Hunt, så kan du som tack göra {{count}} om dagen i {{days}} dagar."
   },
   "camera": {
     "title": "Kamera",
@@ -874,5 +881,14 @@
     "delete": "Radera kamerafilm",
     "deleteConfirm": "Radera?",
     "turnOff": "Stäng av kameran"
+  },
+  "productHunt": {
+    "title": "SingSpree har precis lanserats på Product Hunt",
+    "text": "Kom förbi och säg hej! Som tack för besöket kan du göra {{count}} AI-karaokelåtar om dagen i en månad.",
+    "visit": "Säg hej",
+    "thanks": "Tack! Du kan göra {{count}} AI-karaokelåtar om dagen till den {{date}}.",
+    "thanksShort": "Tack!",
+    "thanksSignIn": "Tack! Dina {{count}} AI-karaokelåtar om dagen väntar på dig:",
+    "close": "Stäng"
   }
 }

@@ -845,7 +845,14 @@
     "googleOff": "未連携",
     "googleConnect": "連携する",
     "googleDisconnect": "連携を解除",
-    "copyInvite": "リンクをコピー"
+    "copyInvite": "リンクをコピー",
+    "aiCharts": "AIカラオケ",
+    "aiChartsLeft": "残り",
+    "aiChartsCount": "{{daily}}曲中 残り{{left}}曲",
+    "aiChartsHint": "SingSpreeにまだないYouTube動画のカラオケをAIが作ります。1日{{daily}}曲まで作れて、それぞれ24時間カウントされます。",
+    "aiChartsNext": "{{daily}}曲すべて作りました。次は{{time}}に作れるようになります。",
+    "aiChartsBonus": "{{date}}まで1日{{count}}曲：Product Huntに来てくれたお礼です。",
+    "aiChartsOffer": "Product Huntに遊びに来てくれたら、お礼に{{days}}日間、1日{{count}}曲まで作れます。"
   },
   "camera": {
     "title": "カメラ",
@@ -868,5 +875,14 @@
     "delete": "映像を削除",
     "deleteConfirm": "削除？",
     "turnOff": "カメラをオフにする"
+  },
+  "productHunt": {
+    "title": "SingSpree が Product Hunt でローンチしました",
+    "text": "ぜひ遊びに来てください！お礼として、1か月間、1日{{count}}曲までAIカラオケを作れます。",
+    "visit": "見に行く",
+    "thanks": "ありがとうございます！{{date}}まで、1日{{count}}曲までAIカラオケを作れます。",
+    "thanksShort": "ありがとうございます！",
+    "thanksSignIn": "ありがとうございます！1日{{count}}曲のAIカラオケが待っています：",
+    "close": "閉じる"
   }
 }

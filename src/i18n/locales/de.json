@@ -1580,7 +1580,14 @@
     "googleOff": "Nicht verbunden",
     "googleConnect": "Verbinden",
     "googleDisconnect": "Trennen",
-    "copyInvite": "Link kopieren"
+    "copyInvite": "Link kopieren",
+    "aiCharts": "KI-Charts",
+    "aiChartsLeft": "Noch übrig",
+    "aiChartsCount": "{{left}} von {{daily}} übrig",
+    "aiChartsHint": "Unsere KI erstellt Karaoke-Charts für YouTube-Videos, die SingSpree noch nicht hat. Du kannst {{daily}} am Tag erstellen, und jedes zählt 24 Stunden lang.",
+    "aiChartsNext": "Du hast alle {{daily}} erstellt. Das nächste wird um {{time}} frei.",
+    "aiChartsBonus": "{{count}} am Tag bis zum {{date}}: unser Dankeschön für deinen Besuch auf Product Hunt.",
+    "aiChartsOffer": "Schau auf Product Hunt vorbei, und als Dankeschön kannst du {{days}} Tage lang {{count}} am Tag erstellen."
   },
   "camera": {
     "title": "Kamera",
@@ -1604,5 +1611,14 @@
     "delete": "Kameraaufnahmen löschen",
     "deleteConfirm": "Löschen?",
     "turnOff": "Kamera ausschalten"
+  },
+  "productHunt": {
+    "title": "SingSpree ist gerade auf Product Hunt gestartet",
+    "text": "Schau vorbei und sag Hallo! Als Dankeschön kannst du einen Monat lang {{count}} KI-Karaoke-Charts am Tag erstellen.",
+    "visit": "Hallo sagen",
+    "thanks": "Danke! Du kannst bis zum {{date}} {{count}} KI-Karaoke-Charts am Tag erstellen.",
+    "thanksShort": "Danke!",
+    "thanksSignIn": "Danke! Deine {{count}} KI-Karaoke-Charts am Tag warten auf dich:",
+    "close": "Schließen"
   }
 }

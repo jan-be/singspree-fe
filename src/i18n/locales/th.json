@@ -845,7 +845,14 @@
     "googleOff": "ยังไม่ได้เชื่อมต่อ",
     "googleConnect": "เชื่อมต่อ",
     "googleDisconnect": "ยกเลิกการเชื่อมต่อ",
-    "copyInvite": "คัดลอกลิงก์"
+    "copyInvite": "คัดลอกลิงก์",
+    "aiCharts": "คาราโอเกะจาก AI",
+    "aiChartsLeft": "เหลืออยู่",
+    "aiChartsCount": "เหลือ {{left}} จาก {{daily}}",
+    "aiChartsHint": "AI ของเราสร้างคาราโอเกะให้วิดีโอ YouTube ที่ SingSpree ยังไม่มี คุณสร้างได้วันละ {{daily}} เพลง และแต่ละเพลงจะนับเป็นเวลา 24 ชั่วโมง",
+    "aiChartsNext": "คุณใช้ครบทั้ง {{daily}} เพลงแล้ว เพลงถัดไปจะว่างตอน {{time}}",
+    "aiChartsBonus": "วันละ {{count}} เพลงจนถึง {{date}}: คำขอบคุณจากเราที่แวะไปที่ Product Hunt",
+    "aiChartsOffer": "แวะไปที่ Product Hunt แล้วรับคำขอบคุณเป็นการสร้างได้วันละ {{count}} เพลงนาน {{days}} วัน"
   },
   "camera": {
     "title": "กล้อง",
@@ -868,5 +875,14 @@
     "delete": "ลบภาพจากกล้อง",
     "deleteConfirm": "ลบไหม?",
     "turnOff": "ปิดกล้อง"
+  },
+  "productHunt": {
+    "title": "SingSpree เพิ่งเปิดตัวบน Product Hunt",
+    "text": "แวะมาทักทายกันหน่อย! เพื่อเป็นการขอบคุณ คุณสร้างคาราโอเกะจาก AI ได้วันละ {{count}} เพลงเป็นเวลาหนึ่งเดือน",
+    "visit": "แวะไปทักทาย",
+    "thanks": "ขอบคุณ! คุณสร้างคาราโอเกะจาก AI ได้วันละ {{count}} เพลงจนถึง {{date}}",
+    "thanksShort": "ขอบคุณ!",
+    "thanksSignIn": "ขอบคุณ! คาราโอเกะจาก AI วันละ {{count}} เพลงรอคุณอยู่:",
+    "close": "ปิด"
   }
 }
