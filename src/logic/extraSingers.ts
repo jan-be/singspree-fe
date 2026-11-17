@@ -15,6 +15,8 @@ import { initMicInput, micErrorKind } from './MicrophoneInput';
 import { createBleedController, FALLBACK_DELAY } from './bleedController';
 import { DEFAULT_DIFFICULTY, isDifficulty, loadDifficulty } from './difficulty';
 import { createSingingGate } from './singingGate';
+import { createRecordingVoice, type RecordingVoice } from './recordingVoice';
+import type { SongPitch } from './songPitch';
 import { keepWebSocket, sendPartyJoin, sendPartyLeave, sendPingReply, sendPlayerDifficulty, sendPlayerNote, sendRtcSignal } from './WebsocketHandling';
 import { socketUrl } from './sites';
 import { randomId } from './sessionId';
@@ -104,6 +106,8 @@ export interface ExtraSinger {
   setActive(on: boolean): void;
   /** the song the page plays and its stems: the delay is measured against them */
   syncSong(songId: string | undefined, stems: BleedStems | null): void;
+  /** the song's pitch tracks (null: none): the speakers are told from someone singing into this microphone (recordingVoice.ts) */
+  setRecording(pitch: SongPitch | null): void;
   /** its voice on the host's speakers: wanted (the singer's switch, the party's voices) or not */
   setVoice(on: boolean): void;
   /** for good (slot removed, page left): the seat goes with it */
@@ -251,6 +255,8 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
   const set = (patch: Partial<ExtraSingerState>) => { state = { ...state, ...patch }; onState(state); };
   // talk near this microphone goes on without its pitch, like the page's own
   const gate = createSingingGate();
+  // the recording out of the speakers is nobody's singing: this microphone's own rule, a new one per song
+  let recordingVoice: RecordingVoice | null = null;
   // its voice on the host's speakers: over its own socket, or straight into the host page's mixer
   let voiceOn = false;
   let hostUp = true;
@@ -283,9 +289,10 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
   });
 
   const onPitch = (msg: { data: ProcessedPitch }) => {
-    const { freq, fric, pos } = msg.data;
+    const { fric, pos } = msg.data;
     if (!isSongPlaying() || held()) return;
     const t = songTime();
+    const freq = msg.data.freq > 0 && recordingVoice?.push(t, msg.data.freq) ? 0 : msg.data.freq;
     // the speakers reach this microphone late too: its own measured delay
     if (bleed && pos !== undefined) bleed.pushStamp(pos, t);
     bleed?.pushNote(chart(), t, freq);
@@ -340,6 +347,7 @@ export function createExtraSinger({ slot, partyId, songTime, chart = () => undef
     },
     /** the song the page plays and its stems: the delay is measured against them */
     syncSong(songId: string | undefined, stems: BleedStems | null) { bleedSong = syncBleedSong(bleed, bleedSong, songId, stems); },
+    setRecording(pitch: SongPitch | null) { recordingVoice = pitch ? createRecordingVoice(pitch) : null; },
     /** its voice on the host's speakers: wanted or not */
     setVoice(on: boolean) {
       if (on === voiceOn) return;

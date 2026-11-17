@@ -59,9 +59,11 @@ export interface RecordedWindow {
   delay?: number;
   delaySource?: string | null;
   held?: boolean;
+  /** taken for the recording out of the speakers (recordingVoice.ts): scored without its pitch */
+  recording?: boolean;
 }
 
-/** A window as uploaded (clientNotes): t video time, f Hz, v level, a its place in the audio, c consonant, h held */
+/** A window as uploaded (clientNotes): t video time, f Hz as detected, v level, a its place in the audio, c consonant, h held, r taken for the recording */
 export interface ClientNote {
   t: number;
   f: number;
@@ -69,6 +71,7 @@ export interface ClientNote {
   a?: number;
   c?: 1;
   h?: 1;
+  r?: 1;
 }
 
 /** The singing delay taken off the notes, each time it changed */
@@ -275,7 +278,7 @@ export class UserAudioRecorder {
    * detected; `held`: the singing gate held it back as talking (singingGate.ts;
    * it may still have counted, if the gate opened within 2 s).
    */
-  recordNote({ videoTime, freq, volume, fric = 0, pos, delay, delaySource, held = false }: RecordedWindow): void {
+  recordNote({ videoTime, freq, volume, fric = 0, pos, delay, delaySource, held = false, recording = false }: RecordedWindow): void {
     if (!this.isRecording || this.clientNotes.length >= MAX_NOTES) return;
     // `t` stays the stamp as it came; the delay scored with is logged when it
     // moves by 5 ms or more (or its source changes), so t - d is what was judged
@@ -294,6 +297,7 @@ export class UserAudioRecorder {
     if (typeof pos === 'number' && this.position) note.a = Math.round((pos - this.startPos) * 1000) / 1000;
     if (fric) note.c = 1; // a hissed consonant (fricative.ts), only when there was one
     if (held) note.h = 1; // held back by the singing gate, only when it was
+    if (recording) note.r = 1; // the speakers' sound, not the singer's: `f` is what was heard, scored was no pitch
     this.clientNotes.push(note);
   }
 

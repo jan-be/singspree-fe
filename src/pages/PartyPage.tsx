@@ -27,6 +27,8 @@ import { micAction, micPermission } from "../logic/micStandby";
 import { keepScreenAwake } from "../logic/screenAwake";
 import { createBleedController, FALLBACK_DELAY } from "../logic/bleedController";
 import { createSingingGate } from "../logic/singingGate";
+import { createRecordingVoice, type RecordingVoice } from "../logic/recordingVoice";
+import { fetchSongPitch, type SongPitch } from "../logic/songPitch";
 import { confirmProvisional } from "../logic/provisionalPitch";
 import { isEarlyContextEnabled, isFastPitchEnabled } from "../logic/fastPitchFlag";
 import { isPitchGpuEnabled } from "../logic/pitchGpuFlag";
@@ -552,6 +554,11 @@ const PartyPage = () => {
   // Whether this mic hears someone singing or people talking (singingGate.ts):
   // talk is held back and goes on without its pitch
   const singingGate = useLazyRef(createSingingGate).current;
+  // Whether this mic hears the recording out of the speakers rather than someone
+  // singing (recordingVoice.ts): the song's pitch tracks, fetched with its
+  // chart, and the rule for this page's own microphone (a new one per song)
+  const songPitchRef = useRef<{ songId: string; pitch: SongPitch } | null>(null);
+  const recordingVoiceRef = useRef<RecordingVoice | null>(null);
   // Points the measurement at `songId`: a fresh start for a new song, and the
   // song's instrumental as soon as its stems are in memory (without stems the
   // fixed delay stays)
@@ -683,7 +690,8 @@ const PartyPage = () => {
   // to be, and a song without stems after one with them asked for stems that
   // are not there, failed, and switched stems off for the rest of the session)
   // pass: this browser's pass for them at the site that has them, where that is not the party's own (sites.ts)
-  const [stemsFor, setStemsFor] = useState<{ songId: string | null; has: boolean; pass?: string | null }>({ songId: null, has: false });
+  // (`listed`: the song has stems at the server, whether or not this device can play them)
+  const [stemsFor, setStemsFor] = useState<{ songId: string | null; has: boolean; listed?: boolean; pass?: string | null }>({ songId: null, has: false });
   const stemsKnown = stemsFor.songId === activeSongId;
   const hasStems = stemsKnown && stemsFor.has;
   const hasStemsRef = useRef(false); // quick ref for use in callbacks
@@ -865,6 +873,28 @@ const PartyPage = () => {
       sessionKeeperRef.current?.pause();
     };
   }, [hasStems, activeSongId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The song's pitch tracks, for telling the speakers from a singer
+  // (recordingVoice.ts): made from the stems, so there for a song that has
+  // them (and not for every one of those yet: none is a 404, and nothing is
+  // told apart). Fetched whether or not this device plays the stems: its
+  // microphone hears the room's speakers either way.
+  const pitchListed = stemsKnown && Boolean(stemsFor.listed);
+  useEffect(() => {
+    recordingVoiceRef.current = null;
+    songPitchRef.current = null;
+    for (const { singer } of extraSingersRef.current.values()) singer.setRecording(null);
+    if (!pitchListed || !activeSongId || activeSongId === 'none') return;
+    let current = true;
+    fetchSongPitch(activeSongId, stemsFor.pass ?? null).then((pitch) => {
+      if (!current || !pitch) return;
+      songPitchRef.current = { songId: activeSongId, pitch };
+      recordingVoiceRef.current = createRecordingVoice(pitch);
+      for (const { singer } of extraSingersRef.current.values()) singer.setRecording(pitch);
+      debugLog('mic', `pitch tracks for ${activeSongId}: the speakers can be told from a singer`);
+    });
+    return () => { current = false; };
+  }, [pitchListed, activeSongId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Master volume → stem GainNodes (stems) or YouTube volume (no stems) + persist.
   // A joiner's sound off silences YouTube, as at their start (silent playback
@@ -1897,7 +1927,7 @@ const PartyPage = () => {
         // (the chart came from a site without the stems: this browser's pass for them, and for its take, at the site that has them)
         const homePass = homePassOf(jsonObj.home);
         rememberHomePass(activeSongId, homePass);
-        setStemsFor({ songId: activeSongId, has: Boolean(jsonObj.data.hasStems) && WEB_AUDIO_SUPPORTED && !stemsUnplayableRef.current, pass: homePass });
+        setStemsFor({ songId: activeSongId, has: Boolean(jsonObj.data.hasStems) && WEB_AUDIO_SUPPORTED && !stemsUnplayableRef.current, listed: Boolean(jsonObj.data.hasStems), pass: homePass });
 
         const { artist, title } = jsonObj.data;
 
@@ -2621,7 +2651,7 @@ const PartyPage = () => {
   useEffect(() => {
     setOnProcessing && setOnProcessing(msg => {
       // (a failed inference arrives as no pitch, freq 0; MicrophoneInput.ts counts it in stats.inferErrors)
-      const { freq, fric, pos, hzFirst, hzLast } = msg.data;
+      const { fric, pos, hzFirst, hzLast } = msg.data;
 
       // The mic pipeline idles while the song is paused (micSetActiveRef);
       // this drops whatever was still in flight when it stopped.
@@ -2634,6 +2664,11 @@ const PartyPage = () => {
       const videoTime = (!isHostRef.current)
         ? getHostVideoTime()
         : hostVideoTime();
+      // The recording out of the speakers is not this singer: such a window
+      // goes on without its pitch, as if nobody had sung (recordingVoice.ts)
+      const heard = msg.data.freq;
+      const recording = heard > 0 && (recordingVoiceRef.current?.push(videoTime, heard) ?? false);
+      const freq = recording ? 0 : heard;
       // Everyone sings along to what the speakers play, and that reaches this
       // stamp late: the note belongs to the song time `delay` earlier. One
       // time for judging, drawing and the server's score, so all agree.
@@ -2657,7 +2692,7 @@ const PartyPage = () => {
 
       // Record note telemetry for dataset accuracy evaluation (the stamp as
       // it came, with the delay taken off it; the pitch as detected)
-      micRecorderRef.current?.recordNote({ videoTime, freq, volume: msg.data.volume ?? 0, fric, pos, delay, delaySource: bleed?.state().source, held: !gate.open });
+      micRecorderRef.current?.recordNote({ videoTime, freq: heard, volume: msg.data.volume ?? 0, fric, pos, delay, delaySource: bleed?.state().source, held: !gate.open, recording });
 
       const w = songTimeHeld() ? null : wssRef.current;
       // judged only in a frame with a place in the chart (it has the chart then)
@@ -2739,6 +2774,8 @@ const PartyPage = () => {
       running.set(id, { singer, key: keyOf(slot) });
       if (stopMicRef.current) singer.openMic();
       singer.syncSong(activeSongIdRef.current, stemPlayerRef.current);
+      const tracks = songPitchRef.current;
+      singer.setRecording(tracks && tracks.songId === activeSongIdRef.current ? tracks.pitch : null);
     }
     if (doubled.length) {
       setExtraStates(st => {
