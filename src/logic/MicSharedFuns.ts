@@ -62,13 +62,28 @@ const NOISE_FLOOR_CAP = 0.01;      // max noise floor → max threshold 0.02. Th
                                     // model calls. Normal ambient is 0.005–0.02, voice 0.03+.
 const CALIBRATION_FRAMES = 8;      // first N frames seed noise floor (120 ms at 15 ms/frame)
 const GATE_STEP_SECONDS = 0.015;   // the frame step the three constants above are tuned for
+// The gate never closes on anything louder than this share of the singer's own
+// voice level (MicrophoneInput hands it in as the ceiling, from
+// levelCalibration.ts). "Voice 0.03+" above holds for a laptop, not for a
+// phone: iPhones sing at 0.004 to 0.02. Every gated frame between the floor
+// and twice the floor pulled the floor up within a second, a quiet voice sat
+// exactly there, and once the floor had reached the voice the gate stayed
+// shut for as long as the singing went on (a reported iPhone lost its line
+// after half a minute of every song until the page was reloaded). On 24 real
+// iPhone takes the gate withheld 6.1 % of the sung windows from the model, up
+// to 38 % in one take; with the ceiling 2.6 %, and no take loses a tenth. The
+// model is asked for 79.5 % of all windows instead of 77.5 %.
+export const GATE_VOICE_SHARE = 0.35;
 
 /** The adaptive noise gate in front of the pitch model (createNoiseGate). */
 export interface NoiseGate {
-  /** Returns true if the frame should be GATED (i.e., is below the noise threshold). */
-  shouldGate(rms: number): boolean;
+  /**
+   * Returns true if the frame should be GATED (i.e., is below the noise threshold).
+   * `ceiling`: the threshold goes no higher than this (not below RMS_SILENCE_FLOOR).
+   */
+  shouldGate(rms: number, ceiling?: number): boolean;
   /** The verdict for a level that does not count as a frame: the floor stays where it is. */
-  wouldGate(rms: number): boolean;
+  wouldGate(rms: number, ceiling?: number): boolean;
   getNoiseFloor(): number;
 }
 
@@ -87,7 +102,7 @@ export function createNoiseGate({ stepSeconds = GATE_STEP_SECONDS }: { stepSecon
 
   return {
     /** Returns true if the frame should be GATED (i.e., is below the noise threshold). */
-    shouldGate(rms: number) {
+    shouldGate(rms: number, ceiling = Infinity) {
       frameCount++;
 
       // Calibration phase: seed noise floor from early frames
@@ -97,7 +112,7 @@ export function createNoiseGate({ stepSeconds = GATE_STEP_SECONDS }: { stepSecon
         return true; // gate during calibration
       }
 
-      const threshold = Math.max(RMS_SILENCE_FLOOR, noiseFloor * GATE_MULTIPLIER);
+      const threshold = Math.max(RMS_SILENCE_FLOOR, Math.min(noiseFloor * GATE_MULTIPLIER, ceiling));
 
       if (rms < threshold) {
         // Quiet frame: update noise floor estimate
@@ -112,8 +127,8 @@ export function createNoiseGate({ stepSeconds = GATE_STEP_SECONDS }: { stepSecon
       return false; // signal detected, do NOT gate
     },
 
-    wouldGate(rms: number) {
-      return frameCount <= calibrationFrames || rms < Math.max(RMS_SILENCE_FLOOR, noiseFloor * GATE_MULTIPLIER);
+    wouldGate(rms: number, ceiling = Infinity) {
+      return frameCount <= calibrationFrames || rms < Math.max(RMS_SILENCE_FLOOR, Math.min(noiseFloor * GATE_MULTIPLIER, ceiling));
     },
 
     getNoiseFloor() { return noiseFloor; },

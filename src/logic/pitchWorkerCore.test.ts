@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, assert } from 'vitest';
 import { servePitchRequests } from './pitchWorkerCore';
 import type { PitchRuntime } from './pitchWorkerCore';
+import { STEADY_SCALE } from './pitchModel';
 import type { PitchWorkerRequest, PitchWorkerResponse } from './pitchModel';
 
 type Scope = { onmessage: ((e: { data: PitchWorkerRequest }) => Promise<void>) | null, postMessage: (m: PitchWorkerResponse) => void };
@@ -52,6 +53,26 @@ describe('servePitchRequests', () => {
     expect(answer.pitchHz).toBe(0);
     expect(answer.rawHz).toBe(220);
     expect(answer.rawConf).toBe(0.99);
+  });
+
+  it('hands on the step between its first and last frame scaled for the singing gate, and the last frame as it is', async () => {
+    servePitchRequests(fakeRuntime([220, 230, 220 * 2 ** (2 / 12)], [0.99, 0.99, 0.99]), 'test');
+    await send({ type: 'init', modelUrl: 'x' });
+    await send(detect(1280));
+    const answer = posted[posted.length - 1];
+    assert(answer.type === 'detect');
+    expect(answer.rawHz).toBeCloseTo(220 * 2 ** (2 / 12), 6);
+    // two semitones between the frames come out as STEADY_SCALE times two
+    expect(12 * Math.log2((answer.rawHz ?? 0) / (answer.firstHz ?? 1))).toBeCloseTo(2 * STEADY_SCALE, 6);
+  });
+
+  it('gives no first frame where the model gave none', async () => {
+    servePitchRequests(fakeRuntime([0, 0, 220], [0, 0, 0.99]), 'test');
+    await send({ type: 'init', modelUrl: 'x' });
+    await send(detect(1280));
+    const answer = posted[posted.length - 1];
+    assert(answer.type === 'detect');
+    expect(answer.firstHz).toBe(0);
   });
 
   it('runs a window of any length whole', async () => {

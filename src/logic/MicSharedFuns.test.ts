@@ -310,4 +310,32 @@ describe('createNoiseGate', () => {
     expect(gate.wouldGate(0.05)).toBe(false);
     expect(gate.wouldGate(0.003)).toBe(true);
   });
+
+  it('closes on a quiet voice for good without a ceiling: its floor climbs to the voice', () => {
+    const gate = createNoiseGate({ stepSeconds: 0.03 });
+    for (let i = 0; i < 4; i++) gate.shouldGate(0.004);   // the room
+    expect(gate.shouldGate(0.012)).toBe(false);            // the voice, three times the room: through
+    for (let i = 0; i < 100; i++) gate.shouldGate(0.007); // softer words, between the floor and twice the floor: gated, and the floor follows
+    let gated = 0;
+    for (let i = 0; i < 300; i++) if (gate.shouldGate(0.012)) gated++; // the same voice as before, 9 s of it
+    expect(gated).toBe(300);
+  });
+
+  it('never closes on a sound louder than its ceiling: the same quiet voice stays through', () => {
+    const gate = createNoiseGate({ stepSeconds: 0.03 });
+    const ceiling = 0.35 * 0.012;                          // GATE_VOICE_SHARE of the voice's own level
+    for (let i = 0; i < 4; i++) gate.shouldGate(0.004, ceiling);
+    for (let i = 0; i < 100; i++) expect(gate.shouldGate(0.007, ceiling)).toBe(false);
+    for (let i = 0; i < 300; i++) expect(gate.shouldGate(0.012, ceiling)).toBe(false);
+    expect(gate.shouldGate(0.003, ceiling)).toBe(true);    // what is far below the voice is still gated
+    expect(gate.wouldGate(0.007, ceiling)).toBe(false);
+    expect(gate.wouldGate(0.007)).toBe(true);
+  });
+
+  it('keeps the absolute floor under any ceiling', () => {
+    const gate = createNoiseGate({ stepSeconds: 0.03 });
+    for (let i = 0; i < 4; i++) gate.shouldGate(0.0005, 0.0001);
+    expect(gate.shouldGate(0.001, 0.0001)).toBe(true);     // below RMS_SILENCE_FLOOR: silence, whatever the ceiling
+    expect(gate.shouldGate(RMS_SILENCE_FLOOR * 1.5, 0.0001)).toBe(false);
+  });
 });

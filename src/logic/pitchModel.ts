@@ -22,6 +22,17 @@ const PAST_SAMPLES = MODEL_SAMPLES - WINDOW_SAMPLES;
 // network's, which the singing delays were set on, 20 ms. So every pitch is
 // 4 ms newer, and a note is stamped 4 ms less back (MicInput.delayLead).
 export const MODEL_DELAY_LEAD = 0.004;
+// How the pitch moves within a window, for the singing gate (singingGate.ts: its "pwithin", the model's first
+// frame against its last, 32 ms apart): the second network's pitch wavers about twice as much from frame to
+// frame as the first's did (0.40 semitones between two frames it is sure of, against 0.18), and the gate's
+// weights were fitted on the first's. Read as it came, real singers were held back as talkers three times as
+// often (11 % of their windows instead of 3 %, on 109 real takes). The step between the two frames is scaled
+// by this, in semitones, before the gate reads it: singers are held 5.5 % of the time and earn within 1 % of
+// what they earn with the gate off; a voice that talks through a song (other songs' rap vocals over the
+// speakers' sound, 32 made-up recordings: there is no recorded party talk to test on) is held 73 and 83 % of
+// the time against the first network's 57 and 63 %, and earns no more than it did (582 and 240 of 10,000
+// against 607 and 240). Unscaled it earned less (354 and 7), at the singers' cost.
+export const STEADY_SCALE = 0.75;
 
 // The voicing threshold (on the first network's scale, which make_model.py maps the second's onto) and the range
 export const CONFIDENCE_THRESHOLD = 0.85;

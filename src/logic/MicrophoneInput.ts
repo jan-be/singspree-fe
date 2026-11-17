@@ -1,4 +1,4 @@
-import { createNoiseGate } from "./MicSharedFuns";
+import { GATE_VOICE_SHARE, createNoiseGate } from "./MicSharedFuns";
 import pitchFinderWorkletUrl from "./PitchFinderWorklet.ts?worker&url";
 import PitchWorkerMinimalUrl from "./PitchWorkerMinimal.ts?worker";
 import PitchWorkerGpuUrl from "./PitchWorkerGpu.ts?worker";
@@ -536,6 +536,8 @@ export const initMicInput = async ({ deviceId, gpu = false, provisional = false,
   const ageInterval = setInterval(captureAge, 5000);
 
   const noiseGate = createNoiseGate({ stepSeconds: HOP_SECONDS });
+  // The gate never closes on a sound within reach of the singer's own voice (MicSharedFuns.ts GATE_VOICE_SHARE)
+  const gateCeiling = () => GATE_VOICE_SHARE * calibration.voiceLevel();
   // Audio time of each chunk, advancing one hop per chunk (gated ones too):
   // the voicing tracker's clock. Chunks can arrive in bursts, so wall-clock
   // time would not do.
@@ -545,7 +547,7 @@ export const initMicInput = async ({ deviceId, gpu = false, provisional = false,
   // is mostly above what the 16 kHz level measures.
   const onDisplayChunk = ({ audio, volume, pos }: DisplayChunk) => {
     const between = pos - lastPos > SAME_POS_S;
-    if (!displayWorker || displayBusy || !fast.wanted(pos, stats.inferMs, between) || noiseGate.wouldGate(volume)) return;
+    if (!displayWorker || displayBusy || !fast.wanted(pos, stats.inferMs, between) || noiseGate.wouldGate(volume, gateCeiling())) return;
     const gain = calibration.gain(); // the same input the scored stream's model sees
     if (gain !== 1) for (let i = 0; i < audio.length; i++) audio[i] *= gain;
     displayBusy = true;
@@ -568,7 +570,7 @@ export const initMicInput = async ({ deviceId, gpu = false, provisional = false,
     stats.noiseFloor = noiseGate.getNoiseFloor();
     chunkClock += HOP_SECONDS;
 
-    if (noiseGate.shouldGate(volume)) {
+    if (noiseGate.shouldGate(volume, gateCeiling())) {
       stats.gatedChunks++;
       modelWindows?.skip(audio);
       if (processingCallback) {

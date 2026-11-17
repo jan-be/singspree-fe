@@ -6,7 +6,7 @@
 // MicrophoneInput sends one chunk at a time (inferenceScheduler.ts), so there
 // is never a queue here.
 
-import { createVoicingTracker } from './pitchModel';
+import { STEADY_SCALE, createVoicingTracker } from './pitchModel';
 import type { PitchFrames, PitchWorkerRequest, PitchWorkerResponse } from './pitchModel';
 
 /** A loaded model as servePitchRequests runs it: tensors (T) in, outputs by name out (swift-f0: pitch_hz, confidence) */
@@ -57,8 +57,11 @@ export function servePitchRequests<T>(ort: PitchRuntime<T>, provider: string): v
         }
         const pitchHz = voicing.pick(hz, conf, t ?? t0 / 1000);
         // raw*: the model's own last frame, for the level calibration (levelCalibration.ts);
-        // firstHz: its first, for how the pitch moves within the window (singingGate.ts)
-        self.postMessage({ type: 'detect', pitchHz, rawHz: hz[hz.length - 1] ?? 0, rawConf: conf[conf.length - 1] ?? 0, firstHz: hz[0] ?? 0, volume, fric: data.fric, pos: data.pos, ms: performance.now() - t0 } satisfies PitchWorkerResponse);
+        // firstHz: its first, for how the pitch moves within the window (singingGate.ts), its step to the
+        // last frame scaled to what the gate was fitted on (pitchModel.ts STEADY_SCALE)
+        const rawHz = hz[hz.length - 1] ?? 0, first = hz[0] ?? 0;
+        const firstHz = first > 0 && rawHz > 0 ? rawHz * Math.pow(first / rawHz, STEADY_SCALE) : first;
+        self.postMessage({ type: 'detect', pitchHz, rawHz, rawConf: conf[conf.length - 1] ?? 0, firstHz, volume, fric: data.fric, pos: data.pos, ms: performance.now() - t0 } satisfies PitchWorkerResponse);
       } catch (err) {
         // On error, send zero pitch — don't break the pipeline
         self.postMessage({ type: 'detect', pitchHz: 0, volume: data.volume ?? 0, fric: data.fric, pos: data.pos, ms: performance.now() - t0, error: (err as Error).message } satisfies PitchWorkerResponse);
