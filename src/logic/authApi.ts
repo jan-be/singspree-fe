@@ -571,7 +571,11 @@ export interface AdminSongReport {
   songId: string;
   kinds: string[];
   comment: string | null;
-  context: { gap: number | null; videoTime: number | null; delayMs: number | null; delaySource: 'bleed' | 'fixed' | null; isHost: boolean | null; videoId: string | null } | null;
+  context: {
+    gap: number | null; videoTime: number | null; delayMs: number | null; delaySource: 'bleed' | 'fixed' | 'voice' | null; isHost: boolean | null; videoId: string | null;
+    /** the reporter's microphone as it stood (backend songReports.ts SongReportMic) */
+    mic?: { on: boolean; error: string | null; windows?: number; gated?: number; pitched?: number; dropped?: number; failed?: number; gain?: number; level?: number; floor?: number; singing?: boolean; chance?: number };
+  } | null;
   userId: number | null;
   username: string | null;
   nickname: string | null;

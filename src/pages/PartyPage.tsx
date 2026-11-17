@@ -85,6 +85,7 @@ import { MAX_SCORE, STAR_THRESHOLDS } from "../logic/scoreScale";
 import { achievementInfo, creditLine, mergeEndAchievements, scoreCardChips } from "../logic/achievements";
 import { DuetIcon, LockIcon, SpeakerIcon } from "../components/Icons";
 import { getSessionId, getGuestId } from "../logic/sessionId";
+import { trackEvent } from "../logic/track";
 import { loadSaveRecordings, storeSaveRecordings, takeMoment } from "../logic/takes";
 import { DEFAULT_DIFFICULTY, TOLERANCE, loadDifficulty, storeDifficulty, type Difficulty } from "../logic/difficulty";
 import { CAMERA_LATENCY_S, cameraAction, cameraEncoderSupported, createCameraFilm, type CameraFilm } from "../logic/cameraClip";
@@ -2444,13 +2445,16 @@ const PartyPage = () => {
   const [micPhase, setMicPhase] = useState<MicPhase | null>(null); // null | 'starting' | 'loading'
   const [micError, setMicError] = useState<MicErrorKind | null>(null); // null | 'denied' | 'noDevice' | 'failed'
   const joiningRef = useRef(false);
+  const micErrorRef = useRef<MicErrorKind | null>(null); // micError, for a song report
   const micOpenedAtRef = useRef(0); // performance.now() when the microphone last opened
   const joinSingingWith = useCallback(async (deviceId: string | null) => {
     if (stopMicRef.current || joiningRef.current) return; // already singing, or on the way (a second click would open a second microphone)
     joiningRef.current = true;
     setMicError(null);
+    micErrorRef.current = null;
+    let phase: MicPhase | null = null; // how far the start got, for the note of a failure
     try {
-      const result = await initMicInput({ deviceId: deviceId || undefined, gpu: isPitchGpuEnabled(), provisional: isFastPitchEnabled(), earlyContext: isEarlyContextEnabled(), onPhase: setMicPhase });
+      const result = await initMicInput({ deviceId: deviceId || undefined, gpu: isPitchGpuEnabled(), provisional: isFastPitchEnabled(), earlyContext: isEarlyContextEnabled(), onPhase: (p) => { phase = p; setMicPhase(p); } });
       micOpenedAtRef.current = performance.now();
       stopMicRef.current = result.stopMicInput;
       micStatsRef.current = result.stats;
@@ -2481,6 +2485,10 @@ const PartyPage = () => {
     } catch (e) {
       console.warn("Microphone access denied or unavailable:", thrownField(e, 'message'));
       setMicError(micErrorKind(e));
+      micErrorRef.current = micErrorKind(e);
+      // What failed, for the admin page: nothing else tells a microphone that never started from one nobody
+      // switched on (the error's name and where the start was; no sound, no device name)
+      trackEvent('mic_start', { ok: false, kind: micErrorKind(e), name: thrownField(e, 'name'), message: thrownField(e, 'message'), phase, isHost: !!isHostRef.current });
       // Reopening for a song failed too (access withdrawn, device gone): no
       // longer singing, rather than asking again every second
       micActiveRef.current = false;
@@ -3476,6 +3484,7 @@ const PartyPage = () => {
   // What this device knew when a problem was reported, for the admins checking it
   const getReportContext = useCallback(() => {
     const bl = bleedRef.current?.state();
+    const st = stopMicRef.current ? micStatsRef.current : null;
     let videoTime: number | null = null;
     try { videoTime = isHostRef.current ? hostVideoTime() : getHostVideoTime(); } catch { /* */ }
     return {
@@ -3483,6 +3492,17 @@ const PartyPage = () => {
       videoTime: videoTime !== null && Number.isFinite(videoTime) ? Math.round(videoTime * 10) / 10 : null,
       delayMs: bl ? Math.round(bl.applied * 1000) : null,
       delaySource: bl?.source ?? null,
+      // The microphone as it stands: "it does not hear me" reports say nothing else about which stage did not
+      // (counters only: windows heard, held back by the noise gate, given a pitch, failed; the boost; the singing gate)
+      mic: {
+        on: !!stopMicRef.current,
+        error: micErrorRef.current,
+        ...(st ? {
+          windows: st.totalChunks, gated: st.gatedChunks, pitched: st.totalNotes, dropped: st.droppedChunks, failed: st.inferErrors,
+          gain: Math.round(st.inputGain * 10) / 10, level: Math.round(st.lastVolume * 10000) / 10000, floor: Math.round((st.noiseFloor ?? 0) * 10000) / 10000,
+        } : {}),
+        singing: singingGate.open, chance: Math.round(singingGate.chance * 100) / 100,
+      },
       isHost: !!isHostRef.current,
       videoId: songInfoRef.current?.videoId ?? null,
       nickname: currentUserNameRef.current ?? null,

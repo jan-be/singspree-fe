@@ -1363,7 +1363,13 @@
         "resolved": "„{{title}}“ als erledigt markiert.",
         "dismissed": "„{{title}}“ verworfen.",
         "open": "„{{title}}“ wieder geöffnet."
-      }
+      },
+      "delayVoice": "Gesangsverzögerung {{ms}} ms (aus dem Gesang)",
+      "micOff": "Mikrofon aus",
+      "micFailed": "Mikrofon nicht gestartet ({{kind}})",
+      "micOn": "Mikrofon an: {{windows}} Fenster, {{gated}} unter dem Rauschfilter, {{pitched}} mit Tonhöhe, Verstärkung {{gain}}×, {{verdict}}",
+      "micSinging": "als Gesang gewertet",
+      "micTalk": "als Reden gewertet"
     },
     "testers": {
       "title": "Android-Tester",

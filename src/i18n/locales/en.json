@@ -1363,7 +1363,13 @@
         "resolved": "“{{title}}” marked resolved.",
         "dismissed": "“{{title}}” dismissed.",
         "open": "“{{title}}” reopened."
-      }
+      },
+      "delayVoice": "singing delay {{ms}} ms (from the singing)",
+      "micOff": "microphone off",
+      "micFailed": "microphone did not start ({{kind}})",
+      "micOn": "microphone on: {{windows}} windows, {{gated}} under the noise gate, {{pitched}} with a pitch, boost {{gain}}×, {{verdict}}",
+      "micSinging": "taken for singing",
+      "micTalk": "taken for talking"
     },
     "testers": {
       "title": "Android testers",

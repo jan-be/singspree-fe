@@ -35,7 +35,11 @@ const ReportRow = ({ report: r, busy, onReview }: { report: AdminSongReport; bus
   const facts = [
     c.videoTime != null ? t('admin.reports.at', { time: formatTime(c.videoTime) }) : null,
     c.gap != null ? t('admin.reports.gap', { ms: Math.round(c.gap) }) : null,
-    c.delayMs != null ? t(c.delaySource === 'bleed' ? 'admin.reports.delayMeasured' : 'admin.reports.delayFixed', { ms: c.delayMs }) : null,
+    c.delayMs != null ? t(c.delaySource === 'bleed' ? 'admin.reports.delayMeasured' : c.delaySource === 'voice' ? 'admin.reports.delayVoice' : 'admin.reports.delayFixed', { ms: c.delayMs }) : null,
+    // the reporter's microphone at that moment: off, failed to start, or how far its windows got
+    c.mic ? (c.mic.error ? t('admin.reports.micFailed', { kind: c.mic.error })
+      : !c.mic.on ? t('admin.reports.micOff')
+        : t('admin.reports.micOn', { windows: c.mic.windows ?? 0, gated: c.mic.gated ?? 0, pitched: c.mic.pitched ?? 0, gain: c.mic.gain ?? 1, verdict: t(c.mic.singing === false ? 'admin.reports.micTalk' : 'admin.reports.micSinging') })) : null,
     c.isHost != null ? (c.isHost ? t('admin.reports.host') : t('admin.reports.joiner')) : null,
     r.userAgent ? deviceLabel(r.userAgent, r.os) : null,
   ].filter(Boolean);
