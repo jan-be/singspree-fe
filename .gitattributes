@@ -1,0 +1,2 @@
+# run inside a Linux container, straight from the checkout
+tools/crawler-list/* text eol=lf
