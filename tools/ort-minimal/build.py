@@ -6,7 +6,7 @@ Clones ONNX Runtime at the pinned tag into --work (it needs ~3 GB there: the
 sources, Emscripten, the build tree), converts public/model.onnx to the ORT
 format, builds a single-threaded SIMD runtime with only the model's
 operators and types, and copies the results into the app:
-src/vendor/ort-minimal/ort-wasm-simd.{mjs,wasm} and public/model.ort.
+src/vendor/ort-minimal/ort-wasm-simd.{mjs,wasm} and public/model-2.ort.
 Re-running reuses the clone, Emscripten and the build tree.
 """
 
@@ -29,7 +29,7 @@ HERE = Path(__file__).resolve().parent
 FE = HERE.parent.parent
 MODEL = FE / 'public' / 'model.onnx'
 OUT_RUNTIME = FE / 'src' / 'vendor' / 'ort-minimal'
-OUT_MODEL = FE / 'public' / 'model.ort'
+OUT_MODEL = FE / 'public' / 'model-2.ort'  # a new network: a new name (MicrophoneInput.ts PITCH_MODEL_URL)
 OUT_OPS = HERE / 'required_operators_and_types.config'
 ARTIFACTS = ['ort-wasm-simd.mjs', 'ort-wasm-simd.wasm']
 # Our changes to ONNX Runtime's sources (README.md, "Patches")

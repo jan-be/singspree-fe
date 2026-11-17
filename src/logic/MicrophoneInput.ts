@@ -326,6 +326,17 @@ async function initViaAudioWorklet(stream: MediaStream, display: DisplayOptions 
  */
 export const openMicCapture = (stream: MediaStream): Promise<MicCaptureHandle> => (hasTrackProcessor ? initViaTrackProcessor(stream) : initViaAudioWorklet(stream));
 
+/**
+ * The pitch model the WASM worker loads. The name says which network it is:
+ * a page and its model have to match (the worker feeds the network its own
+ * window length and the runtime holds only its operators), and a page that
+ * was open before an update keeps its worker's code for hours. So a new
+ * network gets a new file name, and the one before stays where the pages
+ * still open ask for it: public/model.ort is the first network, kept for
+ * pages opened before 17 November 2026 (to go once those are gone).
+ */
+const PITCH_MODEL_URL = '/model-2.ort';
+
 /** Start a pitch worker and wait for its model to load. Resolves { worker, provider }. */
 const startPitchWorker = (WorkerCtor: new () => Worker, modelPath: string) => new Promise<{ worker: Worker, provider: string }>((resolve, reject) => {
   const worker = new WorkerCtor();
@@ -390,7 +401,7 @@ export const initMicInput = async ({ deviceId, gpu = false, provisional = false,
     try {
       // Our minimal ONNX Runtime (tools/ort-minimal): single-threaded, so it
       // starts on old Safari too, where the stock runtimes needed a fallback
-      ({ worker: onnxWorker, provider } = await startPitchWorker(PitchWorkerMinimalUrl, '/model.ort'));
+      ({ worker: onnxWorker, provider } = await startPitchWorker(PitchWorkerMinimalUrl, PITCH_MODEL_URL));
     } catch (e) {
       stream.getTracks().forEach(t => t.stop()); // no detector: let go of the microphone
       earlyAudioContext?.close();
@@ -405,7 +416,7 @@ export const initMicInput = async ({ deviceId, gpu = false, provisional = false,
   let displayWorker: Worker | null = null;
   if (provisional) {
     try {
-      ({ worker: displayWorker } = await startPitchWorker(PitchWorkerMinimalUrl, '/model.ort'));
+      ({ worker: displayWorker } = await startPitchWorker(PitchWorkerMinimalUrl, PITCH_MODEL_URL));
     } catch (e) {
       console.warn('[pitch] no provisional pitch:', (e as Error).message);
     }

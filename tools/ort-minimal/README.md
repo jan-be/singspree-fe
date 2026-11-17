@@ -70,7 +70,8 @@ Choices, measured):
   operators and types of `public/model.onnx` after conversion, which is what
   the runtime contains. A diff here after a model change means new kernels.
 - Output: `src/vendor/ort-minimal/ort-wasm-simd.{mjs,wasm}` (Emscripten's JS
-  module and the runtime) and `public/model.ort`.
+  module and the runtime) and `public/model-2.ort` (a new network gets a new
+  name: see `PITCH_MODEL_URL` in `src/logic/MicrophoneInput.ts`).
 - `src/logic/ortMinimal.ts`: the JS around the runtime. onnxruntime-web's own
   JS can only load a runtime other than its threaded one through a dynamic
   `import()` of a URL, which the classic workers Vite builds cannot rely on;
