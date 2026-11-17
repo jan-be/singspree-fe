@@ -1541,6 +1541,26 @@
         "pages": "{{site}}'s copy of the crawler pages is behind the home site's.",
         "disk": "{{site}} has {{detail}} MB of disk left."
       },
+      "load": {
+        "title": "People singing at once",
+        "hint": "Per site, the average number of people in a party with a song running, {{stretch}}. The time between songs does not count.",
+        "stretch": {
+          "15": "per quarter of an hour",
+          "30": "per half hour",
+          "60": "per hour",
+          "120": "per two hours",
+          "360": "per six hours",
+          "1440": "per day"
+        },
+        "before": "Before {{date}} there was one site: everything up to then is {{site}}.",
+        "numbers": "on average {{average}} · at most {{peak}}",
+        "spoken": "{{site}}: on average {{average}}, at most {{peak}}.",
+        "together": "all sites together",
+        "soFar": "so far",
+        "none": "Nobody sang in these days.",
+        "table": "The same as a table",
+        "when": "When"
+      },
       "usage": {
         "title": "Where people sing",
         "hint": "By the site a party lived at, which its code says. The ping is one way, singer to site: the middle one of all singers' songs, and the one nine in ten stayed under.",

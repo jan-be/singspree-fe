@@ -1541,6 +1541,26 @@
         "pages": "Die Kopie der Crawler-Seiten in {{site}} ist hinter der des Heimatstandorts.",
         "disk": "{{site}} hat noch {{detail}} MB Platz auf der Platte."
       },
+      "load": {
+        "title": "Gleichzeitig singende Leute",
+        "hint": "Je Standort die durchschnittliche Zahl der Leute in einer Party mit laufendem Lied, {{stretch}}. Die Zeit zwischen den Liedern zählt nicht.",
+        "stretch": {
+          "15": "je Viertelstunde",
+          "30": "je halbe Stunde",
+          "60": "je Stunde",
+          "120": "je zwei Stunden",
+          "360": "je sechs Stunden",
+          "1440": "je Tag"
+        },
+        "before": "Vor dem {{date}} gab es einen Standort: alles bis dahin ist {{site}}.",
+        "numbers": "im Schnitt {{average}} · höchstens {{peak}}",
+        "spoken": "{{site}}: im Schnitt {{average}}, höchstens {{peak}}.",
+        "together": "alle Standorte zusammen",
+        "soFar": "bisher",
+        "none": "In diesen Tagen hat niemand gesungen.",
+        "table": "Dasselbe als Tabelle",
+        "when": "Wann"
+      },
       "usage": {
         "title": "Wo gesungen wird",
         "hint": "Nach dem Standort, an dem eine Party lief; ihr Code sagt ihn. Der Ping gilt für eine Richtung, vom Sänger zum Standort: der mittlere aller gesungenen Songs und der, unter dem neun von zehn blieben.",

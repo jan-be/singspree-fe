@@ -433,6 +433,18 @@ export interface AdminSites {
   sites: AdminSiteStatus[];
   problems: SiteProblem[];
   usage: { bySite: SiteUsage[]; byCountry: CountryUsage[] };
+  load: SiteLoad;
+}
+
+/**
+ * People in a song at once, per site over the window (backend siteLoad.ts): from `from` on a number per stretch of
+ * `bucketMs`; the last stretch is still running, `lastMs` of it have passed
+ */
+export interface SiteLoad {
+  from: number;
+  bucketMs: number;
+  lastMs: number;
+  sites: { site: string; players: number[] }[];
 }
 
 /** A song played, for the admin list (backend routes/admin.ts playRow) */

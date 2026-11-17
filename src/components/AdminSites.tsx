@@ -5,6 +5,7 @@ import { formatDuration } from '../logic/duration';
 import { formatBytes, hasProblem, pagesState, shortBuild } from '../logic/siteStatus';
 import { getAdminSites } from '../logic/authApi';
 import { apiUrl } from '../GlobalConsts';
+import AdminSiteLoad from './AdminSiteLoad';
 import type { AdminSites as SitesData, AdminSiteStatus, SiteProblem, SiteUsage } from '../logic/authApi';
 
 /**
@@ -13,7 +14,8 @@ import type { AdminSites as SitesData, AdminSiteStatus, SiteProblem, SiteUsage }
  * siteStatus.ts), what wants a look, and what the sites are for: where
  * people sang since parties live at the site nearest their host, and the
  * ping they got there, per site and per country against the ping from when
- * there was one site.
+ * there was one site. Between the two, how many people were in a song at
+ * once at each site over the chosen days (AdminSiteLoad.tsx).
  */
 
 const REFRESH_MS = 15_000; // (a site reports every 30 s)
@@ -191,10 +193,19 @@ const AdminSites = ({ onError }: { onError: (e: unknown) => void }) => {
         {data.sites.map(s => <SiteCard key={s.name} site={s} home={home} problems={data.problems} now={data.now} />)}
       </div>
 
+      {/* (the days chosen here are the chart's and the tables' below it) */}
       <Section
-        title={t('admin.sites.usage.title')}
-        aside={<FilterButtons options={[1, 7, 30]} value={days} onChange={setDays} label={d => t('admin.origins.days', { count: d })} />}
+        title={t('admin.sites.load.title')}
+        aside={<FilterButtons options={[1, 7, 30, 90]} value={days} onChange={setDays} label={d => t('admin.origins.days', { count: d })} />}
       >
+        <Hint>
+          {t('admin.sites.load.hint', { stretch: t(`admin.sites.load.stretch.${Math.round(data.load.bucketMs / 60_000)}`) })}
+          {data.since !== null && data.load.from < data.since ? ` ${t('admin.sites.load.before', { date: date(data.since), site: home?.name ?? '' })}` : ''}
+        </Hint>
+        <AdminSiteLoad load={data.load} sites={data.sites} />
+      </Section>
+
+      <Section title={t('admin.sites.usage.title')}>
         <Hint>{t('admin.sites.usage.hint')}{cut && data.since !== null ? ` ${t('admin.sites.usage.since', { date: date(data.since) })}` : ''}</Hint>
         {data.since === null
           ? <p className="text-sm text-white/45">{t('admin.sites.usage.notYet')}</p>
