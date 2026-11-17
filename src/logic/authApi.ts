@@ -433,7 +433,8 @@ export interface AdminSites {
   sites: AdminSiteStatus[];
   problems: SiteProblem[];
   usage: { bySite: SiteUsage[]; byCountry: CountryUsage[] };
-  load: SiteLoad;
+  /** absent from a backend that does not count it yet */
+  load?: SiteLoad;
 }
 
 /**

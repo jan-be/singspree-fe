@@ -193,16 +193,20 @@ const AdminSites = ({ onError }: { onError: (e: unknown) => void }) => {
         {data.sites.map(s => <SiteCard key={s.name} site={s} home={home} problems={data.problems} now={data.now} />)}
       </div>
 
-      {/* (the days chosen here are the chart's and the tables' below it) */}
+      {/* (the days chosen here are the chart's and the tables' below it; a backend from before the chart says no `load`) */}
       <Section
         title={t('admin.sites.load.title')}
         aside={<FilterButtons options={[1, 7, 30, 90]} value={days} onChange={setDays} label={d => t('admin.origins.days', { count: d })} />}
       >
-        <Hint>
-          {t('admin.sites.load.hint', { stretch: t(`admin.sites.load.stretch.${Math.round(data.load.bucketMs / 60_000)}`) })}
-          {data.since !== null && data.load.from < data.since ? ` ${t('admin.sites.load.before', { date: date(data.since), site: home?.name ?? '' })}` : ''}
-        </Hint>
-        <AdminSiteLoad load={data.load} sites={data.sites} />
+        {data.load && (
+          <>
+            <Hint>
+              {t('admin.sites.load.hint', { stretch: t(`admin.sites.load.stretch.${Math.round(data.load.bucketMs / 60_000)}`) })}
+              {data.since !== null && data.load.from < data.since ? ` ${t('admin.sites.load.before', { date: date(data.since), site: home?.name ?? '' })}` : ''}
+            </Hint>
+            <AdminSiteLoad load={data.load} sites={data.sites} />
+          </>
+        )}
       </Section>
 
       <Section title={t('admin.sites.usage.title')}>
