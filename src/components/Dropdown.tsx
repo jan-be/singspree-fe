@@ -18,7 +18,8 @@ import { markPopoverClosed } from '../logic/popoverGuard';
  * microphone panel) cannot clip it and a blurred band (the entry page's pinned
  * filters) cannot become what it is positioned against. It opens below the
  * button, or above when there is more room there, follows the button while
- * the page scrolls, and stays inside the screen.
+ * the page scrolls, and stays inside the screen. All of it in the button's own
+ * document, which can be another window's (the queue's, QueueWindow).
  */
 export interface DropdownOption<T extends string> {
   value: T;
@@ -86,7 +87,7 @@ export default function Dropdown<T extends string>({
     const button = buttonRef.current, list = listRef.current;
     if (!button || !list) return;
     const b = button.getBoundingClientRect();
-    const vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    const doc = button.ownerDocument, vw = doc.documentElement.clientWidth, vh = doc.defaultView?.innerHeight ?? window.innerHeight;
     const widest = vw - 2 * MARGIN;
     list.style.maxWidth = `${widest}px`;
     list.style.minWidth = `${Math.min(b.width, widest)}px`;
@@ -114,7 +115,7 @@ export default function Dropdown<T extends string>({
 
   // The active option stays in view while the keys move through a long list
   useLayoutEffect(() => {
-    if (open) document.getElementById(`${id}-${active}`)?.scrollIntoView({ block: 'nearest' });
+    if (open) (buttonRef.current?.ownerDocument ?? document).getElementById(`${id}-${active}`)?.scrollIntoView({ block: 'nearest' });
   }, [open, active, id]);
 
   useEffect(() => {
@@ -123,6 +124,9 @@ export default function Dropdown<T extends string>({
 
   useEffect(() => {
     if (!open) return;
+    // the button's own document and window: it can sit in another window (the queue's, QueueWindow)
+    const doc = buttonRef.current?.ownerDocument ?? document;
+    const view = doc.defaultView ?? window;
     let frame = 0;
     // The page or a panel scrolled, or the window changed size: follow the
     // button, and close once it is off the screen
@@ -131,7 +135,7 @@ export default function Dropdown<T extends string>({
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         const b = buttonRef.current?.getBoundingClientRect();
-        if (!b || b.bottom < 0 || b.top > window.innerHeight) setOpen(false);
+        if (!b || b.bottom < 0 || b.top > view.innerHeight) setOpen(false);
         else place();
       });
     };
@@ -141,14 +145,14 @@ export default function Dropdown<T extends string>({
       setOpen(false);
       markPopoverClosed();
     };
-    window.addEventListener('resize', follow);
-    window.addEventListener('scroll', follow, true);
-    document.addEventListener('pointerdown', outside);
+    view.addEventListener('resize', follow);
+    view.addEventListener('scroll', follow, true);
+    doc.addEventListener('pointerdown', outside);
     return () => {
       cancelAnimationFrame(frame);
-      window.removeEventListener('resize', follow);
-      window.removeEventListener('scroll', follow, true);
-      document.removeEventListener('pointerdown', outside);
+      view.removeEventListener('resize', follow);
+      view.removeEventListener('scroll', follow, true);
+      doc.removeEventListener('pointerdown', outside);
     };
   }, [open, place]);
 
@@ -235,7 +239,7 @@ export default function Dropdown<T extends string>({
             </div>
           ))}
         </div>,
-        document.body,
+        buttonRef.current?.ownerDocument.body ?? document.body,
       )}
     </>
   );

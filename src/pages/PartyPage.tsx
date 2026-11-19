@@ -16,7 +16,6 @@ import { getTickData, readTextFile, getP2TickData } from "../logic/LyricsParser"
 import { scriptChoice, parseShown, loadScriptChoices, saveScriptChoice, songNames, SCRIPT_LABELS, SCRIPT_LANG } from "../logic/lyricsScripts";
 import VideoPlayer from "../components/VideoPlayer";
 import PartyBar from "../components/PartyBar";
-import { shuffle } from "../logic/RandomUtility";
 import { apiUrl } from "../GlobalConsts";
 import { homePassOf, partyUrl, rememberHomePass, socketUrl, stemUrls } from "../logic/sites";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
@@ -66,7 +65,7 @@ import {
 } from "../logic/WebsocketHandling";
 import QueuePanel from "../components/QueuePanel";
 import QueueWindow, { PopOutButton } from "../components/QueueWindow";
-import SimilarSongs from "../components/SimilarSongs";
+import SavePlaylistButton from "../components/SavePlaylistButton";
 import { handlePartyMessage, usePartyChartJobs, firstPlayable } from "../logic/partyChartJobs";
 import { NO_SETTINGS, readSettings, renameInSettings, cardPeople } from "../logic/partyRoles";
 import { canPopOut, usePopout } from "../logic/popoutWindow";
@@ -115,10 +114,10 @@ import DebugOverlay from "../components/DebugOverlay";
 import AiBadge from "../components/AiBadge";
 import { browserCoversVideos } from "../logic/videoTakeover";
 import { createPartyAccess, fetchInParty, makeParty } from "../logic/partyAccess";
-import { notePartySong, notePartySingers, notePartyQueue, takePendingQueue } from "../logic/partyHistory";
+import { notePartySong, notePartySingers, notePartyQueue, takePendingQueue, historySongIds } from "../logic/partyHistory";
+import { useSuggestions } from "../logic/useSuggestions";
 import { noteSongFinished, useFeedbackPrompt } from "../logic/feedbackPrompt";
-import { useAppTestPrompt } from "../logic/appTestPrompt";
-import AfterSongsPrompt from "../components/AfterSongsPrompt";
+import FeedbackPrompt from "../components/FeedbackPrompt";
 import type { LyricData } from "../logic/LyricsParser";
 import type { ScriptChoice } from "../logic/lyricsScripts";
 import type { StemName, StemUrls } from "../logic/stemPlayer";
@@ -131,7 +130,6 @@ import type { ExtraMicSlot, ExtraSinger } from "../logic/extraSingers";
 import type { PartyVoices } from "../logic/usePartyVoices";
 import type { MicErrorKind, MicInput, MicPhase, MicStats } from "../logic/MicrophoneInput";
 import type { DialogShare } from "../components/ShareDialog";
-import type { SimilarSong } from "../components/SimilarSongs";
 import type { QueueEntry } from "../components/QueuePanel";
 import type { QueueSong } from "../components/QueueAddSong";
 import type { ExtraMicState, LatencyStore } from "../components/MicPanel";
@@ -306,7 +304,6 @@ const PartyPage = () => {
   );
   // A signed-in host plays under the account name; joiners chose theirs on the join page
   const { user: authUser, loading: authLoading, refresh: refreshAuth, refreshBest } = useAuth();
-  const { open: appTestCardOpen } = useAppTestPrompt();
   const { open: feedbackCardOpen } = useFeedbackPrompt();
   // (a new one when the account is renamed mid-party: player:renamed)
   const [chosenUserName, setChosenUserName] = useState<string | null>(routerState?.currentUserName ?? savedSession?.username ?? null);
@@ -630,7 +627,6 @@ const PartyPage = () => {
   const [songEnded, setSongEnded] = useState(false);
   const [endScores, setEndScores] = useState<EndScore[]>([]); // [{username, score, cumulativeScore}]
   const [nextSongInfo, setNextSongInfo] = useState<NextSong | null>(null); // {songId, artist, title} from server
-  const [similarSongs, setSimilarSongs] = useState<SimilarSong[]>([]);
   // Saved scores on this song (top + friends) for the end screen; fetched once
   // the song has ended, i.e. after the server saved this round
   const [songScores, setSongScores] = useState<SongScores | null>(null);
@@ -1937,14 +1933,6 @@ const PartyPage = () => {
           document.title = `${names.artist} - ${names.title} | SingSpree`;
         }
 
-        // Fetch similar songs
-        if (artist && title) {
-          fetch(`${apiUrl}/similar?artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(title)}&songId=${encodeURIComponent(activeSongId)}`)
-            .then(r => r.json())
-            .then(j => { if (!cancelled) setSimilarSongs(shuffle(j.data ?? [])); })
-            .catch(() => {});
-        }
-
         if (jsonObj.data.lyrics) {
           // Store raw lyrics for duet toggle re-parsing
           songRawRef.current = {
@@ -2956,7 +2944,6 @@ const PartyPage = () => {
       live.resetLanes();
       setServerScores(null);
       setEndScores([]);
-      setSimilarSongs([]);
       playerStateRef.current = -1;
       setActiveSongId(songId);
     };
@@ -3574,6 +3561,20 @@ const PartyPage = () => {
   );
   const retryJoin = useCallback(() => { setRefused(false); setJoinAttempt(n => n + 1); }, []);
 
+  // What "Save as playlist" keeps: the song on stage, then the queue (logic/playlists.ts)
+  const playlistSongs = [songMeta && songMeta.songId === activeSongId ? songMeta : null, ...queue];
+
+  // What the songs suggested under the queue fit (QueuePanel), and the host's tiles after a song: the queue newest
+  // first (the first few are what is asked about: each add changes them), the song on, then what this browser sang
+  // lately (logic/partyHistory.ts). The same songs make the same list: a chart's progress in the queue asks for
+  // nothing new
+  const queueKey = queue.map(e => e?.songId ?? '').join('.');
+  const partySuggestFrom = useMemo(
+    () => [...new Set([...queue.map(e => e?.songId).reverse(), activeSongId, ...historySongIds().slice(0, 20)].filter((id): id is string => Boolean(id)))],
+    [activeSongId, queueKey], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const endSuggestions = useSuggestions(songEnded && canControl ? partySuggestFrom : null).songs;
+
   // The popped-out queue (null unless its window is open)
   const queueWindow = queuePopout.container ? createPortal(
     <QueueWindow
@@ -3591,8 +3592,9 @@ const PartyPage = () => {
       onRemove={handleQueueRemove}
       onReorder={handleQueueReorder}
       onSkip={canControl && wss ? handleSkipSong : undefined}
-      similarSongs={similarSongs}
+      suggestFrom={partySuggestFrom}
       onDock={popInQueue}
+      extraAction={canControl ? <SavePlaylistButton songs={playlistSongs} /> : null}
     />,
     queuePopout.container,
   ) : null;
@@ -3669,11 +3671,11 @@ const PartyPage = () => {
 
   // What plays after the score screen. With songs in the queue (or for
   // joiners) a line; with an empty queue the host gets tiles: the automatic
-  // pick first and highlighted, then more similar songs. A song still being
+  // pick first and highlighted, then songs that fit the party (useSuggestions). A song still being
   // charted does not count: it plays once it is ready.
   const queuedNext = firstPlayable(queue);
   const endNext = queuedNext ?? nextSongInfo;
-  const endLocals = similarSongs.map(s => s.localMatch).filter(l => l != null);
+  const endLocals = (endSuggestions ?? []).filter(s => s.videoId);
   const endTiles: QueueSong[] | null = canControl && !queuedNext && (endNext?.songId || endLocals.length > 0) ? [
     ...(endNext && hasSongId(endNext) ? [endNext] : []),
     ...endLocals.filter(l => l.songId !== endNext?.songId),
@@ -4090,7 +4092,13 @@ const PartyPage = () => {
             onRemove={handleQueueRemove}
             onReorder={handleQueueReorder}
             onSkip={canControl && wss ? handleSkipSong : undefined}
-            headerAction={popOutSupported ? <PopOutButton onClick={popOutQueue} /> : null}
+            suggestFrom={partySuggestFrom}
+            headerAction={popOutSupported ? (
+              <div className="flex flex-wrap items-center justify-end gap-1.5">
+                {canControl && <SavePlaylistButton songs={playlistSongs} />}
+                <PopOutButton onClick={popOutQueue} />
+              </div>
+            ) : null}
           />
 
           {queuePopout.blocked && (
@@ -4108,7 +4116,6 @@ const PartyPage = () => {
             </div>
           )}
 
-          <SimilarSongs songs={similarSongs} onAdd={song => handleQueueAdd(song, 'queue-similar')} />
         </div>
       )}
       {queueWindow}
@@ -4124,7 +4131,7 @@ const PartyPage = () => {
             <Wordmark height={28} />
           </Link>
           {/* The card after a few songs sits under all this below lg: the scores make room for it (useCardRoom), so it covers no button */}
-          <div className={`h-full flex p-4 pt-12 short:p-2 short:pt-10 ${appTestCardOpen || feedbackCardOpen ? 'max-lg:pb-(--song-card-room)!' : ''}`}>
+          <div className={`h-full flex p-4 pt-12 short:p-2 short:pt-10 ${feedbackCardOpen ? 'max-lg:pb-(--song-card-room)!' : ''}`}>
           <div className="m-auto w-full max-w-lg max-h-full flex flex-col text-center">
           {/* The part that scrolls. Its bottom padding (--fade) fades out, so
               what scrolls under the buttons has no hard edge; -mx-1 px-1 is
@@ -4409,8 +4416,8 @@ const PartyPage = () => {
       {debugEnabled && <DebugOverlay snapshot={debugSnapshot} />}
       {/* The score screen's share video: stays open while the next song starts */}
       <ShareDialog share={shareVideo} onClose={() => setShareVideo(null)} />
-      {/* "How do you like SingSpree?", on Android the app's test for now, after a few songs on the score screen (stays while someone types) */}
-      <AfterSongsPrompt where="party" between={songEnded} getContext={() => ({ host: isHost, nickname: currentUserNameRef.current, partyId })} />
+      {/* "How do you like SingSpree?", after a few songs on the score screen (stays while someone types) */}
+      <FeedbackPrompt where="party" between={songEnded} getContext={() => ({ host: isHost, nickname: currentUserNameRef.current, partyId })} />
     </div>
   );
 };

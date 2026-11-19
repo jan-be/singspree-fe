@@ -1,9 +1,8 @@
 import { useLayoutEffect, useRef, useSyncExternalStore } from 'react';
 
 /**
- * When a small card may put a question to someone. The feedback question
- * (feedbackPrompt.ts) and the Android test's suggestion (appTestPrompt.ts)
- * are two of these, each with a record of its own.
+ * When a small card may put a question to someone: the feedback question
+ * (feedbackPrompt.ts), with a record of its own.
  *
  * Not before this browser has been through SONGS_BEFORE_ASKING songs to the
  * end, as the party's host or singing in it (party:song_ended with its name

@@ -1,17 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useSongNames } from "../logic/useSongNames";
-import { apiUrl } from "../GlobalConsts";
-import { trackSearch, currentSearch, endSearch } from "../logic/track";
-import { extractYouTubeVideoId } from "../logic/youtubeLink";
-import { startChartJob, startErrorKey } from "../logic/chartJobs";
-import { thrownField } from "../logic/authApi";
-import { useChartOffer } from "../logic/useChartOffer";
+import { currentSearch } from "../logic/track";
 import { usePartyChartState, clearPartyNotice, type AddJobToParty } from "../logic/partyChartJobs";
 import type { SongNamesSource } from "../logic/lyricsScripts";
-import AiBadge from "./AiBadge";
+import SongPicker from "./SongPicker";
 
-/** A song the queue adds (an API song: the catalogue's search, a pasted link's match, a similar song) */
+/** A song the queue adds (an API song: the catalogue's search, a pasted link's match, a suggestion) */
 export interface QueueSong extends SongNamesSource {
   songId: string;
   title: string;
@@ -28,212 +22,53 @@ export interface QueueAddSongProps {
   onAdd?: AddToQueue;
   onAddJob?: AddJobToParty;
   pendingCount?: number;
+  /** the songs in the queue now: ticked, and not added again from here */
+  queuedIds?: string[];
+  /** the party so far, most telling first (the queue newest first, the song on, what was sung): what the suggestions fit */
+  suggestFrom?: string[];
 }
 
-/** What a pasted link turned out to be */
-type LinkState = { videoId: string; videoTitle?: string; kind: 'looking' | 'exact' | 'title' | 'none' | 'error' };
-
 /**
- * The queue's "add a song" box: the catalogue search (same as the home page,
- * capped to a short list), and a pasted YouTube link — its song if we have
- * it, else a karaoke chart made for it, which joins the queue right away and
- * plays once it is ready (who may: the backend's switch, useChartOffer; the
- * party's limit on songs being charted: maxPending).
- *
- * onAdd(song, source, searchId): queue a song; onAddJob(jobId, videoTitle): queue a song being charted
- * pendingCount: songs of this queue being charted right now
+ * The queue's "add a song" (SongPicker): with nothing typed, songs that fit
+ * the party, new ones after each add; typed, the entry page's search. The
+ * songs in the queue are ticked. A pasted YouTube link that no song is gets
+ * a karaoke chart made, which joins the queue right away and plays once it
+ * is ready (who may: the backend's switch, useChartOffer; the party's limit
+ * on songs being charted: maxPending, pendingCount of them now).
  */
-const QueueAddSong = ({ onAdd, onAddJob, pendingCount = 0 }: QueueAddSongProps) => {
+const QueueAddSong = ({ onAdd, onAddJob, pendingCount = 0, queuedIds, suggestFrom }: QueueAddSongProps) => {
   const { t } = useTranslation();
-  const namesOf = useSongNames();
-  const offerKind = useChartOffer();
   const maxPending = usePartyChartState(s => s.maxPending);
   const refused = usePartyChartState(s => s.notice);
-  const [term, setTerm] = useState('');
-  const [results, setResults] = useState<QueueSong[]>([]);
-  const [link, setLink] = useState<LinkState | null>(null);     // { videoId, videoTitle, kind: looking | exact | title | none | error }
-  const [chart, setChart] = useState<{ state: 'starting' } | { state: 'error'; key: string } | null>(null);   // { state: 'starting' } | { state: 'error', key } while a chart is asked for
-  const [added, setAdded] = useState(false);  // "it joins the queue": shown for a few seconds
-  const abortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => () => abortRef.current?.abort(), []);
-  useEffect(() => {
-    if (!added) return undefined;
-    const id = setTimeout(() => setAdded(false), 6000);
-    return () => clearTimeout(id);
-  }, [added]);
   useEffect(() => {
     if (!refused) return undefined;
     const id = setTimeout(clearPartyNotice, 6000);
     return () => clearTimeout(id);
   }, [refused]);
-
-  const reset = () => {
-    abortRef.current?.abort();
-    endSearch('queue');
-    setTerm('');
-    setResults([]);
-    setLink(null);
-    setChart(null);
-  };
-
-  const lookupVideo = async (videoId: string, controller: AbortController) => {
-    setLink({ videoId, kind: 'looking' });
-    try {
-      const json = await (await fetch(`${apiUrl}/songs/by-video/${videoId}`, { signal: controller.signal })).json();
-      if (controller.signal.aborted) return;
-      if (json.success && json.data && json.matchType === 'exact') {
-        setResults([json.data]);
-        setLink({ videoId, kind: 'exact' });
-      } else if (json.success && json.searchQuery) {
-        setResults(json.results ?? [json.data]);
-        setLink({ videoId, videoTitle: json.videoTitle, kind: 'title' });
-      } else if (json.videoTitle) {
-        setLink({ videoId, videoTitle: json.videoTitle, kind: 'none' });
-      } else {
-        setLink({ videoId, kind: 'error' });
-      }
-    } catch (e) {
-      if (thrownField(e, 'name') !== 'AbortError') setLink({ videoId, kind: 'error' });
-    }
-  };
-
-  // Same search as the entry page (/songs/browse?q=…), just capped to a short list
-  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const next = e.target.value;
-    setTerm(next);
-    setChart(null);
-    setAdded(false);
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    const videoId = extractYouTubeVideoId(next);
-    setResults([]);
-    setLink(null);
-    if (videoId) { lookupVideo(videoId, controller); return; }
-    if (next.trim().length < 2) {
-      if (!next.trim()) endSearch('queue'); // an emptied box ends the search session
-      return;
-    }
-    try {
-      const params = new URLSearchParams({ q: next.trim(), limit: '10' });
-      const json = await (await fetch(`${apiUrl}/songs/browse?${params}`, { signal: controller.signal })).json();
-      if (!controller.signal.aborted) {
-        setResults(json.data ?? []);
-        trackSearch('queue', { q: next.trim(), results: (json.data ?? []).length });
-      }
-    } catch (err) {
-      if (thrownField(err, 'name') !== 'AbortError') setResults([]);
-    }
-  };
-
-  const handleAdd = (song: QueueSong) => {
-    onAdd?.(song, 'queue-search', currentSearch('queue')?.id); // the search session that led to it
-    reset();
-  };
-
-  const createChart = async ({ videoId, videoTitle }: LinkState) => {
-    setChart({ state: 'starting' });
-    try {
-      const r = await startChartJob(videoId);
-      if (r.songId) {
-        handleAdd(r.song ?? { songId: r.songId, title: videoTitle ?? '', artist: '', videoId });
-        return;
-      }
-      if (onAddJob) {
-        if (!r.job) throw new Error('POST /chart-jobs answered neither a song nor a job');
-        onAddJob(r.job.id, videoTitle);
-      }
-      reset();
-      setAdded(true);
-    } catch (e) {
-      setChart({ state: 'error', key: startErrorKey(e) });
-    }
-  };
-
-  const linkOffer = link && (link.kind === 'none' || link.kind === 'title');
   const atLimit = maxPending > 0 && pendingCount >= maxPending;
+  const queued = useMemo(() => new Set(queuedIds), [queuedIds]);
+  const notice = refused && <p role="status" className="px-1 text-xs text-[#ff8a97]">{t(`queue.refused.${refused.reason}`, { count: maxPending, defaultValue: t('queue.refused.unknown') })}</p>;
 
   return (
-    <div className="space-y-2">
-      <div className="relative">
-        <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/45 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        <input
-          type="search"
-          placeholder={t('queue.searchOrPaste')}
-          aria-label={t('queue.addSong')}
-          value={term}
-          onChange={handleChange}
-          onKeyDown={e => { if (e.key === 'Escape') reset(); }}
-          className="field h-10 pl-8 pr-3 rounded-xl text-sm"
-        />
-      </div>
-
-      {link?.kind === 'looking' && <p className="px-1 text-xs text-white/55 animate-pulse">{t('search.lookingUp')}</p>}
-      {link?.kind === 'error' && <p className="px-1 text-xs text-[#ff8a97]">{t('search.videoNotFound')}</p>}
-      {link?.kind === 'none' && <p className="px-1 text-xs text-white/75">{t('queue.notInSingspree', { title: link.videoTitle })}</p>}
-      {link?.kind === 'title' && <p className="px-1 text-xs text-white/55">{t('search.matchesFor', { title: link.videoTitle })}</p>}
-
-      {results.length > 0 && (
-        <ul className="max-h-56 overflow-y-auto space-y-0.5" aria-label={t('queue.results')}>
-          {results.map((song, i) => {
-            const names = namesOf(song);
-            return (
-              <li key={song.songId ?? i}>
-                <button
-                  type="button"
-                  onClick={() => handleAdd(song)}
-                  className="group w-full flex items-center gap-2.5 text-left px-2 py-1.5 rounded-xl hover:bg-white/[0.07] transition-colors cursor-pointer"
-                >
-                  <span className="relative flex-shrink-0">
-                    {song.videoId
-                      ? <img src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`} alt="" loading="lazy" className="block w-12 aspect-video rounded-md object-cover" />
-                      : <span className="block w-12 aspect-video rounded-md bg-white/10" />}
-                    {song.generated && <AiBadge beta={song.beta} />}
-                  </span>
-                  <span className="flex-1 min-w-0">
-                    <span className="block text-sm text-white truncate" lang={names.lang}>{names.title}</span>
-                    <span className="block text-xs text-white/50 truncate" lang={names.lang}>{names.artist}</span>
-                  </span>
-                  <span aria-hidden="true" className="w-7 h-7 rounded-full bg-white/[0.08] text-white flex items-center justify-center text-base leading-none group-hover:bg-[#ff5cd6] group-hover:text-white transition-colors flex-shrink-0">+</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      {/* A karaoke chart for the pasted video: it joins the queue now and plays once it is ready */}
-      {linkOffer && offerKind === 'offer' && maxPending > 0 && (
-        <div className="rounded-2xl bg-neon-purple/[0.1] ring-1 ring-inset ring-neon-purple/25 p-3">
-          {atLimit ? (
-            <p className="text-xs text-white/70">{t('queue.pendingLimit', { count: maxPending })}</p>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={() => createChart(link)}
-                disabled={chart?.state === 'starting'}
-                className="btn btn-sm btn-primary w-full disabled:cursor-default"
-              >
-                <span aria-hidden="true">✨</span>
-                {link.kind === 'title' ? t('queue.chartOfferOther') : t('queue.chartOffer')}
-              </button>
-              <p className="mt-1.5 text-[11px] text-white/65 leading-snug">{t('queue.chartOfferHint')}</p>
-            </>
-          )}
-          {chart?.state === 'error' && <p className="mt-1.5 text-xs text-[#ff8a97]">{t(`search.generate.${chart.key}`)}</p>}
-        </div>
-      )}
-      {linkOffer && offerKind === 'signIn' && maxPending > 0 && (
-        <a href="/login" target="_blank" rel="noopener" className="block px-1 text-xs text-white/80 underline decoration-white/30 underline-offset-2 hover:text-white hover:decoration-white/60">{t('search.generate.signIn')}</a>
-      )}
-
-      {added && <p role="status" className="px-1 text-xs text-neon-green">{t('queue.chartAdded')}</p>}
-      {refused && <p role="status" className="px-1 text-xs text-[#ff8a97]">{t(`queue.refused.${refused.reason}`, { count: maxPending, defaultValue: t('queue.refused.unknown') })}</p>}
-    </div>
+    <SongPicker
+      onPick={(song, source) => (source === 'suggestion'
+        ? onAdd?.(song, 'queue-similar')
+        : onAdd?.(song, 'queue-search', currentSearch('queue')?.id))}
+      picked={queued}
+      pickedLabel={t('queue.inQueue')}
+      addLabel={t('queue.addSong')}
+      suggestFrom={suggestFrom}
+      suggestionsLabel={t('queue.suggestions')}
+      searchScope="queue"
+      placeholder={t('queue.searchOrPaste')}
+      chart={{
+        onJob: onAddJob ? (jobId, videoTitle) => onAddJob(jobId, videoTitle) : undefined,
+        handedText: t('queue.chartAdded'),
+        blocked: atLimit ? t('queue.pendingLimit', { count: maxPending }) : null,
+        allowed: Boolean(onAddJob) && maxPending > 0,
+      }}
+      notice={notice}
+    />
   );
 };
 

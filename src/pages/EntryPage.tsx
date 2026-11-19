@@ -1,14 +1,17 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } from "react";
+import React, { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSongNames } from "../logic/useSongNames";
 import JoinPartyButton from "../components/JoinPartyButton";
+import PlaylistsButton from "../components/PlaylistsButton";
 import SearchBar from "../components/SearchBar";
-import Dropdown, { DropdownChevron, type DropdownOption } from "../components/Dropdown";
 import PartyRecap from "../components/PartyRecap";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import SocialLinks from "../components/SocialLinks";
 import { DuetIcon } from "../components/Icons";
+import SongFilterBar from "../components/SongFilterBar";
+import { readFilters, writeFilters, filtersToQuery, hasTagFilters, listContext, type BrowseSong, type ListContext, type SongFilters } from "../logic/songFilters";
+import { useSongPages } from "../logic/useSongPages";
 import WrapperPage from "./WrapperPage";
 import Wordmark from "../components/Wordmark";
 import { apiUrl } from "../GlobalConsts";
@@ -16,104 +19,18 @@ import { loadPartySession, clearPartySession } from "../logic/partySession";
 import { useAuth } from "../logic/AuthContext";
 import StarRating from "../components/StarRating";
 import AiBadge from "../components/AiBadge";
-import { trackSearch, trackPick, currentSearch, endSearch } from "../logic/track";
+import { trackPick, currentSearch, endSearch } from "../logic/track";
 import { probeYouTube, inMainlandChinaTimeZone } from "../logic/youtubeReachable";
 import { useChartOffer } from "../logic/useChartOffer";
 import { inOurApp } from "../logic/androidApp";
 import { ChartHint } from "../components/ChartOfferCard";
 import SingAgainCard from "../components/SingAgainCard";
-import AfterSongsPrompt from "../components/AfterSongsPrompt";
+import FeedbackPrompt from "../components/FeedbackPrompt";
 import ForYouRow from "../components/ForYouRow";
 import SeasonRow from "../components/SeasonRow";
 import { useSeason } from "../seasons/seasons";
-import type { SongNamesSource } from "../logic/lyricsScripts";
 import type { SearchBarHandle } from "../components/SearchBar";
 import type { PartyRecapInfo } from "../components/PartyRecap";
-
-/** A song of /songs/browse as the grid shows it */
-interface BrowseSong extends SongNamesSource {
-  songId: string;
-  videoId?: string | null;
-  generated?: boolean;
-  beta?: boolean;
-  isDuet?: boolean;
-}
-
-/** A catalogue language with its number of songs (GET /songs/languages) */
-interface CatalogueLanguage {
-  name: string;
-  count: number;
-}
-
-/** The browse list's orders (backend songBrowser), 'recommended' when the URL names none */
-type Sort = 'recommended' | 'popular' | 'new';
-const SORTS: Sort[] = ['recommended', 'popular', 'new'];
-const readSort = (v: string | null): Sort => SORTS.find(s => s === v) ?? 'recommended';
-
-/** What the grid shows, as the URL keeps it */
-interface Filters {
-  q: string | null;
-  sort: Sort;
-  duet: boolean;
-  language: string | null;
-}
-
-/** What the grid is showing, for the pick events */
-interface GridContext {
-  q: string | null;
-  sort: Sort;
-  tags: string[];
-  language: string | null;
-}
-
-// i18n locale code → USDB language name
-const LOCALE_TO_LANGUAGE: Record<string, string> = {
-  en: 'English', de: 'German', fr: 'French', es: 'Spanish', it: 'Italian',
-  ja: 'Japanese', pl: 'Polish', nl: 'Dutch', pt: 'Portuguese', zh: 'Mandarin',
-  ko: 'Korean', hu: 'Hungarian', sv: 'Swedish', fi: 'Finnish', da: 'Danish',
-  ru: 'Russian', tr: 'Turkish', cs: 'Czech', no: 'Norwegian', hr: 'Croatian',
-  sl: 'Slovenian', hi: 'Hindi', ar: 'Arabic', id: 'Indonesian', th: 'Thai', tl: 'Tagalog', vi: 'Vietnamese',
-};
-
-const PAGE_SIZE = 30;
-
-// ── Filters ────────────────────────────────────────────────────────────
-// One state drives the grid: the search text `q`, the ranking `sort` (ignored
-// while searching — results are relevance-ranked) and the tag filters, which
-// combine. It lives in the URL (?q=love&duet=1&language=German) so it survives
-// reloads and can be shared.
-const readFilters = (params: URLSearchParams): Filters => ({
-  q: (params.get('q') || '').trim() || null,
-  sort: readSort(params.get('sort')),
-  duet: params.get('duet') === '1',
-  language: params.get('language') || null,
-});
-
-const writeFilters = (params: URLSearchParams, filters: Filters) => {
-  const next = new URLSearchParams(params);
-  // 'stems': the Instrumental filter, gone since nearly every song has stems; old links lose it here
-  for (const key of ['q', 'sort', 'duet', 'stems', 'language']) next.delete(key);
-  if (filters.q) next.set('q', filters.q);
-  if (filters.sort !== 'recommended') next.set('sort', filters.sort);
-  if (filters.duet) next.set('duet', '1');
-  if (filters.language) next.set('language', filters.language);
-  return next;
-};
-
-/** Query string for /songs/browse (sort is meaningless while searching). */
-const filtersToQuery = (filters: Filters) =>
-  writeFilters(new URLSearchParams(), filters.q ? { ...filters, sort: 'recommended' } : filters).toString();
-
-// ── Fetcher ────────────────────────────────────────────────────────────
-// match: how well the first page answers a search (backend songBrowser: 'weak' when nothing answers it well)
-const fetchPage = async (query: string, offset: number): Promise<{ songs: BrowseSong[]; hasMore: boolean; match: string | null }> => {
-  const params = new URLSearchParams(query);
-  params.set('offset', String(offset));
-  params.set('limit', String(PAGE_SIZE));
-  const r = await fetch(`${apiUrl}/songs/browse?${params}`);
-  const j = await r.json();
-  return { songs: j.data || [], hasMore: j.hasMore ?? false, match: j.match ?? null };
-};
 
 // ── HeroWall ───────────────────────────────────────────────────────────
 // The wall the neon sign hangs on, as in the app icon: brick courses across
@@ -176,7 +93,7 @@ const HeroWall = ({ decor: Decor }: { decor?: React.ComponentType }) => (
 );
 
 // ── SongCard ───────────────────────────────────────────────────────────
-const SongCard = ({ song, position, context }: { song: BrowseSong; position: number; context: GridContext }) => {
+const SongCard = ({ song, position, context }: { song: BrowseSong; position: number; context: ListContext }) => {
   const { best } = useAuth();
   const names = useSongNames()(song);
   const mine = best[song.songId]; // the signed-in user's best score on this song
@@ -234,19 +151,6 @@ const SongCard = ({ song, position, context }: { song: BrowseSong; position: num
   );
 };
 
-// ── CategoryPill ───────────────────────────────────────────────────────
-// Chips are a little smaller on phones, where the pinned band must stay short
-const CHIP_SIZE = 'h-8 px-3 text-[13px] sm:h-9 sm:px-[0.9rem] sm:text-sm';
-
-// A combinable filter: quiet when off, lit pink when on
-// (`color` is passed but not used)
-const CategoryPill = ({ label, icon, active, onClick }: { label: string; icon?: React.ReactNode; active: boolean; onClick: () => void; color?: string }) => (
-  <button type="button" onClick={onClick} aria-pressed={!!active} className={`chip ${CHIP_SIZE}`}>
-    {icon}
-    {label}
-  </button>
-);
-
 // One column on phones, two on tablets, three on desktop
 const GRID = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-6 sm:gap-y-8';
 
@@ -259,92 +163,16 @@ const SongCardSkeleton = () => (
 );
 
 // ── InfiniteScrollGrid ─────────────────────────────────────────────────
-// Shows one page of /songs/browse results and loads more as the sentinel
-// scrolls into view. When `query` changes the first page is fetched and
-// swapped in when it arrives — the previous cards stay visible meanwhile,
-// so search-as-you-type does not flash an empty grid on every keystroke.
+// The songs of /songs/browse as cards, a page at a time (logic/useSongPages.ts).
 // `hint`: shown above the cards when the search found nothing that answers
 // it well (the first page's `match`: 'weak', or no songs at all).
+const PAGE_SIZE = 30;
+
 const InfiniteScrollGrid = ({ query, emptyMessage, hint = null }: { query: string; emptyMessage?: string; hint?: React.ReactNode }) => {
-  const [songs, setSongs] = useState<BrowseSong[]>([]);
-  const [match, setMatch] = useState<string | null>(null); // of the songs shown
-  const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadedOnce, setLoadedOnce] = useState(false);
-  const offsetRef = useRef(0);
-  const queryRef = useRef(query);
-  const inFlightRef = useRef<string | null>(null); // token of the request in flight, if any
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const { songs, match, loading, loadedOnce, sentinelRef } = useSongPages(query, { pageSize: PAGE_SIZE, searchScope: 'entry' });
   const { t } = useTranslation();
-
-  const load = useCallback(async (q: string, offset: number, replace: boolean) => {
-    const token = `${q}@${offset}`;
-    inFlightRef.current = token;
-    setLoading(true);
-    try {
-      const result = await fetchPage(q, offset);
-      if (q !== queryRef.current) return; // a newer query took over
-      if (offset === 0) {
-        const typed = new URLSearchParams(q).get('q');
-        const matched = typed ? (result.songs.length ? result.match : 'none') : null;
-        setMatch(matched);
-        if (typed) trackSearch('entry', { q: typed, results: result.songs.length, hasMore: result.hasMore, match: matched ?? undefined });
-      }
-      setSongs(prev => {
-        if (replace) return result.songs;
-        const existing = new Set(prev.map(s => s.songId));
-        return [...prev, ...result.songs.filter(s => !existing.has(s.songId))];
-      });
-      setHasMore(result.hasMore);
-      offsetRef.current = offset + result.songs.length;
-    } catch (e) {
-      if (q !== queryRef.current) return;
-      console.error('[InfiniteScroll] fetch error', e);
-      if (replace) setSongs([]);
-      setHasMore(false);
-    } finally {
-      if (inFlightRef.current === token) {
-        inFlightRef.current = null;
-        setLoading(false);
-        setLoadedOnce(true);
-      }
-    }
-  }, []);
-
-  // New query → fetch its first page
-  useEffect(() => {
-    queryRef.current = query;
-    offsetRef.current = 0;
-    setHasMore(true);
-    load(query, 0, true);
-  }, [query, load]);
-
-  // Sentinel scrolled into view → next page
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && hasMore && !inFlightRef.current) {
-          load(queryRef.current, offsetRef.current, false);
-        }
-      },
-      { rootMargin: '400px' },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [hasMore, load, songs.length]);
-
   // What the grid is showing, for the pick events
-  const context = useMemo((): GridContext => {
-    const p = new URLSearchParams(query);
-    return {
-      q: p.get('q') || null,
-      sort: readSort(p.get('sort')),
-      tags: [p.get('duet') === '1' && 'duet', p.get('language') && 'language'].filter((tag): tag is string => Boolean(tag)),
-      language: p.get('language') || null,
-    };
-  }, [query]);
+  const context = useMemo(() => listContext(query), [query]);
 
   if (!loadedOnce) {
     // The grid's shape while the first page loads
@@ -381,66 +209,9 @@ const InfiniteScrollGrid = ({ query, emptyMessage, hint = null }: { query: strin
   );
 };
 
-// ── LanguageDropdown ───────────────────────────────────────────────────
-const LanguageDropdown = ({ languages, active, onSelect, userLang }: {
-  languages: CatalogueLanguage[]; active: string | null; onSelect: (name: string | null) => void; userLang: string;
-}) => {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const { t } = useTranslation();
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target instanceof Node ? e.target : null)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  // The user's own language has its own pill; this dropdown holds the rest.
-  // `active` is the currently selected language name (or null = all).
-  const isLangActive = languages.some(l => l.name === active);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-        className={`chip ${CHIP_SIZE} ${isLangActive ? 'is-on' : ''}`}
-      >
-        {isLangActive ? active : t('sections.moreLanguages')}
-        <svg className={`w-3.5 h-3.5 -mr-0.5 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
-      </button>
-
-      {open && (
-        <div className="pop absolute top-full mt-2 left-0 z-50 p-1.5 max-h-72 overflow-y-auto min-w-52">
-          <button
-            type="button"
-            onClick={() => { onSelect(null); setOpen(false); }}
-            className={`menu-item ${!active ? 'bg-white/10 text-white' : ''}`}
-          >
-            {t('sections.allLanguages')}
-          </button>
-          <div className="my-1 h-px bg-white/8" aria-hidden="true" />
-          {languages.map(lang => (
-            <button
-              type="button"
-              key={lang.name}
-              onClick={() => { onSelect(lang.name === active ? null : lang.name); setOpen(false); }}
-              className={`menu-item justify-between gap-4 ${lang.name === active ? 'bg-white/10 text-white' : ''} ${lang.name === userLang ? 'font-semibold' : ''}`}
-            >
-              <span>{lang.name}</span>
-              <span className="text-xs text-white/40 tabular-nums">{lang.count.toLocaleString()}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
 // ── EntryPage ──────────────────────────────────────────────────────────
 const EntryPage = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   // Our apps have no footer: a TV remote's arrows never got past the endless
   // songs to it, and an app keeps such links in a menu (AppMenu, in the top bar)
@@ -490,19 +261,13 @@ const EntryPage = () => {
     if (location.state?.partyNotice) navigate(location.pathname + location.search, { replace: true, state: null });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [searchParams, setSearchParams] = useSearchParams();
-  const [languages, setLanguages] = useState<CatalogueLanguage[]>([]);
   // Halloween and the like (src/seasons): its decorations on the wall, its songs above the grid
   const season = useSeason();
 
   const filters = readFilters(searchParams);
   const query = filtersToQuery(filters);
-  const hasFilters = filters.duet || Boolean(filters.language);
-  const sortOptions: DropdownOption<Sort>[] = [
-    { value: 'recommended', label: t('sections.recommended') },
-    { value: 'popular', label: t('sections.popularAtParties') },
-    { value: 'new', label: t('sections.newest') },
-  ];
-  const updateFilters = (patch: Partial<Filters>) =>
+  const hasFilters = hasTagFilters(filters);
+  const updateFilters = (patch: Partial<SongFilters>) =>
     setSearchParams(writeFilters(searchParams, { ...filters, ...patch }), { replace: true });
 
   // Nothing found answers the search well: say that a song can be made from
@@ -514,21 +279,6 @@ const EntryPage = () => {
   const chartHint = filters.q && filters.q.length >= 3 && !linkActive && (offerKind === 'offer' || offerKind === 'signIn')
     ? <ChartHint query={filters.q} offerKind={offerKind} onMake={(videoId, title) => searchBarRef.current?.makeChart(videoId, title)} />
     : null;
-
-  const locale = i18n.language?.substring(0, 2);
-  const userLang = LOCALE_TO_LANGUAGE[locale];
-
-  // Fetch available languages on mount
-  useEffect(() => {
-    fetch(`${apiUrl}/songs/languages`)
-      .then(r => r.json())
-      .then(j => setLanguages(j.data || []))
-      .catch(() => {});
-  }, []);
-
-  // Split languages: user's language gets its own pill, the rest go in the dropdown
-  const userLangEntry = languages.find(l => l.name === userLang);
-  const dropdownLangs = languages.filter(l => l.name !== userLang);
 
   // The search band is pinned once the spot it started in has scrolled away
   const pinSentinelRef = useRef<HTMLDivElement>(null);
@@ -553,7 +303,8 @@ const EntryPage = () => {
 
   return (
     <>
-    <WrapperPage hideFooter navActions={<JoinPartyButton />}>
+    {/* (Join Party takes the bar's free room and keeps right in it: Playlists goes after it, to stay beside it) */}
+    <WrapperPage hideFooter navActions={<><JoinPartyButton /><PlaylistsButton /></>}>
 
       {/* Hero: the neon sign on its brick wall, like the icon */}
       <div className="text-center pt-10 pb-12 sm:pt-14 sm:pb-16 relative isolate">
@@ -622,72 +373,12 @@ const EntryPage = () => {
         <SearchBar ref={searchBarRef} value={filters.q ?? ''} onChange={(q) => updateFilters({ q: q || null })} onLinkActive={setLinkActive} />
       </div>
 
-      {/* Filter pills (combinable tags) + sort */}
-      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-        <CategoryPill
-          label={t('sections.duets')}
-          icon={<DuetIcon />}
-          active={filters.duet}
-          onClick={() => updateFilters({ duet: !filters.duet })}
-          color="neon-purple"
-        />
-        {userLangEntry && (
-          <CategoryPill
-            label={t('sections.songsInYourLanguage')}
-            active={filters.language === userLang}
-            onClick={() => updateFilters({ language: filters.language === userLang ? null : userLang })}
-            color="neon-green"
-          />
-        )}
-        {dropdownLangs.length > 0 && (
-          <LanguageDropdown
-            languages={dropdownLangs}
-            active={filters.language}
-            onSelect={(name) => updateFilters({ language: name })}
-            userLang={userLang}
-          />
-        )}
-        {hasFilters && (
-          <button
-            type="button"
-            onClick={() => updateFilters({ duet: false, language: null })}
-            className="ml-1 text-sm text-white/45 hover:text-white underline decoration-white/20 underline-offset-4 transition-colors cursor-pointer"
-          >
-            {t('sections.clearFilters')}
-          </button>
-        )}
-
-        {/* Sort — relevance takes over while searching, so it is disabled then.
-            Phones: a round sort button, so the pinned band keeps to two rows in every language */}
-        <div
-          className={`ml-auto flex items-center gap-2 text-sm text-white/45 ${filters.q ? 'opacity-40' : ''}`}
-          title={filters.q ? t('sections.sortedByRelevance') : undefined}
-        >
-          <span className="hidden sm:inline" aria-hidden="true">{t('sections.sortBy')}</span>
-          <Dropdown
-            value={filters.sort}
-            options={sortOptions}
-            onChange={(sort) => updateFilters({ sort })}
-            disabled={Boolean(filters.q)}
-            label={t('sections.sortBy')}
-            title={filters.q ? undefined : sortOptions.find(o => o.value === filters.sort)?.label}
-            align="end"
-            className={`chip ${CHIP_SIZE} disabled:cursor-not-allowed max-sm:w-8 max-sm:px-0! max-sm:justify-center`}
-          >
-            {(open) => <>
-              <span className="max-sm:hidden">{sortOptions.find(o => o.value === filters.sort)?.label}</span>
-              <DropdownChevron open={open} className="max-sm:hidden -mr-0.5" />
-              <svg className="sm:hidden w-4 h-4 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3" />
-              </svg>
-            </>}
-          </Dropdown>
-        </div>
-      </div>
+      {/* Filter pills (combinable tags) + sort (SongFilterBar: the same in the queue and a playlist) */}
+      <SongFilterBar filters={filters} onChange={updateFilters} />
       </div>
 
       {/* Song grid — search results or the browse list, same component */}
-      <section className="mb-6 pb-20 sm:pb-12">
+      <section className="mb-6 pb-12">
         {/* The season's songs first, then what goes with the songs this browser or account sang, on the plain grid only */}
         {!filters.q && !hasFilters && season && <SeasonRow key={season.id} season={season} />}
         {!filters.q && !hasFilters && <ForYouRow />}
@@ -700,12 +391,12 @@ const EntryPage = () => {
 
     </WrapperPage>
 
-    {/* "How do you like SingSpree?", on Android the app's test for now, for someone who has sung a few songs (logic/songPrompt.ts) */}
-    <AfterSongsPrompt where="home" />
+    {/* "How do you like SingSpree?", for someone who has sung a few songs (logic/songPrompt.ts) */}
+    <FeedbackPrompt where="home" />
 
-    {/* Fixed footer: compliance links, SingSpree elsewhere, the language switcher.
-        One line where it fits; on narrow phones the links take a line of their own */}
-    {!inApp && <div data-out="home-bar" className="fixed bottom-0 left-0 right-0 z-40 bg-ink/80 backdrop-blur-md border-t border-white/[0.06]">
+    {/* Fixed footer: compliance links, SingSpree elsewhere, the language switcher. From sm on, in one line where it
+        fits (a phone-sized screen has it in the side menu: SideMenu) */}
+    {!inApp && <div data-out="home-bar" className="hidden sm:block fixed bottom-0 left-0 right-0 z-40 bg-ink/80 backdrop-blur-md border-t border-white/[0.06]">
       <div className="flex flex-wrap justify-center items-center gap-x-4 sm:gap-x-6 gap-y-0 px-4 py-1 text-xs sm:text-[13px]">
         <div className="flex items-center gap-4 sm:gap-6">
           <Link to="/privacy-policy" className="text-white/45 hover:text-white transition-colors">

@@ -7,7 +7,7 @@ describe('partyPlan', () => {
     expect(url).toBe('https://singspree.com/?again=aB3dE5fG7hJ.zz-Y_9q');
     expect(parseAgain('aB3dE5fG7hJ.zz-Y_9q.aB3dE5fG7hJ.<script>.ab')).toEqual(['aB3dE5fG7hJ', 'zz-Y_9q']);
     expect(parseAgain(null)).toEqual([]);
-    expect(parseAgain(Array.from({ length: 40 }, (_, i) => `song${i}`).join('.'))).toHaveLength(MAX_PLAN_SONGS);
+    expect(parseAgain(Array.from({ length: MAX_PLAN_SONGS + 20 }, (_, i) => `song${i}`).join('.'))).toHaveLength(MAX_PLAN_SONGS);
   });
 
   test('next time: the same weekday and time a week on, ahead of now, on the half hour', () => {

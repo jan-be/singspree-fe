@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useSongNames } from "../logic/useSongNames";
 import QueuePanel, { type QueueEntry, type QueuePanelProps } from "./QueuePanel";
-import SimilarSongs, { type SimilarSong } from "./SimilarSongs";
 import { PopOutIcon, PopInIcon } from "./Icons";
 import { playerHue, type PlayerColors } from "../logic/playerColor";
 import type { AvatarPaths } from "../logic/avatar";
@@ -26,8 +25,10 @@ export interface QueueWindowProps extends Pick<QueuePanelProps, "canManage" | "c
   playerColors?: PlayerColors;
   playerAvatars?: AvatarPaths;
   members?: string[];
-  similarSongs: SimilarSong[];
+  /** the party so far: what the songs suggested under the queue fit (QueuePanel) */
+  suggestFrom?: string[];
   onDock?: () => void;
+  extraAction?: React.ReactNode;
 }
 
 // Past this many, the singers line ends in "+N more" (a crowd party has hundreds)
@@ -99,11 +100,12 @@ const NowPlaying = ({ song, singers, playerColors, playerAvatars }: { song: Queu
  * singers: usernames of who is singing this song; members: of everyone in the party
  * playerAvatars: username -> picture path (logic/avatar.ts)
  * onDock: close the window and show the queue in the party window again
+ * extraAction: another control next to that one (the host's "Save as playlist")
  */
 const QueueWindow = ({
   partyId, song, singers = [], playerColors, playerAvatars, members,
   queue, canManage, currentUserName, onAdd, onAddJob, onRemove, onReorder, onSkip,
-  similarSongs, onDock,
+  suggestFrom, onDock, extraAction,
 }: QueueWindowProps) => {
   const { t, i18n } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -131,8 +133,8 @@ const QueueWindow = ({
         )}
       </header>
 
-      {/* One column in a narrow window; from md the queue gets the left and
-          the current song and the suggestions stack on the right */}
+      {/* One column in a narrow window; from md the queue (and under it the
+          songs that fit the party) gets the left, the current song the right */}
       <main className="flex-1 w-full max-w-5xl mx-auto p-3 sm:p-4 grid gap-3 sm:gap-4 content-start md:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] md:items-start">
         {song && (
           <div className="min-w-0 md:col-start-2 md:row-start-1">
@@ -153,19 +155,20 @@ const QueueWindow = ({
             onRemove={onRemove}
             onReorder={onReorder}
             onSkip={onSkip}
-            headerAction={onDock && (
-              <button type="button" onClick={onDock} title={t('queue.popInHint')} className={windowButtonClass}>
-                <PopInIcon size={13} />
-                {t('queue.popIn')}
-              </button>
+            suggestFrom={suggestFrom}
+            headerAction={(onDock || extraAction) && (
+              <div className="flex flex-wrap items-center justify-end gap-1.5">
+                {extraAction}
+                {onDock && (
+                  <button type="button" onClick={onDock} title={t('queue.popInHint')} className={windowButtonClass}>
+                    <PopInIcon size={13} />
+                    {t('queue.popIn')}
+                  </button>
+                )}
+              </div>
             )}
           />
         </div>
-        {similarSongs?.length > 0 && (
-          <div className="min-w-0 md:col-start-2">
-            <SimilarSongs songs={similarSongs} onAdd={s => onAdd?.(s, 'queue-similar')} />
-          </div>
-        )}
       </main>
     </div>
   );

@@ -140,3 +140,14 @@ export const PartyIcon = ({ size = 14, strokeWidth = 2, className }: IconProps) 
     <path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z" />
   </svg>
 );
+
+/** Lines with a note — playlists. */
+export const PlaylistIcon = ({ size = 14, strokeWidth = 2, className }: IconProps) => (
+  <svg width={size} height={size} strokeWidth={strokeWidth} className={className} aria-hidden="true" {...base}>
+    <path d="M3 6h12" />
+    <path d="M3 12h9" />
+    <path d="M3 18h7" />
+    <path d="M17 18V8l4-1" />
+    <circle cx="15" cy="18" r="2" />
+  </svg>
+);

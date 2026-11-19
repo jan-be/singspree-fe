@@ -4,7 +4,7 @@
  * (the entry page's ?again=id.id… shows the songs with Start again).
  */
 
-export const MAX_PLAN_SONGS = 30;
+export const MAX_PLAN_SONGS = 100;
 const ID = /^[A-Za-z0-9_-]{4,64}$/;
 
 /** The link that starts a party with these songs again */

@@ -1,13 +1,15 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useSongNames } from "../logic/useSongNames";
+import { useStayPut } from "../logic/useStayPut";
 import { playerHue, type PlayerColors } from "../logic/playerColor";
 import { isPendingEntry, usePartyJob, type AddJobToParty, type ChartQueueEntry, type PendingEntry } from "../logic/partyChartJobs";
 import type { SongNamesSource } from "../logic/lyricsScripts";
 import type { AvatarPaths } from "../logic/avatar";
 import QueueAddSong, { type AddToQueue } from "./QueueAddSong";
 import ChartJobProgress from "./ChartJobProgress";
-import AiBadge from "./AiBadge";
+import SongThumb from "./SongThumb";
+import { useDragReorder, DragHandle, DRAG_OVER_CLASS } from "./DragReorder";
 import Avatar from "./Avatar";
 import PartyPeople from "./PartyPeople";
 
@@ -28,6 +30,8 @@ export interface QueuePanelProps {
   onAddJob?: AddJobToParty;
   onSkip?: () => void;
   headerAction?: React.ReactNode;
+  /** the party so far, most telling first: what the suggestions under the queue fit (QueueAddSong) */
+  suggestFrom?: string[];
 }
 
 const FAILED = new Set<string | undefined>(['failed', 'rejected']);
@@ -66,11 +70,12 @@ const PendingProgress = ({ entry, waitsAtFront }: { entry: PendingEntry; waitsAt
  * canManage: the host or a co-host, who may remove any entry and reorder them (everyone else removes their own).
  * onSkip (host and co-hosts): skip the current song — armed on first click, fires on the second.
  * onAddJob(jobId, videoTitle): queue a song being charted (QueueAddSong)
+ * suggestFrom: the party's songs (the queue newest first, the one on, what was sung), for the songs that fit it, under the queue
  * headerAction: a control next to the title (pop the queue out into its own window, or back in).
  * members: who is in the party (usernames), shown as avatars under the title; playerAvatars: their pictures;
  * partyId: goes along when someone reports a picture from there.
  */
-const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, playerAvatars, members, partyId, onRemove, onReorder, onAdd, onAddJob, onSkip, headerAction }: QueuePanelProps) => {
+const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, playerAvatars, members, partyId, onRemove, onReorder, onAdd, onAddJob, onSkip, headerAction, suggestFrom }: QueuePanelProps) => {
   const { t } = useTranslation();
   const namesOf = useSongNames();
   const [skipArmed, setSkipArmed] = useState(false);
@@ -92,113 +97,19 @@ const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, play
     }
   };
 
-  // Drag state
-  const dragIndexRef = useRef<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-
-  // --- Drag handlers (host and co-hosts) ---
-  const handleDragStart = useCallback((e: React.DragEvent<HTMLLIElement>, index: number) => {
-    dragIndexRef.current = index;
-    e.dataTransfer.effectAllowed = 'move';
-    // Make the drag image semi-transparent
-    e.currentTarget.style.opacity = '0.5';
-  }, []);
-
-  const handleDragEnd = useCallback((e: React.DragEvent<HTMLLIElement>) => {
-    e.currentTarget.style.opacity = '1';
-    dragIndexRef.current = null;
-    setDragOverIndex(null);
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLLIElement>, index: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dragIndexRef.current !== null && dragIndexRef.current !== index) {
-      setDragOverIndex(index);
-    }
-  }, []);
-
-  const handleDragLeave = useCallback(() => {
-    setDragOverIndex(null);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent<HTMLLIElement>, toIndex: number) => {
-    e.preventDefault();
-    const fromIndex = dragIndexRef.current;
-    if (fromIndex !== null && fromIndex !== toIndex) {
-      onReorder?.(fromIndex, toIndex);
-    }
-    dragIndexRef.current = null;
-    setDragOverIndex(null);
-  }, [onReorder]);
-
-  // Touch drag support
-  const touchStartRef = useRef<number | null>(null);
-  const touchIndexRef = useRef<number | null>(null);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLLIElement>, index: number) => {
-    touchStartRef.current = e.touches[0].clientY;
-    touchIndexRef.current = index;
-  }, []);
-
-  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLLIElement>) => {
-    if (touchIndexRef.current === null || touchStartRef.current === null) return;
-    const endY = e.changedTouches[0].clientY;
-    const diff = endY - touchStartRef.current;
-    const fromIndex = touchIndexRef.current;
-
-    // Threshold: 30px vertical drag
-    if (Math.abs(diff) > 30) {
-      const direction = diff > 0 ? 1 : -1;
-      const toIndex = fromIndex + direction;
-      if (toIndex >= 0 && toIndex < queue.length) {
-        onReorder?.(fromIndex, toIndex);
-      }
-    }
-    touchStartRef.current = null;
-    touchIndexRef.current = null;
-  }, [queue.length, onReorder]);
+  // Reordering by drag (host and co-hosts)
+  const { dragOverIndex, itemProps } = useDragReorder(queue.length, onReorder);
 
   const nextIndex = queue.findIndex(e => e?.songId);
   // the first song still being charted ahead of the next one to play says why it is passed over
   const frontPending = queue.findIndex(e => isPendingEntry(e) && !FAILED.has(e.job.status));
   const pendingCount = queue.filter(e => isPendingEntry(e) && !FAILED.has(e.job.status)).length;
+  const queuedIds = useMemo(() => queue.flatMap(e => (e?.songId ? [e.songId] : [])), [queue]);
+  // the add box does not move while someone adds (each add makes the queue above it a row longer)
+  const { listRef, addRef } = useStayPut<HTMLDivElement, HTMLElement>();
 
-  return (
-    // Solid tint, no backdrop blur: the drawer lies over the playing video
-    <div className="pop overflow-hidden">
-      {/* Header: title, the host's skip button on its own row (the sidebar is
-          only 224-256px wide), and the always-present "add a song" box */}
-      <div className="p-3.5 border-b border-white/[0.07] space-y-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-white font-bold text-sm flex items-center gap-2">
-            {t('queue.title')}
-            {queue.length > 0 && <span className="text-white/45 font-normal tabular-nums">{queue.length}</span>}
-          </h3>
-          {headerAction}
-        </div>
-        <PartyPeople members={members} playerAvatars={playerAvatars} playerColors={playerColors} currentUserName={currentUserName} partyId={partyId} />
-        {onSkip && (
-          <button
-            onClick={handleSkipClick}
-            title={t('queue.skipHint')}
-            aria-pressed={skipArmed}
-            className={`btn btn-sm w-full gap-1.5 ${
-              skipArmed
-                ? 'fill-hot animate-pulse'
-                : 'bg-white/[0.07] text-white/80 hover:text-white hover:bg-white/[0.12]'
-            }`}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <polygon points="5 4 15 12 5 20 5 4" />
-              <line x1="19" y1="5" x2="19" y2="19" />
-            </svg>
-            {skipArmed ? t('queue.skipConfirm') : t('queue.skipSong')}
-          </button>
-        )}
-        <QueueAddSong onAdd={onAdd} onAddJob={onAddJob} pendingCount={pendingCount} />
-      </div>
-
+  const items = (
+    <>
       {/* Queue items */}
       {queue.length === 0 ? (
         <div className="px-4 py-5 text-center">
@@ -221,32 +132,15 @@ const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, play
               <li
                 key={item.job ? `job-${item.job.id}` : `${item.songId}-${index}`}
                 className={`relative flex items-start gap-2.5 p-3 transition-colors ${
-                  isDragOver ? 'bg-white/[0.08] shadow-[inset_0_2px_0_rgba(255,92,214,0.75)]' : ''
+                  isDragOver ? DRAG_OVER_CLASS : ''
                 } ${isNext ? 'bg-white/[0.05]' : ''} ${pending && !failed ? 'bg-neon-purple/[0.08]' : ''}`}
-                draggable={canDrag}
-                onDragStart={canDrag ? (e) => handleDragStart(e, index) : undefined}
-                onDragEnd={canDrag ? handleDragEnd : undefined}
-                onDragOver={canDrag ? (e) => handleDragOver(e, index) : undefined}
-                onDragLeave={canDrag ? handleDragLeave : undefined}
-                onDrop={canDrag ? (e) => handleDrop(e, index) : undefined}
-                onTouchStart={canDrag ? (e) => handleTouchStart(e, index) : undefined}
-                onTouchEnd={canDrag ? handleTouchEnd : undefined}
+                {...itemProps(index, canDrag)}
               >
                 {isNext && <span aria-hidden="true" className="absolute left-0 inset-y-2 w-[3px] rounded-r-full bg-neon-green/80" />}
                 {/* Position, or the drag handle for the host */}
-                <span
-                  className={`w-4 pt-2 text-center text-xs flex-shrink-0 select-none ${canDrag ? 'text-white/35 hover:text-white/60 cursor-grab active:cursor-grabbing' : 'text-white/40 tabular-nums'}`}
-                  title={canDrag ? t('queue.dragToReorder') : undefined}
-                >
-                  {canDrag ? <>&#9776;</> : index + 1}
-                </span>
+                <DragHandle enabled={canDrag} position={index + 1} className="pt-2" />
 
-                <div className="relative flex-shrink-0">
-                  {item.videoId
-                    ? <img src={`https://i.ytimg.com/vi/${item.videoId}/default.jpg`} alt="" loading="lazy" className={`w-16 aspect-video rounded-md object-cover ${pending ? 'opacity-70' : ''}`} />
-                    : <span className="block w-16 aspect-video rounded-md bg-white/10" />}
-                  {(pending || item.generated) && <AiBadge beta={item.beta} />}
-                </div>
+                <SongThumb videoId={item.videoId} generated={item.generated} beta={item.beta} ai={pending} dim={pending} className="w-16" />
 
                 <div className="flex-1 min-w-0">
                   {isNext && (
@@ -277,6 +171,57 @@ const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, play
           })}
         </ol>
       )}
+    </>
+  );
+
+  // As on Spotify: what is coming first, then "add a song" (QueueAddSong) with what it finds, or the songs that fit
+  // the party, right under its box
+  return (
+    // Solid tint, no backdrop blur: the drawer lies over the playing video
+    <div className="pop overflow-hidden">
+      {/* Header: title, the host's skip button on its own row (the sidebar is
+          only 224-256px wide) */}
+      <div className="p-3.5 border-b border-white/[0.07] space-y-2.5">
+        {/* (wraps: a wide control, such as naming a playlist, goes under the title) */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-white font-bold text-sm flex items-center gap-2">
+            {t('queue.title')}
+            {queue.length > 0 && <span className="text-white/45 font-normal tabular-nums">{queue.length}</span>}
+          </h3>
+          {headerAction}
+        </div>
+        <PartyPeople members={members} playerAvatars={playerAvatars} playerColors={playerColors} currentUserName={currentUserName} partyId={partyId} />
+        {onSkip && (
+          <button
+            onClick={handleSkipClick}
+            title={t('queue.skipHint')}
+            aria-pressed={skipArmed}
+            className={`btn btn-sm w-full gap-1.5 ${
+              skipArmed
+                ? 'fill-hot animate-pulse'
+                : 'bg-white/[0.07] text-white/80 hover:text-white hover:bg-white/[0.12]'
+            }`}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polygon points="5 4 15 12 5 20 5 4" />
+              <line x1="19" y1="5" x2="19" y2="19" />
+            </svg>
+            {skipArmed ? t('queue.skipConfirm') : t('queue.skipSong')}
+          </button>
+        )}
+      </div>
+
+      <div ref={listRef}>{items}</div>
+
+      <section ref={addRef} className="p-3.5 border-t border-white/[0.07]" aria-label={t('queue.addSong')}>
+        <QueueAddSong
+          onAdd={onAdd}
+          onAddJob={onAddJob}
+          pendingCount={pendingCount}
+          queuedIds={queuedIds}
+          suggestFrom={suggestFrom}
+        />
+      </section>
     </div>
   );
 };

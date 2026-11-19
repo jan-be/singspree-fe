@@ -64,7 +64,8 @@ export interface PartyQueueState {
 }
 
 // (null: a socket message from a server that sent no song; the party's queue and current song come off the wire)
-const songOf = (s: HistorySongInput | null): HistorySong | null => (s?.songId ? { songId: String(s.songId), artist: String(s.artist ?? ''), title: String(s.title ?? ''), videoId: String(s.videoId ?? '') } : null);
+// (also what a playlist keeps of a song, logic/playlists.ts)
+export const songOf =(s: HistorySongInput | null): HistorySong | null => (s?.songId ? { songId: String(s.songId), artist: String(s.artist ?? ''), title: String(s.title ?? ''), videoId: String(s.videoId ?? '') } : null);
 
 function read(): PartyRecord[] {
   try {

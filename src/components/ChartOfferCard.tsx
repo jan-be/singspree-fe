@@ -21,6 +21,12 @@ export interface ChartHintProps {
   query: string;
   offerKind: ChartOfferKind;
   onMake?: (videoId: string, title: string) => void;
+  /** a found video that is a song here already: what its button does (the pickers add it); the default sings it */
+  onSong?: (songId: string) => void;
+  /** that button's word (the default: "Sing") */
+  songLabel?: string;
+  /** the pickers' size (the queue, a playlist) */
+  compact?: boolean;
 }
 
 export interface ChartOfferProps {
@@ -29,6 +35,9 @@ export interface ChartOfferProps {
   onGenerate: () => void;
   starting?: boolean;
   error?: string | null;
+  /** why no chart can be started here now (the party's limit): said in place of the button */
+  blocked?: string | null;
+  compact?: boolean;
 }
 
 export interface ChartMakingProps {
@@ -37,21 +46,26 @@ export interface ChartMakingProps {
   job: ChartJob | null;
   onSingNow: () => void;
   onDismiss: () => void;
+  /** the done chart's button (the default: "Sing now"; a playlist adds it) */
+  doneLabel?: string;
+  compact?: boolean;
 }
 
 /**
  * The entry page's side of AI karaoke charts (SearchBar): a pasted YouTube
  * link that no song is gets a card with the video and one clear button
  * (ChartOffer), and the chart being made gets a card with its progress, then
- * "Sing now" (ChartMaking). The party queue has its own compact versions
- * (QueueAddSong, QueuePanel); these are the roomier ones for the home page.
+ * "Sing now" (ChartMaking). `compact`: the same cards in the pickers of the
+ * queue and a playlist (SongPicker).
  */
 
 // The card the three states share: a solid violet panel, like the front page's
 const CARD = 'mt-3 rounded-2xl bg-panel border p-3 sm:p-4';
+const COMPACT_CARD = 'mt-2 rounded-xl bg-panel border p-3';
+const card = (compact: boolean) => (compact ? COMPACT_CARD : CARD);
 
-const Thumb = ({ videoId, ai = false, dim = false }: { videoId?: string | null; ai?: boolean; dim?: boolean }) => (
-  <div className="relative w-28 sm:w-40 flex-shrink-0">
+const Thumb = ({ videoId, ai = false, dim = false, compact = false }: { videoId?: string | null; ai?: boolean; dim?: boolean; compact?: boolean }) => (
+  <div className={`relative ${compact ? 'w-20' : 'w-28 sm:w-40'} flex-shrink-0`}>
     {videoId
       ? <img src={`https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`} alt="" className={`w-full aspect-video rounded-xl object-cover ring-1 ring-white/10 ${dim ? 'opacity-60' : ''}`} />
       : <span className="block w-full aspect-video rounded-xl bg-white/[0.06]" />}
@@ -71,7 +85,7 @@ const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).
  * when it is a song here already. youtube.com is only the way out when the
  * search fails. `offerKind` as in ChartOffer.
  */
-export const ChartHint = ({ query, offerKind, onMake }: ChartHintProps) => {
+export const ChartHint = ({ query, offerKind, onMake, onSong, songLabel, compact = false }: ChartHintProps) => {
   const { t } = useTranslation();
   // { q, state: 'loading' | 'done' | 'error', results, error }: what was found for which search
   const [found, setFound] = useState<{ q: string; state: 'loading' | 'done' | 'error'; results: YouTubeResult[]; error?: string } | null>(null);
@@ -93,15 +107,15 @@ export const ChartHint = ({ query, offerKind, onMake }: ChartHintProps) => {
     </a>
   );
   return (
-    <div className="mb-4 rounded-2xl bg-panel border border-white/10 p-3 sm:p-4 animate-slide-up">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+    <div className={`${compact ? 'mb-2 rounded-xl p-3' : 'mb-4 rounded-2xl p-3 sm:p-4'} bg-panel border border-white/10 animate-slide-up`}>
+      <div className={`flex flex-col gap-3 ${compact ? '' : 'sm:flex-row sm:items-center'}`}>
         <div className="flex gap-3 items-start sm:items-center flex-1 min-w-0">
           <span className="flex-shrink-0 grid place-items-center w-9 h-9 rounded-full bg-gradient-to-br from-[#ff4fd8] to-[#8b5cf6] text-white" aria-hidden="true">
             <Sparkles />
           </span>
           <div className="min-w-0">
-            <div className="text-white font-semibold leading-snug">{t('search.hint.title')}</div>
-            <p className="mt-0.5 text-sm text-white/60 leading-snug">{t(offerKind === 'signIn' ? 'search.hint.textSignIn' : 'search.hint.text')}</p>
+            <div className={`text-white font-semibold leading-snug ${compact ? 'text-sm' : ''}`}>{t('search.hint.title')}</div>
+            <p className={`mt-0.5 ${compact ? 'text-xs' : 'text-sm'} text-white/60 leading-snug`}>{t(offerKind === 'signIn' ? 'search.hint.textSignIn' : 'search.hint.text')}</p>
           </div>
         </div>
         {!found && (
@@ -129,7 +143,9 @@ export const ChartHint = ({ query, offerKind, onMake }: ChartHintProps) => {
                 </div>
                 <div className="mt-1.5 sm:mt-0 flex-shrink-0">
                   {r.songId ? (
-                    <Link to={`/sing/${r.songId}`} className="btn btn-sm btn-ghost no-underline">{t('search.hint.sing')}</Link>
+                    onSong
+                      ? <button type="button" onClick={() => onSong(r.songId!)} className="btn btn-sm btn-ghost">{songLabel ?? t('search.hint.sing')}</button>
+                      : <Link to={`/sing/${r.songId}`} className="btn btn-sm btn-ghost no-underline">{t('search.hint.sing')}</Link>
                   ) : offerKind === 'offer' ? (
                     <button type="button" onClick={() => onMake?.(r.videoId, r.title)} className="btn btn-sm btn-primary">
                       <Sparkles className="w-4 h-4 flex-shrink-0" />
@@ -157,11 +173,11 @@ export const ChartHint = ({ query, offerKind, onMake }: ChartHintProps) => {
 };
 
 /** While the pasted link is being looked up: the card's shape, waiting */
-export const ChartLookup = () => {
+export const ChartLookup = ({ compact = false }: { compact?: boolean }) => {
   const { t } = useTranslation();
   return (
-    <div className={`${CARD} border-white/10 flex gap-3 sm:gap-4 items-center`} aria-busy="true">
-      <span className="block w-28 sm:w-40 aspect-video rounded-xl bg-white/[0.06] animate-pulse flex-shrink-0" />
+    <div className={`${card(compact)} border-white/10 flex gap-3 sm:gap-4 items-center`} aria-busy="true">
+      <span className={`block ${compact ? 'w-20' : 'w-28 sm:w-40'} aspect-video rounded-xl bg-white/[0.06] animate-pulse flex-shrink-0`} />
       <div className="flex-1 min-w-0 space-y-2.5">
         <p className="text-sm text-white/55">{t('search.lookingUp')}</p>
         <span className="block h-3 w-3/4 rounded-full bg-white/[0.06] animate-pulse" />
@@ -176,32 +192,33 @@ export const ChartLookup = () => {
  * switch (useChartOffer): 'offer' gets the button, 'signIn' a sign-in link,
  * anything else just the card.
  */
-export const ChartOffer = ({ offer, offerKind, onGenerate, starting = false, error = null }: ChartOfferProps) => {
+export const ChartOffer = ({ offer, offerKind, onGenerate, starting = false, error = null, blocked = null, compact = false }: ChartOfferProps) => {
   const { t } = useTranslation();
   const other = offer.kind === 'title';
   return (
-    <div className={`${CARD} border-white/10 animate-slide-up`}>
+    <div className={`${card(compact)} border-white/10 animate-slide-up`}>
       <div className="flex gap-3 sm:gap-4 items-center">
-        <Thumb videoId={offer.videoId} />
+        <Thumb videoId={offer.videoId} compact={compact} />
         <div className="flex-1 min-w-0">
           <div className="pop-label">
             {t(other ? 'search.generate.notThisOne' : 'search.generate.notYet')}
           </div>
-          <div className="mt-1 text-white font-semibold leading-snug tracking-[-0.01em] line-clamp-2 break-words">{offer.videoTitle}</div>
+          <div className={`mt-1 text-white font-semibold leading-snug tracking-[-0.01em] line-clamp-2 break-words ${compact ? 'text-sm' : ''}`}>{offer.videoTitle}</div>
         </div>
       </div>
-      {offerKind === 'offer' && (
+      {offerKind === 'offer' && blocked && <p className="mt-3 text-xs text-white/70 leading-snug">{blocked}</p>}
+      {offerKind === 'offer' && !blocked && (
         <>
           <button
             type="button"
             onClick={onGenerate}
             disabled={starting}
-            className="btn btn-primary mt-4 w-full sm:w-auto sm:px-6 h-auto min-h-10 py-2 whitespace-normal text-center leading-snug disabled:cursor-default"
+            className={`btn btn-primary ${compact ? 'btn-sm mt-3 w-full' : 'mt-4 w-full sm:w-auto sm:px-6 min-h-10'} h-auto py-2 whitespace-normal text-center leading-snug disabled:cursor-default`}
           >
             <Sparkles className={`flex-shrink-0 ${starting ? 'animate-pulse' : ''}`} />
             {starting ? t('search.generate.starting') : t('search.generate.cta')}
           </button>
-          <p className="mt-2.5 text-xs text-white/55 leading-snug">{t('search.generate.explain')}</p>
+          <p className={`mt-2.5 ${compact ? 'text-[11px]' : 'text-xs'} text-white/55 leading-snug`}>{t('search.generate.explain')}</p>
         </>
       )}
       {offerKind === 'signIn' && (
@@ -223,7 +240,7 @@ export const ChartOffer = ({ offer, offerKind, onGenerate, starting = false, err
  * made; "Sing now" when it is done; the reason when no song came of it.
  * onDismiss hides it (here and in the pill).
  */
-export const ChartMaking = ({ tracked, job, onSingNow, onDismiss }: ChartMakingProps) => {
+export const ChartMaking = ({ tracked, job, onSingNow, onDismiss, doneLabel, compact = false }: ChartMakingProps) => {
   const { t } = useTranslation();
   const done = job?.status === 'done';
   const failed = job?.status === 'failed' || job?.status === 'rejected';
@@ -231,15 +248,15 @@ export const ChartMaking = ({ tracked, job, onSingNow, onDismiss }: ChartMakingP
   const title = job?.title ?? tracked.videoTitle;
 
   return (
-    <div className={`${CARD} ${done ? 'border-neon-green/30' : failed ? 'border-red-400/30' : 'border-white/10'} animate-slide-up`}>
+    <div className={`${card(compact)} ${done ? 'border-neon-green/30' : failed ? 'border-red-400/30' : 'border-white/10'} animate-slide-up`}>
       <div className="flex gap-3 sm:gap-4 items-center">
-        <Thumb videoId={tracked.videoId} ai dim={failed} />
+        <Thumb videoId={tracked.videoId} ai dim={failed} compact={compact} />
         <div className="flex-1 min-w-0">
           <div className={`pop-label ${done ? 'text-neon-green' : failed ? 'text-red-300' : 'text-[#d9a8ff]'}`}>
             {done ? t('search.generate.done') : failed ? t(`chartJob.reason.${reasonKey(job)}`) : t('search.generate.making')}
           </div>
-          <div className="mt-1 text-white font-semibold leading-snug tracking-[-0.01em] line-clamp-2 break-words">{title}</div>
-          {job?.artist && <div className="text-sm text-white/55 truncate">{job.artist}</div>}
+          <div className={`mt-1 text-white font-semibold leading-snug tracking-[-0.01em] line-clamp-2 break-words ${compact ? 'text-sm' : ''}`}>{title}</div>
+          {job?.artist && <div className={`${compact ? 'text-xs' : 'text-sm'} text-white/55 truncate`}>{job.artist}</div>}
         </div>
         {!making && (
           <button type="button" onClick={onDismiss} title={t('chartJob.pill.dismiss')} aria-label={t('chartJob.pill.dismiss')} className="btn-icon w-8 h-8 -mt-1 -mr-1 self-start text-white/50">
@@ -260,10 +277,11 @@ export const ChartMaking = ({ tracked, job, onSingNow, onDismiss }: ChartMakingP
         <button
           type="button"
           onClick={onSingNow}
-          className="btn btn-primary mt-4 w-full sm:w-auto sm:px-6"
+          className={`btn btn-primary ${compact ? 'btn-sm mt-3 w-full' : 'mt-4 w-full sm:w-auto sm:px-6'}`}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3" /></svg>
-          {t('chartJob.pill.singNow')}
+          {doneLabel
+            ? <>+ {doneLabel}</>
+            : <><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3" /></svg>{t('chartJob.pill.singNow')}</>}
         </button>
       )}
       {failed && <p className="mt-3 text-sm text-white/55 leading-snug">{t(`search.generate.${reasonKey(job)}`)}</p>}

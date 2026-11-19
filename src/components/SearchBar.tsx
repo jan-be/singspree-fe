@@ -12,18 +12,49 @@ import { ChartLookup, ChartOffer, ChartMaking, type VideoOffer } from "./ChartOf
 import ListenPanel, { type ListenResult, type ListenState } from "./ListenPanel";
 import { listen } from "../logic/songListener";
 import { inTvApp } from "../logic/tvApp";
+import type { SongNamesSource } from "../logic/lyricsScripts";
 
 const DEBOUNCE_MS = 200;
 
-/** The search bar's ref (EntryPage): the chart hint's "make it" starts the chart in the bar's card */
+/** The search bar's ref: the chart hint's "make it" starts the chart in the bar's card */
 export interface SearchBarHandle {
   makeChart(videoId: string, videoTitle: string): void;
+}
+
+/** A song the box found: a pasted link that is one, the chart it made, the song it heard in the room */
+export interface FoundSong extends SongNamesSource {
+  songId: string;
+  videoId?: string | null;
+  generated?: boolean;
+  beta?: boolean;
 }
 
 export interface SearchBarProps {
   value?: string;
   onChange?: (q: string) => void;
   onLinkActive?: (active: boolean) => void;
+  /**
+   * What happens to a song the box found (`startAt`: seconds into it, a song heard in the room); the default opens
+   * it (the entry page). A picker adds it, and the box empties for the next one.
+   */
+  onSong?: (song: FoundSong, source: 'youtube-url' | 'listen', startAt?: number) => void;
+  /** A chart started: hand it on (the party queue takes it as a waiting entry) instead of following it here */
+  onChartJob?: (jobId: number, videoTitle: string) => void;
+  /** said once a chart was handed on */
+  chartHandedText?: string;
+  /** why no chart can be started now (the party's limit): the offer says it in place of its button */
+  chartBlocked?: string | null;
+  /** whether charts can be made here at all (a party that allows none) */
+  charts?: boolean;
+  /** the done chart's button (the default: "Sing now") */
+  doneLabel?: string;
+  /** the analytics' search session the box's searches belong to (logic/track.ts); null for none */
+  searchScope?: string | null;
+  /** 'page': the entry page's big box; 'compact': a picker's (the queue, a playlist) */
+  size?: 'page' | 'compact';
+  /** the microphone button that listens for the song playing in the room */
+  canListen?: boolean;
+  placeholder?: string;
 }
 
 /** Why starting a chart failed (logic/chartJobs.ts): a refused karaoke version names the original song */
@@ -39,30 +70,33 @@ const karaokeOriginal = (e: unknown) => {
 };
 
 /**
- * The entry page's search box. It does not render results itself: typing
- * updates the page's `q` filter (debounced) and the song grid below shows
- * the matches. Pasting a YouTube URL jumps straight to an exact match, or
- * searches the grid for the video's title. When no song is that video, a
- * chart can be made for it (logic/chartJobs.ts; who is offered it is the
- * backend's switch, useChartOffer): the bar shows its progress, and as the
- * user moves on (sings something else meanwhile) the chart pill on every
- * page takes over (chartJobTracker.ts, ChartJobPill).
+ * The song search's box, wherever songs are looked for: the entry page, and
+ * the pickers of the queue and a playlist (SongPicker). It does not render
+ * results itself: typing updates the caller's `q` (debounced) and the list
+ * below shows the matches. Pasting a YouTube URL takes its song straight away
+ * (onSong: the entry page opens it, a picker adds it), or searches for the
+ * video's title. When no song is that video, a chart can be made for it
+ * (logic/chartJobs.ts; who is offered it is the backend's switch,
+ * useChartOffer): the box shows its progress — or hands it on (onChartJob:
+ * the party queue keeps it as a waiting entry) — and as the user moves on the
+ * chart pill on every page takes over (chartJobTracker.ts, ChartJobPill).
  *
- * @param {string}   value    current `q` from the URL
- * @param {function} onChange called with the new (trimmed) query
  * The microphone button in the box listens for the song playing in the room
  * (logic/songListener.ts, ListenPanel): the microphone is open only while it
  * listens, and a found song opens at the spot that was playing.
  *
- * @param {function} onLinkActive called with whether the box is busy with a
- *        pasted link (looking it up, its offer, its chart) or a listen, when that changes
+ * onLinkActive: called with whether the box is busy with a pasted link
+ * (looking it up, its offer, its chart) or a listen, when that changes.
  */
-const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onChange, onLinkActive }, ref) => {
+const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({
+  value = '', onChange, onLinkActive, onSong, onChartJob, chartHandedText, chartBlocked = null, charts = true, doneLabel,
+  searchScope = 'entry', size = 'page', canListen: listenWanted = true, placeholder,
+}, ref) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [text, setText] = useState(value);
   const offerKind = useChartOffer();
-  const [status, setStatus] = useState<{ kind: 'loading' | 'info' | 'error'; message: string } | null>(null); // { kind: 'loading' | 'info' | 'error', message }
+  const [status, setStatus] = useState<{ kind: 'loading' | 'info' | 'error'; message: string } | null>(null);
   const [looking, setLooking] = useState(false); // a pasted link is being looked up
   const [offer, setOffer] = useState<VideoOffer | null>(null);   // { videoId, videoTitle, kind: 'none' | 'title' }: a chart can be made
   const [starting, setStarting] = useState(false);
@@ -77,7 +111,11 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
   const [listenState, setListenState] = useState<ListenState | null>(null); // ListenPanel's state
   const listenRef = useRef<ReturnType<typeof listen> | null>(null);
   const meterRef = useRef<(level: number) => void>(null);
-  const [canListen] = useState(() => !inTvApp()); // the Fire TV app grants no microphone
+  const [canListen] = useState(() => listenWanted && !inTvApp()); // the Fire TV app grants no microphone
+  const compact = size === 'compact';
+
+  const startSession = () => { if (searchScope) { endSearch(searchScope); searchSession(searchScope, 'youtube'); } };
+  const endSession = () => { if (searchScope) endSearch(searchScope); };
 
   // Follow external changes to `q` (back button, "clear filters") without
   // clobbering what the user is typing right now.
@@ -93,6 +131,38 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
     if (abortRef.current) abortRef.current.abort();
     listenRef.current?.stop(); // leaving the page closes the microphone
   }, []);
+
+  const push = (q: string) => {
+    const trimmed = q.trim();
+    if (trimmed === lastPushedRef.current) return;
+    lastPushedRef.current = trimmed;
+    onChange?.(trimmed);
+  };
+
+  /** Back to an empty box: what it showed goes, the search ends */
+  const resetBox = () => {
+    clearTimeout(timerRef.current);
+    if (abortRef.current) abortRef.current.abort();
+    endSession();
+    setText('');
+    setStatus(null);
+    setOffer(null);
+    setOfferError(null);
+    setLooking(false);
+    setJobId(null);
+    push('');
+  };
+
+  // A song found: the caller's (a picker adds it, and the box is ready for the next), or open it
+  const found = (song: FoundSong, source: 'youtube-url' | 'listen', startAt = 0) => {
+    if (onSong) {
+      onSong(song, source, startAt);
+      resetBox();
+      return;
+    }
+    trackPick(source, { songId: song.songId });
+    navigate(startAt > 0 ? `/sing/${song.songId}?t=${startAt}` : `/sing/${song.songId}`);
+  };
 
   // ── Listening for the song in the room ──
   const startListening = () => {
@@ -121,9 +191,8 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
   };
   const closeListening = () => { listenRef.current?.stop(); listenRef.current = null; setListenState(null); };
   const openFound = (result: ListenResult, fromHere: boolean) => {
-    trackPick('listen', { songId: result.songId });
-    const at = Math.max(0, Math.round(result.offset * 10) / 10);
-    navigate(fromHere && at > 0 ? `/sing/${result.songId}?t=${at}` : `/sing/${result.songId}`);
+    closeListening();
+    found(result, 'listen', fromHere ? Math.max(0, Math.round(result.offset * 10) / 10) : 0);
   };
   const listening = listenState && ['starting', 'listening', 'looking'].includes(listenState.phase);
 
@@ -136,13 +205,6 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
   }, [jobId]);
   useEffect(() => { if (jobId && !tracked) setJobId(null); }, [jobId, tracked]); // dismissed in the pill
 
-  const push = (q: string) => {
-    const trimmed = q.trim();
-    if (trimmed === lastPushedRef.current) return;
-    lastPushedRef.current = trimmed;
-    onChange?.(trimmed);
-  };
-
   const lookupVideo = async (videoId: string) => {
     const controller = new AbortController();
     abortRef.current = controller;
@@ -154,8 +216,7 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
       setLooking(false);
 
       if (json.success && json.data && json.matchType === 'exact') {
-        trackPick('youtube-url', { songId: json.data.songId });
-        navigate(`/sing/${json.data.songId}`);
+        found(json.data, 'youtube-url');
         return;
       }
       if (json.karaoke && json.searchQuery) {
@@ -164,9 +225,8 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
         return;
       }
       if (json.success && json.searchQuery) {
-        // Title-based matches: search the grid for the video's title so the user can pick
-        endSearch('entry');
-        searchSession('entry', 'youtube'); // the grid's search event says the link started it
+        // Title-based matches: search for the video's title so the user can pick
+        startSession(); // the list's search event says the link started it
         setText(json.searchQuery);
         push(json.searchQuery);
         setStatus({ kind: 'info', message: t('search.matchesFor', { title: json.videoTitle }) });
@@ -184,30 +244,30 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
     }
   };
 
-  const openSong = (songId: string) => {
-    trackPick('youtube-url', { songId });
-    navigate(`/sing/${songId}`);
-  };
-
   // A karaoke version was pasted (or refused): the box searches for the original song, and says why
   const searchOriginal = (query: string, videoTitle: string) => {
-    endSearch('entry');
-    searchSession('entry', 'youtube');
+    startSession();
     setOffer(null);
     setText(query);
     push(query);
     setStatus({ kind: 'info', message: t('search.karaoke', { title: videoTitle || query }) });
   };
 
-  // Make a chart for a video: start (or join) the job; the tracker follows it from here on
+  // Make a chart for a video: start (or join) the job; the tracker follows it from here on, or the caller takes it
   const generateFor = async ({ videoId, videoTitle }: { videoId: string; videoTitle: string }) => {
     setStarting(true);
     setOfferError(null);
     try {
       const started = await startChartJob(videoId);
-      if (started.songId) { openSong(started.songId); return; }
-      trackChartJob(started.job, { videoTitle });
+      if (started.songId) { found({ videoId, ...started.song, songId: started.songId }, 'youtube-url'); return; }
       if (!started.job) throw new Error('POST /chart-jobs answered neither a song nor a job');
+      if (onChartJob) {
+        onChartJob(started.job.id, videoTitle);
+        resetBox();
+        if (chartHandedText) setStatus({ kind: 'info', message: chartHandedText });
+        return;
+      }
+      trackChartJob(started.job, { videoTitle });
       setJobId(started.job.id);
       setOffer(null);
       setStatus(null);
@@ -220,7 +280,7 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
     }
   };
 
-  // The page's hint found the video on YouTube: make it right here, as if its link had been pasted
+  // The hint found the video on YouTube: make it right here, as if its link had been pasted
   useImperativeHandle(ref, () => ({
     makeChart(videoId: string, videoTitle: string) {
       clearTimeout(timerRef.current);
@@ -244,7 +304,7 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
     setJobId(null);
     clearTimeout(timerRef.current);
     if (abortRef.current) abortRef.current.abort();
-    if (!next.trim()) endSearch('entry'); // an emptied box ends the search session; the next letter starts one
+    if (!next.trim()) endSession(); // an emptied box ends the search session; the next letter starts one
 
     const videoId = extractYouTubeVideoId(next);
     if (videoId) {
@@ -264,16 +324,7 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
   };
 
   const clearSearch = () => {
-    clearTimeout(timerRef.current);
-    if (abortRef.current) abortRef.current.abort();
-    endSearch('entry');
-    setText('');
-    setStatus(null);
-    setOffer(null);
-    setOfferError(null);
-    setLooking(false);
-    setJobId(null);
-    push('');
+    resetBox();
     inputRef.current?.focus();
   };
 
@@ -283,12 +334,14 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
 
   const statusColor = { loading: 'text-white/55', info: 'text-white/55', error: 'text-red-400' };
   const job = tracked?.job ? { ...tracked.job, receivedAt: tracked.receivedAt } : null;
+  const shownOfferKind = charts ? offerKind : null;
+  const icon = compact ? 'w-4 h-4' : 'w-5 h-5';
 
   return (
     <div>
       <div className="relative">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className={`absolute ${compact ? 'left-3' : 'left-4'} top-1/2 -translate-y-1/2 text-white/40 pointer-events-none`}>
+          <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -296,20 +349,23 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
         <input
           ref={inputRef}
           type="search"
-          placeholder={t('search.placeholder')}
+          placeholder={placeholder ?? t('search.placeholder')}
+          aria-label={placeholder ?? t('search.placeholder')}
           value={text}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           autoComplete="off"
-          className={`field h-12 sm:h-14 rounded-2xl pl-12 ${canListen ? (text ? 'pr-[5.5rem]' : 'pr-14') : (text ? 'pr-14' : 'pr-4')} text-base sm:text-[17px] [&::-webkit-search-cancel-button]:hidden`}
+          className={`field ${compact ? 'h-10 rounded-xl pl-9 text-sm' : 'h-12 sm:h-14 rounded-2xl pl-12 text-base sm:text-[17px]'} ${canListen ? (text ? 'pr-[5.5rem]' : 'pr-14') : (text ? 'pr-12' : 'pr-4')} [&::-webkit-search-cancel-button]:hidden`}
         />
         {text && (
           <button
+            type="button"
             onClick={clearSearch}
-            className={`btn-icon absolute ${canListen ? 'right-12' : 'right-2'} top-1/2 -translate-y-1/2 w-9 h-9 text-white/50`}
+            className={`btn-icon absolute ${canListen ? 'right-12' : (compact ? 'right-1' : 'right-2')} top-1/2 -translate-y-1/2 ${compact ? 'w-8 h-8' : 'w-9 h-9'} text-white/50`}
             title={t('search.clear')}
+            aria-label={t('search.clear')}
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
@@ -329,26 +385,28 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
         </button>}
       </div>
 
-      <ListenPanel
-        state={listenState}
-        meter={meterRef}
-        onStop={stopListening}
-        onRetry={startListening}
-        onClose={closeListening}
-        onOpen={openFound}
-      />
+      {canListen && (
+        <ListenPanel
+          state={listenState}
+          meter={meterRef}
+          onStop={stopListening}
+          onRetry={startListening}
+          onClose={closeListening}
+          onOpen={openFound}
+        />
+      )}
 
       {/* YouTube URL lookup: the card's shape while it is looked up, then a word on what was found */}
-      {looking && <ChartLookup />}
+      {looking && <ChartLookup compact={compact} />}
       {status && (
-        <div className={`mt-2 px-1 text-sm ${statusColor[status.kind]} ${status.kind === 'loading' ? 'animate-pulse' : ''}`}>
+        <div className={`mt-2 px-1 ${compact ? 'text-xs' : 'text-sm'} ${statusColor[status.kind]} ${status.kind === 'loading' ? 'animate-pulse' : ''}`}>
           {status.message}
         </div>
       )}
       {/* A video no song is: the card, with the chart offered as the backend's switch says
           (admins while it is tested); for a title that found other songs, only where it can be made */}
-      {offer && !tracked && (offer.kind === 'none' || offerKind === 'offer' || offerKind === 'signIn') && (
-        <ChartOffer offer={offer} offerKind={offerKind} onGenerate={() => generateFor(offer)} starting={starting} error={offerError} />
+      {offer && !tracked && (offer.kind === 'none' || shownOfferKind === 'offer' || shownOfferKind === 'signIn') && (
+        <ChartOffer offer={offer} offerKind={shownOfferKind} onGenerate={() => generateFor(offer)} starting={starting} error={offerError} blocked={chartBlocked} compact={compact} />
       )}
 
       {/* The chart being made: progress here; the pill follows the user once they move on */}
@@ -356,7 +414,13 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ value = '', onC
         <ChartMaking
           tracked={tracked}
           job={job}
-          onSingNow={() => { forget(tracked.id); if (job?.songId) openSong(job.songId); /* (a job done has its song) */ }}
+          doneLabel={doneLabel}
+          compact={compact}
+          onSingNow={() => {
+            forget(tracked.id);
+            setJobId(null);
+            if (job?.songId) found({ songId: job.songId, title: job.title ?? tracked.videoTitle ?? '', artist: job.artist ?? '', videoId: tracked.videoId, generated: true }, 'youtube-url');
+          }}
           onDismiss={() => { forget(tracked.id); setJobId(null); }}
         />
       )}

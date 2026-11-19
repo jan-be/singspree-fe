@@ -4,7 +4,7 @@
  * page the app opens, android-app://com.singspree.app/. The page notes it in sessionStorage as it
  * starts (index.tsx), for later route changes and full page loads in the same app window. In it the
  * page leaves out the Google Play and App Store icons (SocialLinks), which only lead to pages about
- * getting the apps, as in the Fire TV app (logic/tvApp.ts), and the Android test card (appTestPrompt).
+ * getting the apps, as in the Fire TV app (logic/tvApp.ts).
  */
 import { inTvApp } from './tvApp';
 

@@ -6,6 +6,8 @@ import { trackPick } from "../logic/track";
 import { lastHostedParty, leftoverParty, missedSongs, isLongParty, dismissParty, savePendingQueue } from "../logic/partyHistory";
 import { parseAgain, planUrl, nextSameTime, toLocalInput, fromLocalInput, icsEvent, downloadIcs } from "../logic/partyPlan";
 import { useInstallMode, promptInstall } from "../logic/installPrompt";
+import { createPlaylist, cleanName } from "../logic/playlists";
+import { canPopOut } from "../logic/popoutWindow";
 
 /** A song to start again with: a song card of a ?again link, or a song of a past party (logic/partyHistory.ts) */
 interface AgainSong {
@@ -31,13 +33,22 @@ interface QuietBarProps {
   onAction: () => void;
   onClose: () => void;
   closeLabel: string;
+  /** a second, quieter action before the first (a shared playlist: keep it) */
+  secondary?: { label: string; onClick: () => void; disabled?: boolean } | null;
 }
 
-/** One quiet line: what is left, one action, its ✕ */
-const QuietBar = ({ text, action, onAction, onClose, closeLabel }: QuietBarProps) => (
+const quietActionClass = "flex-shrink-0 h-8 px-3 rounded-full font-medium text-white/85 hover:text-white hover:bg-white/10 transition-colors cursor-pointer disabled:cursor-default disabled:text-white/50 disabled:hover:bg-transparent";
+
+/** One quiet line: what is left, one action (or two), its ✕ */
+const QuietBar = ({ text, action, onAction, onClose, closeLabel, secondary }: QuietBarProps) => (
   <div className="relative mt-4 max-w-md mx-auto flex items-center gap-1 rounded-2xl border border-white/[0.08] bg-white/[0.03] pl-4 pr-1 py-1 text-[13px] text-white/60 text-left">
     <span className="flex-1 min-w-0 text-pretty py-1">{text}</span>
-    <button type="button" onClick={onAction} className="flex-shrink-0 h-8 px-3 rounded-full font-medium text-white/85 hover:text-white hover:bg-white/10 transition-colors cursor-pointer">
+    {secondary && (
+      <button type="button" onClick={secondary.onClick} disabled={secondary.disabled} className={quietActionClass}>
+        {secondary.label}
+      </button>
+    )}
+    <button type="button" onClick={onAction} className={quietActionClass}>
       {action}
     </button>
     <button type="button" onClick={onClose} className="btn-icon w-8 h-8 text-white/35" aria-label={closeLabel} title={closeLabel}>✕</button>
@@ -102,6 +113,10 @@ export default function SingAgainCard({ justEnded = false }: SingAgainCardProps)
   const againParam = params.get('again');
   const planIds = useMemo(() => parseAgain(againParam), [againParam]);
   const [plan, setPlan] = useState<AgainSong[] | null>(null); // the songs of a ?again link
+  // a shared playlist's link names the list (logic/playlists.ts playlistUrl); on a desktop it can be kept
+  const listName = cleanName(params.get('list'));
+  const [canKeep] = useState(canPopOut);
+  const [kept, setKept] = useState(false);
   const [leftover, setLeftover] = useState(() => leftoverParty());
   const [ended] = useState(() => (justEnded ? lastHostedParty() : null));
 
@@ -126,13 +141,16 @@ export default function SingAgainCard({ justEnded = false }: SingAgainCardProps)
     const close = () => {
       const next = new URLSearchParams(params);
       next.delete('again');
+      next.delete('list');
       setParams(next, { replace: true });
       setPlan(null);
     };
+    const keep = () => { if (createPlaylist(listName || t('again.plan'), plan)) setKept(true); };
     return (
       <QuietBar
-        text={`${t('again.plan')} · ${t('again.songs', { count: plan.length })}`}
+        text={`${listName || t('again.plan')} · ${t('again.songs', { count: plan.length })}`}
         action={t('again.start')} onAction={() => start(plan)}
+        secondary={listName && canKeep ? { label: kept ? t('playlists.kept') : t('playlists.keep'), onClick: keep, disabled: kept } : null}
         onClose={close} closeLabel={t('again.close')}
       />
     );
