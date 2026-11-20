@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as KeyEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { apiUrl } from "../GlobalConsts";
 import { MicIcon } from "./Icons";
@@ -39,6 +39,16 @@ const VoiceFilter = ({ value, onChange, chipClass }: { value: VoiceWindow | null
   const [counts, setCounts] = useState<Map<number, number> | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const committed = useRef(value);
+  // (the commit below runs after a pause: by then the filters may have changed, so it takes the latest onChange)
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const loRef = useRef<HTMLInputElement>(null);
+  const hiRef = useRef<HTMLInputElement>(null);
+  /** The two thumbs share one box: up and down go from one to the other (the arrows' navigation sees one place) */
+  const between = (to: RefObject<HTMLInputElement | null>) => (e: KeyEvent) => {
+    e.preventDefault();
+    to.current?.focus();
+  };
 
   // the filters changed elsewhere (back, clear filters): the thumbs follow
   useEffect(() => {
@@ -50,7 +60,7 @@ const VoiceFilter = ({ value, onChange, chipClass }: { value: VoiceWindow | null
   useEffect(() => {
     const next = windowOf(lo, hi);
     if (sameWindow(next, committed.current)) return undefined;
-    const timer = setTimeout(() => { committed.current = next; onChange(next); }, COMMIT_MS);
+    const timer = setTimeout(() => { committed.current = next; onChangeRef.current(next); }, COMMIT_MS);
     return () => clearTimeout(timer);
   }, [lo, hi]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -148,15 +158,19 @@ const VoiceFilter = ({ value, onChange, chipClass }: { value: VoiceWindow | null
               <div className="absolute h-full rounded-full bg-hot" style={{ left: pct(lo), right: `calc(100% - ${pct(hi)})` }} />
             </div>
             <input
+              ref={loRef}
               type="range" min={VOICE_MIN} max={VOICE_MAX} step={1} value={lo}
               onChange={e => setEnds([Math.min(Number(e.target.value), hi), hi])}
+              onKeyDown={e => { if (e.key === 'ArrowDown') between(hiRef)(e); }}
               aria-label={t('sections.voiceFrom')}
               aria-valuetext={lo === VOICE_MIN ? t('sections.voiceLowest') : noteName(lo, lang)}
               style={{ zIndex: lo > VOICE_MAX - 3 ? 3 : 2 }}
             />
             <input
+              ref={hiRef}
               type="range" min={VOICE_MIN} max={VOICE_MAX} step={1} value={hi}
               onChange={e => setEnds([lo, Math.max(Number(e.target.value), lo)])}
+              onKeyDown={e => { if (e.key === 'ArrowUp') between(loRef)(e); }}
               aria-label={t('sections.voiceTo')}
               aria-valuetext={hi === VOICE_MAX ? t('sections.voiceHighest') : noteName(hi, lang)}
               style={{ zIndex: 2 }}

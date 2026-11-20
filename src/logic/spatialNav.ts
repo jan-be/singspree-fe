@@ -224,6 +224,8 @@ function look(s: Spot): { ok: boolean; pinned: boolean; fixed: Element | null } 
   const yes = { ok: true, pinned, fixed };
   // Out of sight: fine where scrolling brings it, not where nothing will
   if (empty(visible)) return fixed ? no : yes;
+  // A two-thumb slider's inputs take no pointer (only their thumbs do, VoiceFilter): nothing hits them, they are seen
+  if (s.el.closest('.range-dual')) return yes;
   // In sight: anything of it not covered
   const w = visible.right - visible.left, h = visible.bottom - visible.top;
   let underBand = false;

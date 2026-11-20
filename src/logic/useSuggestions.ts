@@ -68,5 +68,9 @@ export function useSuggestions(list: string[] | null, filters?: Pick<SongFilters
     fetchSuggestions(list, filters).then(songs => { if (!gone) setShown({ key, songs }); });
     return () => { gone = true; };
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
-  return { songs: shown?.songs ?? null, loading: Boolean(key) && shown?.key !== key };
+  // (the last list's while the new one's are on their way: without what the list has now, so a song just picked or
+  // just sung is not offered again)
+  const inList = shown && shown.key !== key ? new Set(list ?? []) : null;
+  const songs = shown ? (inList ? shown.songs.filter(s => !inList.has(s.songId)) : shown.songs) : null;
+  return { songs, loading: Boolean(key) && shown?.key !== key };
 }

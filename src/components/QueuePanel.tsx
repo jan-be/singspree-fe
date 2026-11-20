@@ -178,7 +178,8 @@ const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, play
   // the party, right under its box
   return (
     // Solid tint, no backdrop blur: the drawer lies over the playing video
-    <div className="pop overflow-hidden">
+    // (not overflow-hidden: the filters' menus open below their chips, past a short list's end)
+    <div className="pop">
       {/* Header: title, the host's skip button on its own row (the sidebar is
           only 224-256px wide) */}
       <div className="p-3.5 border-b border-white/[0.07] space-y-2.5">

@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { getMe, getMyBest, logout as apiLogout, type BestScores, type Me } from './authApi';
+import { flushPlaylists, setPlaylistsAccount } from './playlists';
 
 /** What useAuth gives */
 export interface AuthContextValue {
@@ -74,7 +75,12 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
     if (me) refreshBest(); else setBest({});
   }, [refreshBest]);
 
+  // The playlists are the account's while it is signed in (logic/playlists.ts), this browser's when signed out
+  useEffect(() => { setPlaylistsAccount(user?.id ?? null); }, [user?.id]);
+
   const logout = useCallback(async () => {
+    // a change still on its way goes while the cookie is there (not waited for long: offline, signing out still works)
+    await Promise.race([flushPlaylists().catch(() => {}), new Promise(resolve => setTimeout(resolve, 3000))]);
     try { await apiLogout(); } catch { /* cookie is cleared server-side; state is reset regardless */ }
     signedIn(null);
   }, [signedIn]);

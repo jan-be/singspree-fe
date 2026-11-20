@@ -6,8 +6,10 @@ import { useTranslation } from "react-i18next";
  * the row is dragged where it should go; on a touch screen a swipe up or down
  * moves it one place. `itemProps(index)` goes on each row (spread it on the
  * <li>), `dragOverIndex` is the row a drag is over, for its mark.
+ * `handleOnly`: in a list that scrolls (a playlist), only a swipe that starts
+ * on the row's handle (DragHandle) moves it; elsewhere the swipe scrolls.
  */
-export function useDragReorder(count: number, onReorder?: (fromIndex: number, toIndex: number) => void) {
+export function useDragReorder(count: number, onReorder?: (fromIndex: number, toIndex: number) => void, { handleOnly = false }: { handleOnly?: boolean } = {}) {
   const dragIndexRef = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const touchStartRef = useRef<number | null>(null);
@@ -56,6 +58,7 @@ export function useDragReorder(count: number, onReorder?: (fromIndex: number, to
       setDragOverIndex(null);
     },
     onTouchStart: (e: React.TouchEvent<HTMLElement>) => {
+      if (handleOnly && !(e.target as Element | null)?.closest?.('[data-drag-handle]')) return;
       touchStartRef.current = e.touches[0].clientY;
       touchIndexRef.current = index;
     },
@@ -73,7 +76,8 @@ export const DragHandle = ({ enabled, position, className = '' }: { enabled: boo
   const { t } = useTranslation();
   return (
     <span
-      className={`w-4 text-center text-xs flex-shrink-0 select-none ${enabled ? 'text-white/35 hover:text-white/60 cursor-grab active:cursor-grabbing' : 'text-white/40 tabular-nums'} ${className}`}
+      data-drag-handle={enabled ? '' : undefined}
+      className={`w-4 text-center text-xs flex-shrink-0 select-none ${enabled ? 'text-white/35 hover:text-white/60 cursor-grab active:cursor-grabbing touch-none' : 'text-white/40 tabular-nums'} ${className}`}
       title={enabled ? t('queue.dragToReorder') : undefined}
     >
       {enabled ? <>&#9776;</> : position}

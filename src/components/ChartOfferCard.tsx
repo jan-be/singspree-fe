@@ -27,7 +27,14 @@ export interface ChartHintProps {
   songLabel?: string;
   /** the pickers' size (the queue, a playlist) */
   compact?: boolean;
+  /** sign in in a new tab (in a party: the party page stays) */
+  signInNewTab?: boolean;
 }
+
+/** "Sign in": in this tab, back to the start page after; or, from a party, in a new tab (the party stays open) */
+const SignInLink = ({ newTab, className, children }: { newTab: boolean; className: string; children: React.ReactNode }) => (newTab
+  ? <a href="/login" target="_blank" rel="noopener" className={className}>{children}</a>
+  : <Link to={`/login?next=${encodeURIComponent('/')}`} className={className}>{children}</Link>);
 
 export interface ChartOfferProps {
   offer: VideoOffer;
@@ -38,6 +45,8 @@ export interface ChartOfferProps {
   /** why no chart can be started here now (the party's limit): said in place of the button */
   blocked?: string | null;
   compact?: boolean;
+  /** sign in in a new tab (in a party: the party page stays) */
+  signInNewTab?: boolean;
 }
 
 export interface ChartMakingProps {
@@ -85,7 +94,7 @@ const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).
  * when it is a song here already. youtube.com is only the way out when the
  * search fails. `offerKind` as in ChartOffer.
  */
-export const ChartHint = ({ query, offerKind, onMake, onSong, songLabel, compact = false }: ChartHintProps) => {
+export const ChartHint = ({ query, offerKind, onMake, onSong, songLabel, compact = false, signInNewTab = false }: ChartHintProps) => {
   const { t } = useTranslation();
   // { q, state: 'loading' | 'done' | 'error', results, error }: what was found for which search
   const [found, setFound] = useState<{ q: string; state: 'loading' | 'done' | 'error'; results: YouTubeResult[]; error?: string } | null>(null);
@@ -152,7 +161,7 @@ export const ChartHint = ({ query, offerKind, onMake, onSong, songLabel, compact
                       {t('search.hint.make')}
                     </button>
                   ) : (
-                    <Link to={`/login?next=${encodeURIComponent('/')}`} className="btn btn-sm btn-ghost no-underline">{t('search.hint.signIn')}</Link>
+                    <SignInLink newTab={signInNewTab} className="btn btn-sm btn-ghost no-underline">{t('search.hint.signIn')}</SignInLink>
                   )}
                 </div>
               </div>
@@ -192,7 +201,7 @@ export const ChartLookup = ({ compact = false }: { compact?: boolean }) => {
  * switch (useChartOffer): 'offer' gets the button, 'signIn' a sign-in link,
  * anything else just the card.
  */
-export const ChartOffer = ({ offer, offerKind, onGenerate, starting = false, error = null, blocked = null, compact = false }: ChartOfferProps) => {
+export const ChartOffer = ({ offer, offerKind, onGenerate, starting = false, error = null, blocked = null, compact = false, signInNewTab = false }: ChartOfferProps) => {
   const { t } = useTranslation();
   const other = offer.kind === 'title';
   return (
@@ -222,13 +231,10 @@ export const ChartOffer = ({ offer, offerKind, onGenerate, starting = false, err
         </>
       )}
       {offerKind === 'signIn' && (
-        <Link
-          to={`/login?next=${encodeURIComponent('/')}`}
-          className="btn btn-ghost mt-4 w-full sm:w-auto sm:px-6 h-auto min-h-10 py-2 whitespace-normal text-center leading-snug no-underline"
-        >
+        <SignInLink newTab={signInNewTab} className="btn btn-ghost mt-4 w-full sm:w-auto sm:px-6 h-auto min-h-10 py-2 whitespace-normal text-center leading-snug no-underline">
           <Sparkles className="flex-shrink-0" />
           {t('search.generate.ctaSignIn')}
-        </Link>
+        </SignInLink>
       )}
       {error && <p role="alert" className="mt-2.5 text-sm text-red-400">{error}</p>}
     </div>

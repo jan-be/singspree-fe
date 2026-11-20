@@ -44,6 +44,8 @@ export interface SearchBarProps {
   chartHandedText?: string;
   /** why no chart can be started now (the party's limit): the offer says it in place of its button */
   chartBlocked?: string | null;
+  /** sign in in a new tab (in a party: this page stays where it is) */
+  signInNewTab?: boolean;
   /** whether charts can be made here at all (a party that allows none) */
   charts?: boolean;
   /** the done chart's button (the default: "Sing now") */
@@ -89,7 +91,7 @@ const karaokeOriginal = (e: unknown) => {
  * (looking it up, its offer, its chart) or a listen, when that changes.
  */
 const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({
-  value = '', onChange, onLinkActive, onSong, onChartJob, chartHandedText, chartBlocked = null, charts = true, doneLabel,
+  value = '', onChange, onLinkActive, onSong, onChartJob, chartHandedText, chartBlocked = null, signInNewTab = false, charts = true, doneLabel,
   searchScope = 'entry', size = 'page', canListen: listenWanted = true, placeholder,
 }, ref) => {
   const { t } = useTranslation();
@@ -290,7 +292,8 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({
       setJobId(null);
       setOffer({ videoId, videoTitle, kind: 'none' });
       inputRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
-      generateFor({ videoId, videoTitle });
+      // (the party's limit on songs being made: the offer says so in place of its button, nothing starts)
+      if (!chartBlocked) generateFor({ videoId, videoTitle });
     },
   }));
 
@@ -406,7 +409,7 @@ const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({
       {/* A video no song is: the card, with the chart offered as the backend's switch says
           (admins while it is tested); for a title that found other songs, only where it can be made */}
       {offer && !tracked && (offer.kind === 'none' || shownOfferKind === 'offer' || shownOfferKind === 'signIn') && (
-        <ChartOffer offer={offer} offerKind={shownOfferKind} onGenerate={() => generateFor(offer)} starting={starting} error={offerError} blocked={chartBlocked} compact={compact} />
+        <ChartOffer offer={offer} offerKind={shownOfferKind} onGenerate={() => generateFor(offer)} starting={starting} error={offerError} blocked={chartBlocked} signInNewTab={signInNewTab} compact={compact} />
       )}
 
       {/* The chart being made: progress here; the pill follows the user once they move on */}

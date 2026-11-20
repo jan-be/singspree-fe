@@ -2,6 +2,7 @@ import { startRegistration, startAuthentication, browserSupportsWebAuthn, browse
 import type { PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser';
 import { apiUrl } from '../GlobalConsts';
 import { getGuestId } from './sessionId';
+import { holdGuestPlaylists } from './playlists';
 import { parseAvatarPath } from './avatar';
 import type { PrivacySettings, Visibility } from './statsPrivacy';
 import type { AchievementItem } from './achievements';
@@ -861,10 +862,16 @@ export const startEmailCode = async (email: string, lang: string) => {
 /**
  * Sign in with the mailed code. An address without an account resolves to
  * { needsUsername: true } until a display name is given, then creates it.
- * Otherwise { user, created }.
+ * Otherwise { user, created }. A code this browser did not ask for (someone's
+ * link) signs in without what the guest has here: neither the scores (no
+ * guest id) nor the playlists (holdGuestPlaylists).
  */
-export const verifyEmailCode = (email: string, code: string, username?: string) =>
-  post<EmailVerifyResult>('/auth/email/verify', { email, code, ...(askedCodeFor(email) ? { guestId: getGuestId() } : {}), ...(username !== undefined ? { username } : {}) });
+export const verifyEmailCode = async (email: string, code: string, username?: string) => {
+  const asked = askedCodeFor(email);
+  const result = await post<EmailVerifyResult>('/auth/email/verify', { email, code, ...(asked ? { guestId: getGuestId() } : {}), ...(username !== undefined ? { username } : {}) });
+  if (!asked && 'user' in result && result.user) holdGuestPlaylists(result.user.id);
+  return result;
+};
 
 // Every sign-in carries the browser's guest id: the scores sung as a guest on it become the account's.
 export const loginPassword = (email: string, password: string) => post<{ user: Me }>('/auth/password/login', { email, password, guestId: getGuestId() }).then(j => j.user);

@@ -41,6 +41,8 @@ export interface SongPickerProps {
   placeholder?: string;
   /** the AI charts: hand a started one on (onJob), say why none can start now (blocked), or none at all (allowed: false) */
   chart?: { onJob?: (jobId: number, videoTitle: string) => void; handedText?: string; blocked?: string | null; allowed?: boolean };
+  /** "Sign in" opens in a new tab (the party's queue: the party stays) */
+  signInNewTab?: boolean;
   /** a line under the box (the queue's: why a song was refused) */
   notice?: ReactNode;
 }
@@ -76,7 +78,7 @@ const InListMark = ({ label }: { label: string }) => (
  * box of their own): the list being made goes above the picker, never
  * between the box and its songs.
  */
-const SongPicker = ({ onPick, picked, pickedLabel, addLabel, full = false, suggestFrom, suggestionsLabel, searchScope = null, placeholder, chart = {}, notice }: SongPickerProps) => {
+const SongPicker = ({ onPick, picked, pickedLabel, addLabel, full = false, suggestFrom, suggestionsLabel, searchScope = null, placeholder, chart = {}, signInNewTab = false, notice }: SongPickerProps) => {
   const { t } = useTranslation();
   const namesOf = useSongNames();
   const offerKind = useChartOffer();
@@ -138,6 +140,7 @@ const SongPicker = ({ onPick, picked, pickedLabel, addLabel, full = false, sugge
         onChartJob={chart.onJob}
         chartHandedText={chart.handedText}
         chartBlocked={chart.blocked}
+        signInNewTab={signInNewTab}
         charts={chart.allowed !== false}
         doneLabel={addLabel}
         searchScope={searchScope}
@@ -151,6 +154,7 @@ const SongPicker = ({ onPick, picked, pickedLabel, addLabel, full = false, sugge
           onMake={(videoId, title) => barRef.current?.makeChart(videoId, title)}
           onSong={pickById}
           songLabel={addLabel}
+          signInNewTab={signInNewTab}
           compact
         />
       )}

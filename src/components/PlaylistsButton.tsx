@@ -53,7 +53,7 @@ const PlaylistEditor = ({ list, onBack, onStart, onDeleted }: { list: Playlist; 
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);
     setPlaylistSongs(list.id, next);
-  });
+  }, { handleOnly: true }); // (the list scrolls: a swipe elsewhere on a row is a scroll)
   const commitName = () => {
     const clean = cleanName(name);
     if (clean && clean !== list.name) renamePlaylist(list.id, clean);

@@ -44,11 +44,12 @@ const SideMenu = () => {
     const { overflow } = document.body.style;
     document.body.style.overflow = 'hidden';
     document.addEventListener('keydown', escape);
-    wide.addEventListener('change', grown);
+    // (Safari before 14 has only addListener on a MediaQueryList)
+    if (wide.addEventListener) wide.addEventListener('change', grown); else wide.addListener(grown);
     return () => {
       document.body.style.overflow = overflow;
       document.removeEventListener('keydown', escape);
-      wide.removeEventListener('change', grown);
+      if (wide.removeEventListener) wide.removeEventListener('change', grown); else wide.removeListener(grown);
     };
   }, [open]);
 

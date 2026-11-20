@@ -61,6 +61,7 @@ const QueueAddSong = ({ onAdd, onAddJob, pendingCount = 0, queuedIds, suggestFro
       suggestionsLabel={t('queue.suggestions')}
       searchScope="queue"
       placeholder={t('queue.searchOrPaste')}
+      signInNewTab
       chart={{
         onJob: onAddJob ? (jobId, videoTitle) => onAddJob(jobId, videoTitle) : undefined,
         handedText: t('queue.chartAdded'),
