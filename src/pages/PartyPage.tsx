@@ -169,7 +169,8 @@ interface PageStemPlayer {
   readonly waiting?: boolean;
   buffers?: Record<StemName, AudioBuffer> | null;
   urls?: StemUrls | null;
-  load(urls: StemUrls, options: { log: (line: string) => void }): Promise<unknown>;
+  /** onLost: the streamed stems failed or ran dry after load (StreamingStemPlayer; decoded ones cannot) */
+  load(urls: StemUrls, options: { log: (line: string) => void; onLost?: (why: string) => void }): Promise<unknown>;
   play(time?: number): void;
   pause(): void;
   seek(time: number): void;
@@ -803,10 +804,11 @@ const PartyPage = () => {
     // Silence YouTube — we're serving both stems ourselves
     silenceYouTube();
 
-    // No usable Web Audio, or stems that do not load or decode: undo the
-    // stems setup and let YouTube carry the sound. Otherwise the iframe
-    // stays muted for stems that never start, and the phone is silent for
-    // every song with nothing to tap. The next song would fail the same
+    // No usable Web Audio, or stems that do not load or decode, or that fail
+    // or run dry mid-song (their site went away: streamStemPlayer.ts onLost):
+    // undo the stems setup and let YouTube carry the sound. Otherwise the
+    // iframe stays muted for stems that never start, and the phone is silent
+    // for every song with nothing to tap. The next song would fail the same
     // way, so stems stay off for the rest of the session.
     const fallBackToYouTube = (why: string) => {
       debugError('stems', `${why}: using YouTube audio`);
@@ -848,7 +850,10 @@ const PartyPage = () => {
     stemPlayerRef.current = player;
     const loadStartedAt = performance.now();
     stemsLoadRef.current = { state: 'loading', startedAt: loadStartedAt };
-    player.load(stemUrls(activeSongId, { pass: stemsFor.pass, caf: Boolean(format) }), { log: (line: string) => debugLog('stems', line) }).then(() => {
+    const onLost = (why: string) => {
+      if (stemPlayerRef.current === player) fallBackToYouTube(`stems lost mid-song (${why})`);
+    };
+    player.load(stemUrls(activeSongId, { pass: stemsFor.pass, caf: Boolean(format) }), { log: (line: string) => debugLog('stems', line), onLost }).then(() => {
       if (stemPlayerRef.current !== player) return; // the song changed meanwhile
       stemsLoadRef.current = { state: player.mode, ms: Math.round(performance.now() - loadStartedAt) };
       syncBleedSong(activeSongId);

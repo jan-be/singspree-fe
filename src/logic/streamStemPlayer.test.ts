@@ -13,7 +13,7 @@ interface FakeAudio {
   readyState: number;
   src: string;
   refuse?: boolean;
-  addEventListener(type: string, fn: () => void): void;
+  addEventListener(type: string, fn: () => void, options?: { once?: boolean }): void;
   emit(type: string): void;
   play: Mock<() => Promise<void>>;
   pause: Mock<() => void>;
@@ -28,11 +28,11 @@ interface FakeGain {
 
 // A stand-in <audio>: events by name, play() that can be refused, seeks that report back
 function fakeElement() {
-  const listeners: Record<string, (() => void)[]> = {};
+  const listeners: Record<string, { fn: () => void; once: boolean }[]> = {};
   const el: FakeAudio = {
     crossOrigin: null, preload: '', paused: true, currentTime: 0, duration: NaN, error: null, seeking: false, readyState: 4, src: '',
-    addEventListener(type, fn) { (listeners[type] ??= []).push(fn); },
-    emit(type) { const fns = listeners[type] ?? []; listeners[type] = []; fns.forEach((f) => f()); },
+    addEventListener(type, fn, options) { (listeners[type] ??= []).push({ fn, once: !!options?.once }); },
+    emit(type) { const all = listeners[type] ?? []; listeners[type] = all.filter((l) => !l.once); all.forEach((l) => l.fn()); },
     play: vi.fn(() => { el.paused = false; return el.refuse ? (el.paused = true, Promise.reject(Object.assign(new Error('no'), { name: 'NotAllowedError' }))) : Promise.resolve(); }),
     pause: vi.fn(() => { el.paused = true; }),
     removeAttribute(name) { if (name === 'src') el.src = ''; },
@@ -63,11 +63,25 @@ async function loaded(clockValue: { t: number | null } = { t: null }) {
     clock: () => clockValue.t,
   });
   Object.assign(player.leads, { start: 0, seek: 0 }); // shared by every player: a known starting point
-  const p = player.load({ karaoke: '/k', vocals: '/v' });
+  const onLost = vi.fn<(why: string) => void>();
+  const p = player.load({ karaoke: '/k', vocals: '/v' }, { onLost });
   els.forEach((e) => { e.duration = 165; e.emit('canplay'); });
   await p;
-  return { player, k: els[0], v: els[1], clock: clockValue };
+  return { player, k: els[0], v: els[1], clock: clockValue, onLost };
 }
+/** A player loading, on a page shown or not, and what its load came to so far */
+function loading(page = { shown: true }) {
+  const els: FakeAudio[] = [];
+  const player = new StreamingStemPlayer(fakeContext(), gains, {
+    createElement: () => { const e = fakeElement(); els.push(e); return e; },
+    visible: () => page.shown,
+  });
+  const outcome: { error?: Error; done?: boolean } = {};
+  player.load({ karaoke: '/k', vocals: '/v' }).then(() => { outcome.done = true; }, (e: Error) => { outcome.error = e; });
+  return { player, k: els[0], v: els[1], page, outcome };
+}
+/** Lets the load's promise settle after a timer moved it */
+const settled = async () => { for (let i = 0; i < 5; i++) await Promise.resolve(); };
 const audible = (player: StreamingStemPlayer) => {
   const { fades } = player;
   assert(fades, 'not loaded');
@@ -190,6 +204,113 @@ describe('StreamingStemPlayer', () => {
     expect(k.currentTime).toBe(30); // the instrumental is not touched
     v.currentTime = 29.5;
     expect(player.realign()).toBe(false); // not again before that move is heard
+  });
+
+  it('gives up on a stem that gets no data for six seconds (its site does not answer)', async () => {
+    const { k, outcome } = loading();
+    vi.advanceTimersByTime(5500);
+    await settled();
+    expect(outcome).toEqual({}); // still waiting
+    k.emit('canplay'); // the instrumental came; the vocals did not
+    vi.advanceTimersByTime(600);
+    await settled();
+    expect(outcome.error?.message).toBe('vocals: no data for 6 s');
+  });
+
+  it('keeps waiting for a slow stem while its data comes in', async () => {
+    const { k, v, outcome } = loading();
+    for (let i = 0; i < 4; i++) {
+      vi.advanceTimersByTime(4000);
+      k.emit('progress'); v.emit('progress');
+    }
+    await settled();
+    expect(outcome).toEqual({}); // 16 s, never 6 s without data
+    k.emit('canplay'); v.emit('canplay');
+    await settled();
+    expect(outcome.done).toBe(true);
+  });
+
+  it('does not count the time the page is hidden (its media may not load until shown)', async () => {
+    const { page, outcome } = loading({ shown: false });
+    vi.advanceTimersByTime(20000);
+    await settled();
+    expect(outcome).toEqual({});
+    page.shown = true;
+    vi.advanceTimersByTime(6000);
+    await settled();
+    expect(outcome.error?.message).toBe('karaoke: no data for 6 s');
+  });
+
+  it('still gives up at 30 s on a stem that gets data but never becomes ready', async () => {
+    const { k, v, outcome } = loading();
+    for (let i = 0; i < 6; i++) {
+      vi.advanceTimersByTime(5000);
+      k.emit('progress'); v.emit('progress');
+    }
+    await settled();
+    expect(outcome.error?.message).toBe('karaoke: not ready after 30 s');
+  });
+
+  it('is lost when the playing stems run out of data for six seconds', async () => {
+    const { player, k, v, clock, onLost } = await loaded();
+    clock.t = 0;
+    player.play(0);
+    k.emit('playing');
+    vi.advanceTimersByTime(100);
+    v.readyState = 2; // a stall that passes
+    vi.advanceTimersByTime(4000);
+    v.readyState = 4;
+    vi.advanceTimersByTime(1000);
+    expect(onLost).not.toHaveBeenCalled();
+    k.readyState = 2; // its site went away
+    vi.advanceTimersByTime(5500);
+    expect(onLost).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(600);
+    expect(onLost).toHaveBeenCalledTimes(1);
+    expect(onLost).toHaveBeenCalledWith('out of data for 6 s');
+    vi.advanceTimersByTime(10000);
+    expect(onLost).toHaveBeenCalledTimes(1);
+  });
+
+  it('is not lost for data a paused stem lacks, nor for one late look of a hidden page', async () => {
+    const { player, k, v, clock, onLost } = await loaded();
+    clock.t = 0;
+    player.play(0);
+    player.pause(); // the video stalled, or the host paused
+    k.readyState = v.readyState = 1;
+    vi.advanceTimersByTime(20000);
+    expect(onLost).not.toHaveBeenCalled();
+    // playing again, and the page's timers run late: a look 30 s after the last counts for one second
+    k.readyState = v.readyState = 4;
+    player.play(0);
+    vi.advanceTimersByTime(500);
+    k.readyState = 2;
+    const now = performance.now.bind(performance);
+    const late = vi.spyOn(performance, 'now').mockImplementation(() => now() + 30000);
+    vi.advanceTimersByTime(500);
+    late.mockRestore();
+    expect(onLost).not.toHaveBeenCalled();
+  });
+
+  it('is lost on a media error after load, once', async () => {
+    const { player, v, onLost } = await loaded();
+    player.play(0);
+    v.error = { code: 2 }; // the network failed mid-file
+    v.emit('error');
+    v.emit('error');
+    expect(onLost).toHaveBeenCalledTimes(1);
+    expect(onLost).toHaveBeenCalledWith('vocals: media error 2');
+  });
+
+  it('loses nothing once disposed', async () => {
+    const { player, k, onLost } = await loaded();
+    player.play(0);
+    player.dispose();
+    k.paused = false; k.readyState = 1;
+    k.error = { code: 4 };
+    k.emit('error');
+    vi.advanceTimersByTime(10000);
+    expect(onLost).not.toHaveBeenCalled();
   });
 
   it('lets go of both files when disposed', async () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, assert } from 'vitest';
+import { describe, it, expect, assert, vi } from 'vitest';
 import { StemPlayer, silentWav, type MixNode, type StemGains } from './stemPlayer';
 
 interface FakeGain {
@@ -80,6 +80,31 @@ describe('StemPlayer', () => {
     await expect(player.load({ karaoke: '/k', vocals: '/v' }, { fetchImpl: async () => ({ ok: false, status: 404, arrayBuffer: async () => new ArrayBuffer(0) }), decode })).rejects.toThrow('karaoke: HTTP 404');
     await expect(player.load({ karaoke: '/k', vocals: '/v' }, { fetchImpl: fetchOk(10), decode: async () => { throw new Error('bad'); } })).rejects.toThrow('karaoke: cannot decode (bad)');
     expect(player.loaded).toBe(false);
+  });
+
+  it('gives up on a file whose answer has not begun within the limit, and calls the request off', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const player = new StemPlayer(fakeContext(), gains);
+      const signals: (AbortSignal | undefined)[] = [];
+      // the instrumental answers at once, the vocals' site never does (called off, the request fails, as fetch does)
+      const fetchImpl = (url: string, signal?: AbortSignal) => {
+        signals.push(signal);
+        return url === '/k' ? fetchOk(10)() : new Promise<never>((_, reject) => {
+          signal?.addEventListener('abort', () => reject(new Error('signal is aborted without reason')));
+        });
+      };
+      const p = player.load({ karaoke: '/k', vocals: '/v' }, { fetchImpl, decode, answerMs: 6000 });
+      const outcome = p.catch((e: Error) => e.message);
+      await vi.advanceTimersByTimeAsync(5900);
+      expect(signals.map(s => s?.aborted)).toEqual([false, false]);
+      await vi.advanceTimersByTimeAsync(200);
+      expect(await outcome).toBe('vocals: no answer after 6 s');
+      expect(signals.map(s => s?.aborted)).toEqual([false, true]); // (the instrumental's answer had begun: left alone)
+      expect(player.loaded).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('starts both stems together at the song time and keeps time on the context clock', async () => {

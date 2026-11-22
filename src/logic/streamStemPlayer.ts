@@ -23,6 +23,15 @@
 // fade in at the first measurement. Meanwhile `waiting` tells the page's sync
 // to keep out.
 //
+// The stems come from one site (the home site), wherever the party is. While
+// they load the page has YouTube silenced, so a site that does not answer was
+// silence until the 30 s limit: load() now also gives up on a stem that gets
+// no data at all for LOAD_QUIET_MS while the page is shown. And once they
+// play, a stem that fails (a media error) or runs out of data for
+// STALL_GIVE_UP_MS while it should be playing is lost: load's `onLost` tells
+// the page, which hands the sound to YouTube. (Before, that was silence for
+// the rest of the song.)
+//
 // Same surface as StemPlayer: load / play / pause / seek / dispose, loaded,
 // playing, currentTime, duration, ended.
 
@@ -45,7 +54,7 @@ export interface StemElement {
   readonly seeking: boolean;
   readonly readyState: number;
   readonly error: { readonly code: number } | null;
-  addEventListener(type: 'canplay' | 'error' | 'ended' | 'playing' | 'seeked', listener: () => void, options?: { once?: boolean }): void;
+  addEventListener(type: 'canplay' | 'error' | 'ended' | 'playing' | 'progress' | 'seeked', listener: () => void, options?: { once?: boolean }): void;
   play(): Promise<void>;
   pause(): void;
   removeAttribute(name: string): void;
@@ -68,6 +77,19 @@ export interface StreamingStemOptions {
   createElement?: () => StemElement;
   /** the song time the stems belong at right now (null: none to follow) */
   clock?: () => number | null;
+  /** whether the page is shown (a hidden page's media may not load until it is: Chrome defers it) */
+  visible?: () => boolean;
+}
+
+/** What load() takes besides the files */
+export interface StreamingLoadOptions {
+  log?: (line: string) => void;
+  /** the most a stem may take to be ready to play */
+  timeoutMs?: number;
+  /** how long a stem may get no data at all, while the page is shown, before load gives up */
+  quietMs?: number;
+  /** a stem failed or ran out of data after load (see above): the stems are gone for this song */
+  onLost?: (why: string) => void;
 }
 
 const FADE = 0.02;            // s: fades in and out, so no jump is a click
@@ -78,7 +100,12 @@ const SETTLE_MAX_MS = 2000;   // a start or seek that never reports in counts as
 const PAIR_TOLERANCE = 0.05;  // s the vocals may be off the instrumental before realign() moves them
 const MAX_LEAD = 0.5;         // s: the most a start or seek is aimed ahead
 const LEARN_RATE = 0.7;       // how much of a measured error goes into the lead
+export const LOAD_QUIET_MS = 6000;    // a loading stem with no data at all this long (the page shown): its site does not answer
+export const STALL_GIVE_UP_MS = 6000; // a playing stem out of data this long: lost, YouTube takes the sound
+const WATCH_MS = 500;         // how often the loading and the playing stems are looked at
+const WATCH_STEP_MAX = 1000;  // ms one look counts for at most (a hidden page's timers run late: one late look is no stall)
 const NAMES: StemName[] = ['karaoke', 'vocals'];
+const shown = () => typeof document === 'undefined' || document.visibilityState !== 'hidden';
 const LEADS_KEY = 'singspree_stem_leads';
 
 // What this device's elements take to be heard, shared by every song's player
@@ -121,18 +148,31 @@ export class StreamingStemPlayer {
   declare log: (line: string) => void;
   declare settleToken: number;
   declare vocalsToken: number;
+  declare visible: () => boolean;
+  declare onLost: (why: string) => void;
+  declare lostWhy: string | null;
+  declare quiet: Record<StemName, number>;
+  declare dryMs: number;
+  declare watchTimer: number | null;
 
   /**
    * @param {AudioContext} ctx
    * @param {{ karaoke: GainNode, vocals: GainNode }} gains  the mix, owned by the page
-   * @param {{ createElement?: () => HTMLAudioElement, clock?: () => number | null }} options
+   * @param {{ createElement?: () => HTMLAudioElement, clock?: () => number | null, visible?: () => boolean }} options
    *   clock: the song time the stems belong at right now (null: none to follow)
+   *   visible: whether the page is shown
    */
-  constructor(ctx: StreamingStemContext, gains: StemGains, { createElement = () => new Audio(), clock = () => null }: StreamingStemOptions = {}) {
+  constructor(ctx: StreamingStemContext, gains: StemGains, { createElement = () => new Audio(), clock = () => null, visible = shown }: StreamingStemOptions = {}) {
     this.ctx = ctx;
     this.gains = gains;
     this.createElement = createElement;
     this.clock = clock;
+    this.visible = visible;
+    this.onLost = () => {};
+    this.lostWhy = null;     // why the stems were lost after load (see above), once they were
+    this.quiet = { karaoke: 0, vocals: 0 }; // ms each loading stem has had no data while the page was shown
+    this.dryMs = 0;          // ms the playing stems have been out of data
+    this.watchTimer = null;
     this.els = null;         // { karaoke, vocals }: the <audio> elements, once load() ran
     this.fades = null;       // { karaoke, vocals }: a GainNode each, for the fades
     this.sources = [];
@@ -155,10 +195,14 @@ export class StreamingStemPlayer {
     this.vocalsToken = 0;    // the same for realign()'s moves
   }
 
-  /** Points both elements at their files; resolves once both can play. */
-  async load(urls: StemUrls, { log = () => {}, timeoutMs = 30000 }: { log?: (line: string) => void; timeoutMs?: number } = {}): Promise<this> {
+  /**
+   * Points both elements at their files; resolves once both can play. Gives up on a stem that is not ready within
+   * `timeoutMs`, or gets no data at all for `quietMs` while the page is shown (see above).
+   */
+  async load(urls: StemUrls, { log = () => {}, timeoutMs = 30000, quietMs = LOAD_QUIET_MS, onLost = () => {} }: StreamingLoadOptions = {}): Promise<this> {
     this.urls = urls;
     this.log = log;
+    this.onLost = onLost;
     const t0 = performance.now();
     // Each stem's element, playing through a fade into the page's gain for it
     const wire = (name: StemName) => {
@@ -175,24 +219,81 @@ export class StreamingStemPlayer {
     const karaoke = wire('karaoke'), vocals = wire('vocals');
     const els = (this.els = { karaoke: karaoke.el, vocals: vocals.el });
     this.fades = { karaoke: karaoke.fade, vocals: vocals.fade };
+    // The stems not ready yet, each with how it gives up
+    const waiting = new Map<StemName, (why: string) => void>();
     const ready = NAMES.map((name) => new Promise<void>((resolve, reject) => {
       const el = els[name];
-      const timer = setTimeout(() => reject(new Error(`${name}: no data after ${Math.round(timeoutMs / 1000)} s`)), timeoutMs);
+      const timer = setTimeout(() => giveUp(`${name}: not ready after ${Math.round(timeoutMs / 1000)} s`), timeoutMs);
+      const giveUp = (why: string) => {
+        if (!waiting.delete(name)) return;
+        clearTimeout(timer);
+        reject(new Error(why));
+      };
+      waiting.set(name, giveUp);
+      this.quiet[name] = 0;
+      el.addEventListener('progress', () => { this.quiet[name] = 0; }); // data came in
       el.addEventListener('canplay', () => {
+        if (!waiting.delete(name)) return;
         clearTimeout(timer);
         log(`${name}: can play after ${Math.round(performance.now() - t0)} ms (streamed)`);
         resolve();
       }, { once: true });
       el.addEventListener('error', () => {
-        clearTimeout(timer);
-        reject(new Error(`${name}: cannot play (media error ${el.error?.code ?? '?'})`));
-      }, { once: true });
+        if (waiting.has(name)) giveUp(`${name}: cannot play (media error ${el.error?.code ?? '?'})`);
+        else this.lose(`${name}: media error ${el.error?.code ?? '?'}`);
+      });
       if (name === 'karaoke') el.addEventListener('ended', () => { this.ended = true; });
       el.src = urls[name];
     }));
-    await Promise.all(ready);
+    this.watch(waiting, quietMs);
+    try {
+      await Promise.all(ready);
+    } catch (e) {
+      this.stopWatch();
+      throw e;
+    }
     if (!this.disposed) this.ready = true;
     return this;
+  }
+
+  /**
+   * Every WATCH_MS from load() on: a loading stem with no data for `quietMs` while the page is shown gives up; the
+   * loaded pair, out of data for STALL_GIVE_UP_MS while it should be playing, is lost.
+   */
+  watch(waiting: Map<StemName, (why: string) => void>, quietMs: number) {
+    this.stopWatch();
+    let last = performance.now();
+    this.watchTimer = setInterval(() => {
+      if (this.disposed) { this.stopWatch(); return; }
+      const now = performance.now();
+      const step = Math.min(WATCH_STEP_MAX, now - last);
+      last = now;
+      if (waiting.size && this.visible()) {
+        for (const [name, giveUp] of [...waiting]) {
+          this.quiet[name] += step;
+          if (this.quiet[name] >= quietMs) giveUp(`${name}: no data for ${Math.round(quietMs / 1000)} s`);
+        }
+      }
+      if (!this.ready) return;
+      if (this.playing && this.dry) {
+        this.dryMs += step;
+        if (this.dryMs >= STALL_GIVE_UP_MS) this.lose(`out of data for ${Math.round(this.dryMs / 1000)} s`);
+      } else this.dryMs = 0;
+    }, WATCH_MS);
+  }
+
+  stopWatch() {
+    if (this.watchTimer !== null) clearInterval(this.watchTimer);
+    this.watchTimer = null;
+  }
+
+  /** The stems are gone for this song (see above): once, and not after dispose */
+  lose(why: string) {
+    if (this.disposed || this.lostWhy !== null) return;
+    this.lostWhy = why;
+    this.stopWatch();
+    this.log(`lost: ${why}`);
+    this.onLost(why);
   }
 
   get loaded() { return this.ready; }
@@ -201,6 +302,8 @@ export class StreamingStemPlayer {
   /** Hidden, not heard yet, seeking or out of data: nothing for the page's sync to chase */
   get waiting() { return !!this.els && (this.hidden || this.settling || this.stalled); }
   get stalled() { const { els } = this; return !!els && NAMES.some((n) => els[n].seeking || els[n].readyState < 3); }
+  /** A stem meant to play that has nothing to play (one paused, ended or refused to play misses nothing) */
+  get dry() { const { els } = this; return !!els && NAMES.some((n) => !els[n].paused && (els[n].seeking || els[n].readyState < 3)); }
   /** The song time the stems are at: the instrumental's, which the vocals follow */
   get currentTime() { return this.ready && this.els ? this.els.karaoke.currentTime : this.position; }
   get duration() {
@@ -366,6 +469,7 @@ export class StreamingStemPlayer {
   dispose() {
     this.disposed = true;
     this.stopChecks();
+    this.stopWatch();
     if (this.els) {
       for (const name of NAMES) {
         const el = this.els[name];

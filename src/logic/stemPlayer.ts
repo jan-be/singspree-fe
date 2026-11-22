@@ -58,10 +58,19 @@ export interface StemResponse {
   arrayBuffer(): Promise<ArrayBuffer>;
 }
 export interface StemLoadOptions {
-  fetchImpl?: (url: string) => Promise<StemResponse>;
+  fetchImpl?: (url: string, signal?: AbortSignal) => Promise<StemResponse>;
   decode?: (bytes: ArrayBuffer) => Promise<AudioBuffer>;
   log?: (line: string) => void;
+  /** how long a file's answer may take to begin before load gives up (ANSWER_MS) */
+  answerMs?: number;
 }
+
+/**
+ * How long a stem's answer may take to begin. The stems come from one site (the home site), and the page has
+ * YouTube silenced while they load: a site that does not answer was silence until the browser gave up on the
+ * request. Once the answer begins, the file comes as fast as the network brings it.
+ */
+export const ANSWER_MS = 6000;
 /** A stem playing: its source node and the gain that fades it. */
 interface PlayingStem {
   source: StemSource;
@@ -97,10 +106,24 @@ export class StemPlayer {
   }
 
   /** Fetches and decodes both files; resolves once both are in. */
-  async load(urls: StemUrls, { fetchImpl = (url) => fetch(url), decode = (bytes) => this.ctx.decodeAudioData(bytes), log = () => {} }: StemLoadOptions = {}): Promise<this> {
+  async load(urls: StemUrls, { fetchImpl = (url, signal) => fetch(url, { signal }), decode = (bytes) => this.ctx.decodeAudioData(bytes), log = () => {}, answerMs = ANSWER_MS }: StemLoadOptions = {}): Promise<this> {
+    // A file's answer, or an error once it has not begun within answerMs (the request is called off then)
+    const answer = async (name: StemName) => {
+      const giveUp = typeof AbortController === 'function' ? new AbortController() : null;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const late = new Promise<never>((_, reject) => {
+        // (this first: the call-off rejects the request at once, and the first to settle names the reason)
+        timer = setTimeout(() => { reject(new Error(`${name}: no answer after ${Math.round(answerMs / 1000)} s`)); giveUp?.abort(); }, answerMs);
+      });
+      try {
+        return await Promise.race([fetchImpl(urls[name], giveUp?.signal), late]);
+      } finally {
+        clearTimeout(timer);
+      }
+    };
     const one = async (name: StemName) => {
       const t0 = performance.now();
-      const response = await fetchImpl(urls[name]);
+      const response = await answer(name);
       if (!response.ok) throw new Error(`${name}: HTTP ${response.status}`);
       const bytes = await response.arrayBuffer();
       const size = bytes.byteLength; // decoding detaches the buffer
