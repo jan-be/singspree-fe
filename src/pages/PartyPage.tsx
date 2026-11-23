@@ -72,6 +72,7 @@ import { canPopOut, usePopout } from "../logic/popoutWindow";
 import { defaultHue, playerHue } from "../logic/playerColor";
 import Avatar from "../components/Avatar";
 import DifficultyTag from "../components/DifficultyTag";
+import { LevelGain } from "../components/LevelBadge";
 import LiveScoreStrip from "../components/LiveScoreStrip";
 import { avatarSrc, learnAvatars } from "../logic/avatar";
 import { avatarSprites } from "../logic/avatarSprite";
@@ -4208,6 +4209,8 @@ const PartyPage = () => {
                               {!player.newBest && player.previousBest != null ? t('scores.yourBest', { score: player.previousBest.toLocaleString() }) : t('scores.newBest')}
                             </div>
                           )}
+                          {/* Your level: what the song added, and a new one when it crossed it */}
+                          {isMe && player.xp != null && <LevelGain xp={player.xp} gained={player.xpGained ?? 0} />}
                           {(() => {
                             const earned = player.achievements;
                             if (!earned?.length) return null;

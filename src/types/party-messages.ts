@@ -100,6 +100,9 @@ export interface EndScore {
   saved?: boolean;
   previousBest?: number | null;
   newBest?: boolean;
+  /** once saved: the XP with this song counted, and what it added (logic/level.ts); left out like previousBest */
+  xp?: number;
+  xpGained?: number;
   /** achievement keys just earned */
   achievements?: string[];
 }

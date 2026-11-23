@@ -873,6 +873,13 @@
     "signInToSave": "Je scores blijven in deze browser – log in om ze voorgoed te bewaren en te vergelijken met vrienden",
     "you": "Jij"
   },
+  "level": {
+    "badge": "Level {{level}}",
+    "up": "Level {{level}} bereikt!",
+    "toNext": "Nog {{xp}} XP tot level {{next}}",
+    "total": "{{xp}} XP in totaal",
+    "gained": "+{{xp}} XP"
+  },
   "settings": {
     "title": "Instellingen",
     "viewProfile": "Profiel bekijken",

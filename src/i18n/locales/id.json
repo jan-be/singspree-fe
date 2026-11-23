@@ -868,6 +868,13 @@
     "signInToSave": "Skor kamu tersimpan di browser ini – masuk untuk menyimpannya selamanya dan membandingkan dengan teman",
     "you": "Kamu"
   },
+  "level": {
+    "badge": "Level {{level}}",
+    "up": "Naik ke level {{level}}!",
+    "toNext": "{{xp}} XP lagi ke level {{next}}",
+    "total": "Total {{xp}} XP",
+    "gained": "+{{xp}} XP"
+  },
   "settings": {
     "title": "Pengaturan",
     "viewProfile": "Lihat profil",

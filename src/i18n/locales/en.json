@@ -877,6 +877,13 @@
     "signInToSave": "Your scores stay with this browser – sign in to keep them for good and compare with friends",
     "you": "You"
   },
+  "level": {
+    "badge": "Level {{level}}",
+    "up": "Level {{level}} reached!",
+    "toNext": "{{xp}} XP to level {{next}}",
+    "total": "{{xp}} XP in total",
+    "gained": "+{{xp}} XP"
+  },
   "admin": {
     "title": "Admin",
     "subtitle": "What is going on right now on SingSpree.",

@@ -868,6 +868,13 @@
     "signInToSave": "Điểm của bạn được giữ trong trình duyệt này – đăng nhập để lưu vĩnh viễn và so với bạn bè",
     "you": "Bạn"
   },
+  "level": {
+    "badge": "Cấp {{level}}",
+    "up": "Đã lên cấp {{level}}!",
+    "toNext": "Còn {{xp}} XP nữa lên cấp {{next}}",
+    "total": "Tổng {{xp}} XP",
+    "gained": "+{{xp}} XP"
+  },
   "settings": {
     "title": "Cài đặt",
     "viewProfile": "Xem hồ sơ",

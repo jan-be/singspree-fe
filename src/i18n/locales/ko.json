@@ -868,6 +868,13 @@
     "signInToSave": "점수는 이 브라우저에 남아 있어요 – 로그인하면 계속 보관되고 친구와 비교할 수 있어요",
     "you": "나"
   },
+  "level": {
+    "badge": "레벨 {{level}}",
+    "up": "레벨 {{level}} 달성!",
+    "toNext": "레벨 {{next}}까지 {{xp}} XP 남음",
+    "total": "총 {{xp}} XP",
+    "gained": "+{{xp}} XP"
+  },
   "settings": {
     "title": "설정",
     "viewProfile": "프로필 보기",
