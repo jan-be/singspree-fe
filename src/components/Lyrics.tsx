@@ -4,10 +4,14 @@ import css from './Lyrics.module.css';
 import type { LiveFrame, LiveStore } from '../logic/liveStore';
 import type { LyricElement, LyricLine, TickData } from '../logic/LyricsParser';
 import {
-  clampLyricRows, loadLyricRows, lyricRowsShown, placeLyricLines, storeLyricRows, usualLyricRows,
+  clampLyricRows, linesInRange, loadLyricRows, lyricRowsShown, lyricScrollBounds, placeLyricLines, storeLyricRows, usualLyricRows,
   MAX_LYRIC_ROWS, MIN_LYRIC_ROWS,
 } from '../logic/lyricRows';
 import { leadIn, leadProgress } from '../logic/lyricLeadIn';
+import {
+  lineSeekTime, releaseSpeed, BROWSE_IDLE_MS, FLING_DECAY, FLING_MIN_SPEED, PICK_WAIT_MS,
+} from '../logic/lyricSeek';
+import { popoverJustClosed, promptJustAnswered } from '../logic/popoverGuard';
 
 const CYAN = '#00e5ff';
 const GRAY = '#e0e0e0';
@@ -38,6 +42,8 @@ const sweepAt = (tickFloat: TickData['tickFloat'], el: LyricElement) => {
 };
 
 interface RowProps {
+  /** its place in the list (`data-i`: the line a click picks) */
+  i: number;
   line: LyricLine;
   /** sung already, sung now, or still to come */
   state: 'past' | 'current' | 'next';
@@ -63,8 +69,8 @@ interface RowProps {
  * outer edge, moved by Lyrics while it is on its way, and let go into the
  * text by the CSS once Lyrics marks it `data-gone`.
  */
-const Row = React.memo(({ line, state, near, at, sung, sweepRef, lead, leadRef }: RowProps) => (
-  <div className={state === 'next' ? css.row : `${css.row} ${css[state]}`}>
+const Row = React.memo(({ i: index, line, state, near, at, sung, sweepRef, lead, leadRef }: RowProps) => (
+  <div data-i={index} className={state === 'next' ? css.row : `${css.row} ${css[state]}`}>
     {near && <div className={css.glow} dir="auto" aria-hidden="true">{textOf(line)}&nbsp;</div>}
     <div className={css.line} dir="auto">
       {state !== 'current' ? textOf(line) : line.map((el, i) => {
@@ -114,13 +120,18 @@ const cutOff = (px: number) => `inset(${px}px -100vw -60px -100vw)`;
  * song or through lines breaking anew. A current line with more rows than
  * the view is moved up a row at a time, to the row of the syllable the song
  * is at (the one marked `data-at`).
+ *
+ * `glide`: there all the same, from wherever the list is (back from the
+ * lines the viewer scrolled to, or to a line they picked). `full`: every
+ * line is looked at again, not only those that were or are in view (the
+ * viewer's scroll showed others).
  */
-function place(box: HTMLElement, view: HTMLElement, list: HTMLElement, was: Placed, rows: LyricLine[], current: number) {
+function place(box: HTMLElement, view: HTMLElement, list: HTMLElement, was: Placed, rows: LyricLine[], current: number, { glide = false, full = false } = {}) {
   const els = list.children as HTMLCollectionOf<HTMLElement>;
   if (current < 0 || current >= els.length) { was.rows = null; return; }
   const all = was.rows !== rows;
   const width = view.clientWidth;
-  const still = all || Math.abs(current - was.current) > 2 || width !== was.width;
+  const still = all || (!glide && (Math.abs(current - was.current) > 2 || width !== was.width));
   if (still) box.classList.add(css.still);
   // (the box cuts the list off but could be scrolled all the same, by a search in the page)
   if (box.scrollTop) box.scrollTop = 0;
@@ -138,8 +149,8 @@ function place(box: HTMLElement, view: HTMLElement, list: HTMLElement, was: Plac
   const cutRow = long ? row : null;
   if (was.cutRow && was.cutRow !== cutRow) was.cutRow.style.clipPath = '';
   if (cutRow) cutRow.style.clipPath = cutOff(cut); // (from the line's first row on, cut by 0: the cut can then glide with the list)
-  const from = all ? 0 : Math.min(first, was.first);
-  const to = all ? els.length - 1 : Math.max(last, was.last);
+  const from = all || full ? 0 : Math.min(first, was.first);
+  const to = all || full ? els.length - 1 : Math.max(last, was.last);
   for (let i = from; i <= to; i++) els[i].toggleAttribute('data-out', i < first || i > last);
 
   if (still) {
@@ -157,7 +168,36 @@ export interface LyricsProps {
   pick: (frame: LiveFrame) => Partial<TickData> | null;
   label?: React.ReactNode;
   compact?: boolean;
+  /**
+   * Takes the song to a video time: the host's seek, or a co-host's by way of
+   * the host's page. Given, the lines can be scrolled through and a line
+   * clicked or tapped takes the song there (joiners: not given).
+   */
+  onSeek?: (seconds: number) => void;
 }
+
+/** The list as the viewer scrolls it: where it is moved to, how far it can go, and what of it shows */
+interface Scroll {
+  shift: number;
+  min: number;
+  max: number;
+  /** the lines' places in the list, measured as the scroll began (or the view changed size) */
+  tops: number[];
+  heights: number[];
+  rowHeight: number;
+  /** the view's top in the box, and the box's height */
+  viewTop: number;
+  boxHeight: number;
+  /** the lines shown, of the last move */
+  first: number;
+  last: number;
+}
+
+/** The viewer's way through the lines: scrolled away from the line sung now, or a line picked that the song is on its way to */
+type Browse = { scroll: Scroll } | { picked: number };
+
+/** How far a finger moves before a press is a scroll, not a tap (px) */
+const DRAG_SLOP = 8;
 
 /**
  * One part's lyrics, as a list that moves: every line of the chart is in it,
@@ -188,8 +228,17 @@ export interface LyricsProps {
  * `compact`: a little smaller and tighter — for stacked duet lists.
  * Each line takes its direction from its first letter (dir="auto"): an Arabic
  * or Hebrew line reads from the right, with its punctuation where it belongs.
+ *
+ * With `onSeek` (the host, a co-host) the list is a way through the song,
+ * like a music app's lyrics (lyricSeek.ts): the wheel or a finger scrolls it
+ * away from the line sung now, every line with any of it in the box showing,
+ * the edges faded; a line clicked or tapped is where the song goes, and the
+ * list glides there at once. Some quiet seconds after the last scroll it
+ * glides back to the line sung now. A press here does not bring the page's
+ * controls (`data-ui-quiet`), and a scroll keeps them as they are
+ * (`data-dragging`): the box would move under the finger.
  */
-const Lyrics = ({ tickData, store, pick, label, compact }: LyricsProps) => {
+const Lyrics = ({ tickData, store, pick, label, compact, onSeek }: LyricsProps) => {
   const line = tickData.currentLine;
   const lyricRef = tickData.lyricRef;
   const lines = tickData.lyricData?.lyricLines;
@@ -226,12 +275,22 @@ const Lyrics = ({ tickData, store, pick, label, compact }: LyricsProps) => {
   const placedRef = useRef<Placed>({ rows: null, current: -1, width: 0, shift: null, first: 0, last: -1, long: false, cutRow: null });
   const wantedRef = useRef({ rows, current });
   const at = lyricRef ? lyricRef.syllableIndex : -1;
+  const browseRef = useRef<Browse | null>(null);
+  // (the browse's own: ends it without moving the list. Set by the effect further down)
+  const stopBrowseRef = useRef(() => {});
 
   // The list goes to the line sung now: before the paint that shows the line lit.
   // Within a line it only moves for one too long for the view, with the syllable.
+  // Not while the viewer has it: until they are done, the song has come to the
+  // line they picked, or another chart is in it.
   useLayoutEffect(() => {
     const was = placedRef.current;
     wantedRef.current = { rows, current };
+    const browse = browseRef.current;
+    if (browse) {
+      if (was.rows === rows && !('picked' in browse && browse.picked === current)) return;
+      stopBrowseRef.current();
+    }
     if (was.rows === rows && was.current === current && !was.long) return;
     if (boxRef.current && viewRef.current && listRef.current) place(boxRef.current, viewRef.current, listRef.current, was, rows, current);
   }, [rows, current, at]);
@@ -284,25 +343,230 @@ const Lyrics = ({ tickData, store, pick, label, compact }: LyricsProps) => {
     return store.subscribe(update);
   }, [store, pick, line, lead]);
 
-  // And again when the view is another size (the band dragged, the screen
-  // turned) or the lines break anew (the list's height). Read in a
+  const onSeekRef = useRef(onSeek);
+  onSeekRef.current = onSeek;
+  const frameRef = useRef({ store, pick });
+  frameRef.current = { store, pick };
+
+  // The viewer's way through the lines (onSeek), and the list placed again
+  // when the view is another size (the band dragged, the screen turned) or
+  // the lines break anew (the list's height). Sizes are read in a
   // ResizeObserver callback or a resize event, where layout is done anyway.
   useLayoutEffect(() => {
     const box = boxRef.current, view = viewRef.current, list = listRef.current;
     if (!box || !view || !list) return undefined;
-    const again = () => place(box, view, list, placedRef.current, wantedRef.current.rows, wantedRef.current.current);
+    const els = list.children as HTMLCollectionOf<HTMLElement>;
+    let endTimer: ReturnType<typeof setTimeout> | undefined;
+    let flingFrame: number | null = null;
+    // A finger on the list: where it went down, and once it scrolls, the shift it moves the list from
+    let press: { id: number; y: number; base: number | null; moves: { t: number; y: number }[] } | null = null;
+    let dragged = false; // the latest press scrolled (or stopped a flung list): its click picks nothing
+
+    // To the line sung now, or to the one picked
+    const placeWanted = (opts?: { glide?: boolean; full?: boolean }) => {
+      const browse = browseRef.current, { rows, current } = wantedRef.current;
+      place(box, view, list, placedRef.current, rows, browse && 'picked' in browse ? browse.picked : current, opts);
+    };
+
+    const measure = (): Omit<Scroll, 'shift'> | null => {
+      const n = els.length;
+      const rowHeight = parseFloat(getComputedStyle(list).lineHeight);
+      if (!n || !(rowHeight > 0)) return null;
+      const tops: number[] = [], heights: number[] = [];
+      for (let i = 0; i < n; i++) { tops.push(els[i].offsetTop); heights.push(els[i].offsetHeight); }
+      const { min, max } = lyricScrollBounds(n, i => tops[i], i => heights[i], view.clientHeight, rowHeight);
+      return { min, max, tops, heights, rowHeight, viewTop: view.offsetTop, boxHeight: box.clientHeight, first: 0, last: n - 1 };
+    };
+
+    // The list moved to `shift` (whole pixels: text between two is drawn soft), and
+    // every line with any of it in the box shown, a row more at each edge for the
+    // wheel's short glide to bring in
+    const scrollTo = (s: Scroll, shift: number) => {
+      s.shift = Math.max(s.min, Math.min(s.max, Math.round(shift)));
+      list.style.transform = `translateY(${s.shift}px)`;
+      const { first, last } = linesInRange(s.tops.length, i => s.tops[i], i => s.heights[i], s.shift,
+        -s.viewTop - s.rowHeight, s.boxHeight - s.viewTop + s.rowHeight);
+      for (let i = Math.min(first, s.first); i <= Math.max(last, s.last) && i < els.length; i++) {
+        els[i].toggleAttribute('data-out', i < first || i > last);
+      }
+      s.first = first;
+      s.last = last;
+    };
+
+    const stopFling = () => {
+      if (flingFrame !== null) cancelAnimationFrame(flingFrame);
+      flingFrame = null;
+    };
+    const unhold = () => { delete box.dataset.drag; delete box.dataset.dragging; };
+    // The viewer's no more, the list left where it is
+    const stop = () => {
+      clearTimeout(endTimer);
+      endTimer = undefined;
+      stopFling();
+      unhold();
+      delete box.dataset.browse;
+      browseRef.current = null;
+    };
+    stopBrowseRef.current = stop;
+    // Back to the line sung now, gliding
+    const end = () => {
+      stop();
+      placeWanted({ glide: true, full: true });
+    };
+    // (not while a finger still holds the list)
+    const armEnd = () => {
+      clearTimeout(endTimer);
+      const wait = () => {
+        if (press?.base != null) endTimer = setTimeout(wait, BROWSE_IDLE_MS);
+        else end();
+      };
+      endTimer = setTimeout(wait, BROWSE_IDLE_MS);
+    };
+
+    // Scrolled from where the list is: the line sung now in its place, or the one picked in its
+    const startScroll = (): Scroll | null => {
+      const browse = browseRef.current;
+      if (browse && 'scroll' in browse) return browse.scroll;
+      const m = measure();
+      if (!m) return null;
+      stop();
+      const was = placedRef.current;
+      if (was.cutRow) { was.cutRow.style.clipPath = ''; was.cutRow = null; } // (a long line shows whole)
+      const s: Scroll = { ...m, shift: was.shift ?? 0 };
+      was.shift = null; // (set again when the list goes back)
+      browseRef.current = { scroll: s };
+      box.dataset.browse = '';
+      scrollTo(s, s.shift);
+      return s;
+    };
+
+    const fling = (s: Scroll, speed: number) => {
+      let v = speed, last = performance.now();
+      const step = (now: number) => {
+        const dt = Math.min(50, Math.max(0, now - last));
+        last = now;
+        const before = s.shift;
+        scrollTo(s, s.shift + v * dt);
+        v *= Math.pow(FLING_DECAY, dt);
+        if ((dt > 0 && s.shift === before) || Math.abs(v) < 0.02) {
+          flingFrame = null;
+          unhold();
+          armEnd();
+          return;
+        }
+        flingFrame = requestAnimationFrame(step);
+      };
+      flingFrame = requestAnimationFrame(step);
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (!onSeekRef.current || e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      e.preventDefault(); // (not the stage's scroll, below lg)
+      stopFling();
+      unhold();
+      const s = startScroll();
+      if (!s) return;
+      const unit = e.deltaMode === 1 ? s.rowHeight : e.deltaMode === 2 ? view.clientHeight : 1;
+      scrollTo(s, s.shift - e.deltaY * unit);
+      armEnd();
+    };
+
+    // A finger (or a pen) scrolls; the mouse has the wheel, and selects text as before
+    const onDown = (e: PointerEvent) => {
+      dragged = false;
+      if (!onSeekRef.current || e.pointerType === 'mouse' || !e.isPrimary) return;
+      if (flingFrame !== null) { stopFling(); dragged = true; } // (a flung list caught: it stays there)
+      press = { id: e.pointerId, y: e.clientY, base: null, moves: [] };
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!press || e.pointerId !== press.id) return;
+      const dy = e.clientY - press.y;
+      if (press.base === null) {
+        if (Math.abs(dy) < DRAG_SLOP) return;
+        const s = startScroll();
+        if (!s) { press = null; return; }
+        press.base = s.shift - dy;
+        dragged = true;
+        box.dataset.drag = '';
+        box.dataset.dragging = '';
+        try { box.setPointerCapture(e.pointerId); } catch { /* */ }
+      }
+      const browse = browseRef.current;
+      if (!browse || !('scroll' in browse)) return;
+      scrollTo(browse.scroll, press.base + dy);
+      press.base = browse.scroll.shift - dy; // (held at an end: back at once with the finger)
+      press.moves.push({ t: e.timeStamp, y: e.clientY });
+      if (press.moves.length > 8) press.moves.shift();
+      armEnd();
+    };
+    const onUp = (e: PointerEvent) => {
+      if (!press || e.pointerId !== press.id) return;
+      const p = press;
+      press = null;
+      if (p.base === null) return; // a tap: its click picks the line
+      const browse = browseRef.current;
+      const speed = e.type === 'pointerup' ? releaseSpeed(p.moves, e.timeStamp) : 0;
+      if (browse && 'scroll' in browse && Math.abs(speed) >= FLING_MIN_SPEED) fling(browse.scroll, speed);
+      else { unhold(); armEnd(); }
+    };
+
+    // A line clicked or tapped: the song goes there, and the list at once
+    // (on a co-host's page the song gets there by way of the host's)
+    const onClick = (e: MouseEvent) => {
+      const seek = onSeekRef.current;
+      if (!seek || dragged || popoverJustClosed() || promptJustAnswered()) return;
+      const selection = window.getSelection?.();
+      if (selection && !selection.isCollapsed && box.contains(selection.anchorNode)) return; // (text selected with the mouse)
+      const row = e.target instanceof Element ? e.target.closest<HTMLElement>('[data-i]') : null;
+      if (!row || !list.contains(row)) return;
+      const i = Number(row.dataset.i);
+      const { store: liveStore, pick: pickFrame } = frameRef.current;
+      const chart = pickFrame(liveStore.getFrame())?.lyricData;
+      const time = chart ? lineSeekTime(wantedRef.current.rows, i, chart.bpm, chart.gap) : null;
+      if (time === null) return;
+      seek(time);
+      stop();
+      browseRef.current = { picked: i };
+      placeWanted({ glide: true, full: true });
+      endTimer = setTimeout(end, PICK_WAIT_MS);
+    };
+
+    const again = () => {
+      const browse = browseRef.current;
+      if (browse && 'scroll' in browse) {
+        const m = measure();
+        if (m) { Object.assign(browse.scroll, m, { first: 0, last: els.length - 1 }); scrollTo(browse.scroll, browse.scroll.shift); }
+        return;
+      }
+      placeWanted();
+    };
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(again) : null;
     ro?.observe(view);
     ro?.observe(list);
     window.addEventListener('resize', again);
+    box.addEventListener('wheel', onWheel, { passive: false });
+    box.addEventListener('pointerdown', onDown);
+    box.addEventListener('pointermove', onMove);
+    box.addEventListener('pointerup', onUp);
+    box.addEventListener('pointercancel', onUp);
+    box.addEventListener('click', onClick);
     return () => {
+      stop();
+      stopBrowseRef.current = () => {};
       ro?.disconnect();
       window.removeEventListener('resize', again);
+      box.removeEventListener('wheel', onWheel);
+      box.removeEventListener('pointerdown', onDown);
+      box.removeEventListener('pointermove', onMove);
+      box.removeEventListener('pointerup', onUp);
+      box.removeEventListener('pointercancel', onUp);
+      box.removeEventListener('click', onClick);
     };
   }, []);
 
+  const boxClass = [css.lyrics, compact && css.compact, onSeek && css.seekable].filter(Boolean).join(' ');
   return (
-    <div ref={boxRef} className={compact ? `${css.lyrics} ${css.compact}` : css.lyrics}>
+    <div ref={boxRef} className={boxClass} data-ui-quiet={onSeek ? '' : undefined}>
       {label && <div className={css.trackLabel}>{label}</div>}
       <div ref={viewRef} className={css.view}>
         <div ref={listRef} className={css.list}>
@@ -310,6 +574,7 @@ const Lyrics = ({ tickData, store, pick, label, compact }: LyricsProps) => {
           {current >= 0 && rows.map((row, i) => (
             <Row
               key={i}
+              i={i}
               line={row}
               state={i < current ? 'past' : i === current ? 'current' : 'next'}
               near={i >= current - 1 && i <= current + 1}
@@ -342,7 +607,11 @@ export interface LyricsBandProps {
  * lines, three on a phone held upright: the CSS's, as long as nothing is
  * picked). The number is this browser's (lyricRows.ts) and the CSS's to turn
  * into a height; where the stage has no room for all of it the band is
- * lower, and what is dragged or stepped from there starts at what is seen.
+ * lower, and what is dragged or stepped from there starts at what is seen,
+ * counted as it is once the page's controls are away (--ui-spare, index.css:
+ * the room they take while they are up). While it is dragged the controls
+ * stay as they are (`data-ui-quiet`, `data-dragging`: useIdleControls), so
+ * the band's lower edge does not move under the finger.
  */
 export const LyricsBand = ({ duet, resizeLabel, children }: LyricsBandProps) => {
   const [rows, setRows] = useState(loadLyricRows);
@@ -350,7 +619,8 @@ export const LyricsBand = ({ duet, resizeLabel, children }: LyricsBandProps) => 
   const bandRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ bottom: number; grab: number; chrome: number; row: number } | null>(null);
 
-  // The band now: a line's height, what of the band is no line, and the lines it has room for
+  // The band now: a line's height, what of the band is no line, and the lines
+  // it has room for, with the room the page's controls give it when they go
   const measure = () => {
     const band = bandRef.current;
     if (!band) return null;
@@ -358,7 +628,8 @@ export const LyricsBand = ({ duet, resizeLabel, children }: LyricsBandProps) => 
     const row = parseFloat(style.fontSize) * parseFloat(style.getPropertyValue('--line'));
     const chrome = 2 * parseFloat(style.getPropertyValue('--pad'));
     if (!(row > 0) || !(chrome >= 0)) return null;
-    return { band, row, chrome, fit: lyricRowsShown(band.clientHeight, chrome, row) };
+    const spare = parseFloat(style.getPropertyValue('--ui-spare')) || 0;
+    return { band, row, chrome, fit: lyricRowsShown(band.clientHeight + spare, chrome, row) };
   };
   // (on the band at once, not at React's next render: what is measured right after is the new height)
   const show = (next: number | null) => {
@@ -375,6 +646,7 @@ export const LyricsBand = ({ duet, resizeLabel, children }: LyricsBandProps) => 
     e.preventDefault(); // (no text is selected on the way; the focus, which that would have given, by hand)
     e.currentTarget.focus({ preventScroll: true });
     e.currentTarget.setPointerCapture?.(e.pointerId);
+    e.currentTarget.dataset.dragging = '';
     const box = m.band.getBoundingClientRect();
     // (the band grows upwards: its lower edge stays where it is)
     dragRef.current = { bottom: box.bottom, grab: e.clientY - box.top, chrome: m.chrome, row: m.row };
@@ -385,7 +657,8 @@ export const LyricsBand = ({ duet, resizeLabel, children }: LyricsBandProps) => 
     const next = clampLyricRows((d.bottom - (e.clientY - d.grab) - d.chrome) / d.row);
     if (next !== rowsRef.current) show(next);
   };
-  const onPointerEnd = () => {
+  const onPointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+    delete e.currentTarget.dataset.dragging;
     if (!dragRef.current) return;
     dragRef.current = null;
     const asked = rowsRef.current;
@@ -411,6 +684,7 @@ export const LyricsBand = ({ duet, resizeLabel, children }: LyricsBandProps) => 
         aria-valuenow={rows ?? usualLyricRows()}
         title={resizeLabel}
         tabIndex={0}
+        data-ui-quiet=""
         className={css.handle}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}

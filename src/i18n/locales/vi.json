@@ -531,6 +531,8 @@
     "partyCode": "Mã tiệc",
     "exitFullscreen": "Thoát toàn màn hình",
     "enterFullscreen": "Toàn màn hình",
+    "play": "Phát",
+    "pause": "Tạm dừng",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

@@ -531,6 +531,8 @@
     "partyCode": "Kode Pesta",
     "exitFullscreen": "Keluar layar penuh",
     "enterFullscreen": "Masuk layar penuh",
+    "play": "Putar",
+    "pause": "Jeda",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { songRegions, frameSeconds, formatTime } from './songRegions';
+import { songRegions, frameSeconds, formatTime, timelineSegments } from './songRegions';
 import { getTickData } from './LyricsParser';
 import type { TimedLyrics } from './LyricsParser';
 
@@ -42,6 +42,44 @@ describe('songRegions', () => {
   it('is empty without data', () => {
     expect(songRegions(null)).toEqual([]);
     expect(songRegions({})).toEqual([]);
+  });
+});
+
+describe('timelineSegments', () => {
+  it('keeps one singer\'s regions as they are', () => {
+    expect(timelineSegments([{ start: 1, end: 3, player: 1 }, { start: 5, end: 6, player: 1 }])).toEqual([
+      { start: 1, end: 3, who: 1 }, { start: 5, end: 6, who: 1 },
+    ]);
+  });
+
+  it('gives the stretch where both sing a segment of its own', () => {
+    expect(timelineSegments([
+      { start: 1, end: 4, player: 1 },
+      { start: 3, end: 6, player: 2 },
+      { start: 8, end: 9, player: 2 },
+    ])).toEqual([
+      { start: 1, end: 3, who: 1 },
+      { start: 3, end: 4, who: 3 },
+      { start: 4, end: 6, who: 2 },
+      { start: 8, end: 9, who: 2 },
+    ]);
+  });
+
+  it('handles one singer\'s region inside the other\'s, and regions that touch', () => {
+    expect(timelineSegments([
+      { start: 0, end: 10, player: 1 },
+      { start: 2, end: 4, player: 2 },
+      { start: 10, end: 12, player: 2 },
+    ])).toEqual([
+      { start: 0, end: 2, who: 1 },
+      { start: 2, end: 4, who: 3 },
+      { start: 4, end: 10, who: 1 },
+      { start: 10, end: 12, who: 2 },
+    ]);
+  });
+
+  it('is empty without regions', () => {
+    expect(timelineSegments([])).toEqual([]);
   });
 });
 

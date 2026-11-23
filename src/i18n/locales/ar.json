@@ -541,6 +541,8 @@
     "partyCode": "رمز الحفلة",
     "exitFullscreen": "الخروج من وضع ملء الشاشة",
     "enterFullscreen": "وضع ملء الشاشة",
+    "play": "تشغيل",
+    "pause": "إيقاف مؤقت",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

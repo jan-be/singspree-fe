@@ -533,6 +533,8 @@
     "partyCode": "Festkod",
     "exitFullscreen": "Avsluta helskärm",
     "enterFullscreen": "Helskärm",
+    "play": "Spela upp",
+    "pause": "Pausa",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

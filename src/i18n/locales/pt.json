@@ -533,6 +533,8 @@
     "partyCode": "Código da festa",
     "exitFullscreen": "Sair da tela cheia",
     "enterFullscreen": "Tela cheia",
+    "play": "Reproduzir",
+    "pause": "Pausar",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

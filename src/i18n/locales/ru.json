@@ -537,6 +537,8 @@
     "partyCode": "Код вечеринки",
     "exitFullscreen": "Выйти из полноэкранного режима",
     "enterFullscreen": "Полноэкранный режим",
+    "play": "Воспроизвести",
+    "pause": "Пауза",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

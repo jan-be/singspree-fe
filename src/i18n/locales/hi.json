@@ -533,6 +533,8 @@
     "partyCode": "पार्टी कोड",
     "exitFullscreen": "फ़ुलस्क्रीन से बाहर निकलें",
     "enterFullscreen": "फ़ुलस्क्रीन में जाएँ",
+    "play": "चलाएँ",
+    "pause": "रोकें",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

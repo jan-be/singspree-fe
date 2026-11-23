@@ -531,6 +531,8 @@
     "partyCode": "파티 코드",
     "exitFullscreen": "전체 화면 종료",
     "enterFullscreen": "전체 화면",
+    "play": "재생",
+    "pause": "일시정지",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

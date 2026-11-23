@@ -531,6 +531,8 @@
     "partyCode": "パーティーコード",
     "exitFullscreen": "全画面を終了",
     "enterFullscreen": "全画面表示",
+    "play": "再生",
+    "pause": "一時停止",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

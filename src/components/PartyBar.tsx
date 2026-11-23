@@ -8,8 +8,10 @@ import MicPanel, { type MicPanelProps } from "./MicPanel";
 import CameraButton, { type CameraButtonProps } from "./CameraButton";
 import { LockIcon, PopOutIcon } from "./Icons";
 import QueueChartBadge from "./QueueChartBadge";
+import QueueUpNext from "./QueueUpNext";
+import type { LiveStore } from "../logic/liveStore";
+import type { QueueEntry } from "./QueuePanel";
 import { markPopoverClosed } from "../logic/popoverGuard";
-import { fullscreenSupported, isFullscreen, toggleFullscreen } from "../logic/fullscreen";
 import { inTvApp } from "../logic/tvApp";
 import AppIcon from "./AppIcon";
 import Wordmark from "./Wordmark";
@@ -17,6 +19,11 @@ import { Link } from "react-router-dom";
 import QrCode from "./QrCode";
 import PartyQrCard, { type PartyQrCardProps } from "./PartyQrCard";
 import { partyJoinUrl } from "../logic/referrer";
+import { useSongNames } from "../logic/useSongNames";
+import type { SongNamesSource } from "../logic/lyricsScripts";
+
+// What goes while nobody touches the page (useIdleControls; index.css, .ui-fade)
+const FADE = 'ui-fade [--ui-idle-transform:translateY(-0.25rem)]';
 
 export interface PartyBarProps
   extends Pick<VolumeControlProps, "volume" | "restoreVolume" | "vocalsLevel" | "instrumentalLevel" | "onVolumeChange" | "onVocalsLevelChange"
@@ -50,16 +57,18 @@ export interface PartyBarProps
   queuePoppedOut?: boolean;
   onToggleQueue?: () => void;
   queueCount?: number;
+  /** the song on stage, for its title and artist under the logo while the controls are up */
+  song?: SongNamesSource | null;
+  /** for the queue pill's "Up next" in a song's last seconds (QueueUpNext): the live store, where the song ends, the next song */
+  live?: LiveStore;
+  upNextEnd?: number;
+  upNextSong?: QueueEntry | null;
   onFreeClick?: () => void;
   getReportContext: React.ComponentProps<typeof ReportSongDialog>["getContext"];
   canControl?: boolean;
   /** influencer mode's camera button (next to the microphone's), when the account has it */
   camera?: CameraButtonProps;
 }
-
-/** Detect actual smartphone (touch + small screen), not just narrow window */
-const isSmartphone = () =>
-  'ontouchstart' in window && /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent);
 
 // isHost: this page is the host's (it ends the party, a joiner's leaves it).
 // canControl: the host or a co-host (logic/partyRoles.ts), who also get the
@@ -68,10 +77,12 @@ const isSmartphone = () =>
 const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeaveParty, autoSkip, onToggleAutoSkip, isHost, isFixingTiming, onFixingTimingChange, volume, restoreVolume, vocalsLevel, instrumentalLevel, onVolumeChange, onVocalsLevelChange, onInstrumentalLevelChange, hasStems, volumeTooltip, stemsHint, onDismissStemsHint,
   micActive, micPhase, micError, onJoinSinging, onLeaveSinging, micStatsRef, micDeviceId, onMicDeviceChange, multiMic, onMicPanelOpenChange, ownColor, onColorChange, latency,
   difficulty, onDifficultyChange, saveRecordings, onSaveRecordingsChange, camera,
-  showVideo, onToggleVideo, videoHint, onDismissVideoHint, queueOpen, queuePoppedOut, onToggleQueue, queueCount = 0, onFreeClick,
+  showVideo, onToggleVideo, videoHint, onDismissVideoHint, queueOpen, queuePoppedOut, onToggleQueue, queueCount = 0, song = null, live, upNextEnd = 0, upNextSong = null, onFreeClick,
   getReportContext, canControl = false, joiningOpen = true, people, playerAvatars, playerColors, onSetCohost, onKick, onSetJoiningOpen,
   voices, onSetVoices, voice, singerVoices }: PartyBarProps) => {
   const { t } = useTranslation();
+  const namesOf = useSongNames();
+  const names = song?.title ? namesOf(song) : null;
   // Fixing a song's timing is the admins' job; everyone else reports what is wrong
   const { user } = useAuth();
   const canFixTiming = !!user?.isAdmin;
@@ -90,31 +101,19 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
 
   const [qrOpen, setQrOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // The QR card (sm up) and the phones' share button: either opens the party's door
   const qrRef = useRef<HTMLDivElement>(null);
+  const qrPhoneRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [isPhone] = useState(isSmartphone);
   // The Fire TV app grants no microphone (the phones in the party are the mics): no panel to join singing
   const [canSing] = useState(() => !inTvApp());
 
-  // Browser fullscreen: only hides the browser and OS chrome, the page keeps
-  // its layout (with a little more room). Hidden where the API is missing (iOS).
-  // Same toggle the sing page's double-click uses, so the icon and the
-  // gesture can never disagree about which spelling of the API to call.
-  const [supported] = useState(fullscreenSupported);
-  const [inFullscreen, setInFullscreen] = useState(isFullscreen);
-  useEffect(() => {
-    const onChange = () => setInFullscreen(isFullscreen());
-    document.addEventListener('fullscreenchange', onChange);
-    document.addEventListener('webkitfullscreenchange', onChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', onChange);
-      document.removeEventListener('webkitfullscreenchange', onChange);
-    };
-  }, []);
-
   useEffect(() => {
     if (!qrOpen) return;
-    const handleClick = (e: PointerEvent) => { if (qrRef.current && !(e.target instanceof Node && qrRef.current.contains(e.target))) { setQrOpen(false); markPopoverClosed(); } };
+    const handleClick = (e: PointerEvent) => {
+      const inside = e.target instanceof Node && [qrRef, qrPhoneRef].some(r => r.current?.contains(e.target as Node));
+      if (!inside) { setQrOpen(false); markPopoverClosed(); }
+    };
     document.addEventListener("pointerdown", handleClick);
     return () => document.removeEventListener("pointerdown", handleClick);
   }, [qrOpen]);
@@ -152,12 +151,23 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
     // controls' capsule, though: a near miss between its buttons, or a click
     // on the text or padding of a popover opened from it (they are inside),
     // paused the song.
+    // From sm up the party's QR code and code are a card of their own beside
+    // it, always there and always full size. While nobody touches the page
+    // (useIdleControls) the capsule fades out, all but the queue button (its
+    // icon and count) while songs are queued; on a phone the corner is then
+    // empty, or that button. In a song's last seconds the queue's next song
+    // comes into that button (QueueUpNext).
     <nav
       className="absolute top-0 inset-x-0 z-30 px-2.5 py-2.5 sm:px-4"
-      onClick={e => { if (onFreeClick && !(e.target instanceof Element && e.target.closest('a, .capsule'))) onFreeClick(); }}
+      onClick={e => { if (onFreeClick && !(e.target instanceof Element && e.target.closest('a, .capsule, [data-ui-keep]'))) onFreeClick(); }}
     >
-      <div className="flex items-center justify-between gap-2 sm:gap-4 text-sm">
-        {/* Left: the logo (leads home, which also leaves the party) */}
+      <div className="flex items-start justify-between gap-2 sm:gap-4 text-sm">
+        {/* Left: the logo (leads home, which also leaves the party), and while the controls are up the
+            song's title and artist, as a video player's. Under it they lie below this row (absolute: the
+            whole width but the QR card's); on a short screen (a phone in landscape, where under the logo
+            lies the highway) beside it, in the room the right side leaves (flex-1 from 0) but never under
+            7rem: there an "Up next" in the queue pill gives way first */}
+        <div className="relative flex-none short:flex-1 flex items-center gap-3">
         <Link to="/" onClick={() => onGoToMenu?.()} className="pointer-events-auto block no-underline flex-shrink-0 rounded-[22%] sm:rounded-full">
           {/* Phones: the icon tile on its own, as tall as the capsule */}
           <AppIcon width="46" height="46" className="sm:hidden block" />
@@ -166,9 +176,28 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
             <Wordmark height={32} />
           </span>
         </Link>
+        {names && (
+          <div
+            data-now-playing=""
+            className={`${FADE} grid grid-cols-[minmax(0,1fr)] absolute left-0 top-full mt-2 pl-1 w-max max-w-[calc(100vw-1.25rem)] sm:max-w-[min(36rem,calc(100vw-13rem))]
+              short:static short:mt-0 short:pl-0 short:w-auto short:min-w-28 short:max-w-none leading-tight select-none [text-shadow:0_1px_3px_rgba(0,0,0,0.85),0_0_14px_rgba(0,0,0,0.55)]`}
+            lang={names.lang}
+          >
+            <div className="text-base sm:text-lg short:text-sm font-semibold text-white truncate">{names.title}</div>
+            {names.artist && <div className="text-xs sm:text-sm short:text-xs text-white/70 truncate">{names.artist}</div>}
+          </div>
+        )}
+        </div>
 
-        {/* Right: microphone, volume, video, fullscreen, settings | queue | the party code */}
-        <div className="pointer-events-auto capsule min-w-0">
+        {/* Right: microphone, volume, video, settings | queue (| share, on phones), then the QR card */}
+        <div className="flex items-start gap-2 min-w-0">
+        {/* With songs in the queue its button (and count) stays while the rest goes: then only the
+            buttons around it fade, and the capsule's look (index.css, .ui-capsule / .ui-queue).
+            Where room is short the queue button's "Up next" gives way while they are up; once
+            they are gone, their room folds away (.ui-capsule-rest) for it */}
+        <div data-ui-keep="" className={`pointer-events-auto capsule min-w-0 ${queueCount > 0 && onToggleQueue ? 'ui-capsule' : FADE}`}>
+          <div className="ui-capsule-rest flex-shrink-0">
+          <div className={`flex items-center gap-0.5 ${queueCount > 0 && onToggleQueue ? FADE : ''}`}>
           {canSing && <MicPanel
             micActive={micActive}
             micPhase={micPhase}
@@ -241,32 +270,6 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
             </div>
           )}
 
-          {/* Browser fullscreen */}
-          {supported && (
-            <button
-              onClick={toggleFullscreen}
-              title={inFullscreen ? t('bottom.exitFullscreen') : t('bottom.enterFullscreen')}
-              aria-pressed={inFullscreen}
-              className="btn-icon max-[380px]:hidden"
-            >
-              {inFullscreen ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <polyline points="4 14 10 14 10 20" />
-                  <polyline points="20 10 14 10 14 4" />
-                  <line x1="10" y1="14" x2="3" y2="21" />
-                  <line x1="21" y1="3" x2="14" y2="10" />
-                </svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <polyline points="15 3 21 3 21 9" />
-                  <polyline points="9 21 3 21 3 15" />
-                  <line x1="21" y1="3" x2="14" y2="10" />
-                  <line x1="3" y1="21" x2="10" y2="14" />
-                </svg>
-              )}
-            </button>
-          )}
-
           {/* Settings: auto-skip (host and co-hosts) + fix timing */}
           <div className="relative" ref={menuRef}>
             <button
@@ -336,21 +339,25 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
             )}
           </div>
 
+          {onToggleQueue && <span className="capsule-divider" aria-hidden="true" />}
+          </div>
+          </div>
+
           {/* Queue + similar songs drawer; while the queue has a window of
               its own, the button brings that window to the front */}
           {onToggleQueue && (
             <>
-              <span className="capsule-divider" aria-hidden="true" />
               <button
                 type="button"
                 data-queue-toggle
                 onClick={onToggleQueue}
                 title={queuePoppedOut ? t('queue.poppedOut') : t('queue.title')}
                 aria-expanded={queuePoppedOut ? undefined : !!queueOpen}
-                className={`btn btn-sm relative h-9 px-3 gap-1.5 ${queueOpen ? 'fill-hot' : 'bg-white/12 text-white hover:bg-white/20'}`}
+                className={`ui-queue btn btn-sm relative min-w-0 h-9 px-3 gap-1.5 ${queueOpen ? 'fill-hot' : 'bg-white/12 text-white hover:bg-white/20'}`}
               >
-                {queuePoppedOut ? <PopOutIcon size={15} /> : (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                {/* (the icon, the count and the ring keep their size: only an "Up next" gives way) */}
+                {queuePoppedOut ? <PopOutIcon size={15} className="flex-shrink-0" /> : (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="flex-shrink-0">
                     <line x1="8" y1="6" x2="21" y2="6" />
                     <line x1="8" y1="12" x2="21" y2="12" />
                     <line x1="8" y1="18" x2="21" y2="18" />
@@ -359,41 +366,22 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
                     <line x1="3" y1="18" x2="3.01" y2="18" />
                   </svg>
                 )}
-                <span className="max-[400px]:hidden">{t('queue.title')}</span>
+                {/* the word goes while the controls are away, and for "Up next" (index.css, .ui-queue-label) */}
+                <span className="ui-queue-label"><span>{t('queue.title')}</span></span>
                 {queueCount > 0 && (
-                  <span className="min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-neon-magenta text-[10px] font-bold text-white leading-[1.125rem] text-center tabular-nums">{queueCount}</span>
+                  <span className="flex-shrink-0 min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-neon-magenta text-[10px] font-bold text-white leading-[1.125rem] text-center tabular-nums">{queueCount}</span>
                 )}
                 {/* songs of the queue still being charted, and a word when one is ready */}
                 <QueueChartBadge />
+                {live && <QueueUpNext store={live} endAt={upNextEnd} song={upNextSong} />}
               </button>
             </>
           )}
 
-          {/* Party info: QR + code on desktop, a share button on phones */}
+          {/* Phones: a share button for the party's card */}
           {urls && (
             <>
-              <span className="capsule-divider hidden sm:block" aria-hidden="true" />
-              <div className="hidden sm:flex items-center gap-2.5 pl-1 pr-2.5 flex-shrink-0">
-                <div className="relative" ref={!isPhone ? qrRef : undefined}>
-                  <button
-                    onClick={() => setQrOpen(p => !p)}
-                    className="relative block bg-white rounded-lg p-[3px] cursor-pointer hover:ring-2 hover:ring-white/60 transition-shadow"
-                    title={joiningOpen ? t('party.enlargeQr') : t('party.joiningClosed')}
-                    aria-expanded={qrOpen}
-                  >
-                    <QrCode value={urls.qr} size={26} className={joiningOpen ? undefined : 'opacity-20'} />
-                    {/* joining closed: the code says so before anyone scans it */}
-                    {!joiningOpen && <span className="absolute inset-0 grid place-items-center text-ink"><LockIcon size={16} strokeWidth={2.4} /></span>}
-                  </button>
-                  {qrOpen && qrCard}
-                </div>
-                <div className="text-left leading-none">
-                  <div className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-white/45">{t('bottom.partyCode')}</div>
-                  <div className="mt-1 text-neon-cyan font-mono font-semibold text-[15px] tracking-[0.2em]">{partyId}</div>
-                </div>
-              </div>
-
-              <div className="sm:hidden relative flex-shrink-0" ref={isPhone ? qrRef : undefined}>
+              <div className={`sm:hidden relative flex-shrink-0 ${queueCount > 0 && onToggleQueue ? FADE : ''}`} ref={qrPhoneRef}>
                 <button
                   onClick={() => setQrOpen(p => !p)}
                   aria-expanded={qrOpen}
@@ -413,7 +401,32 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
             </>
           )}
         </div>
+
+        {/* sm up: the party's QR code (big enough to scan across the room) and
+            code, a card of their own that stays at full size; a click opens the
+            party's door (people, co-hosts, the link) */}
+        {urls && (
+          <div data-ui-keep="" className="hidden sm:block relative flex-shrink-0 pointer-events-auto" ref={qrRef}>
+            <button
+              type="button"
+              onClick={() => setQrOpen(p => !p)}
+              title={joiningOpen ? t('bottom.partyCode') : t('party.joiningClosed')}
+              aria-expanded={qrOpen}
+              className="flex flex-col items-center gap-1.5 p-2 pb-1.5 rounded-2xl bg-[rgba(30,24,62,0.88)] border border-white/[0.13] shadow-[0_10px_30px_-12px_rgba(0,0,0,0.7)] cursor-pointer transition-colors hover:border-white/35 aria-expanded:border-white/35"
+            >
+              <span className="relative block bg-white rounded-lg p-1.5">
+                <QrCode value={urls.qr} size={116} className={`block w-(--party-qr) h-(--party-qr) ${joiningOpen ? '' : 'opacity-20'}`} />
+                {/* joining closed: the code says so before anyone scans it */}
+                {!joiningOpen && <span className="absolute inset-0 grid place-items-center text-ink"><LockIcon size={32} strokeWidth={2.4} /></span>}
+              </span>
+              <span className="pl-[0.2em] text-neon-cyan font-mono font-semibold text-lg short:text-sm leading-none tracking-[0.2em]">{partyId}</span>
+            </button>
+            {qrOpen && qrCard}
+          </div>
+        )}
+        </div>
       </div>
+
 
       {/* GapCorrector popover — rendered outside the flex so it doesn't affect layout.
           Only mounts when timing correction is active; uses controlled isOpen. */}

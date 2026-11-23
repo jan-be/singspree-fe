@@ -29,7 +29,7 @@ const QueueChartBadge = () => {
   return (
     <>
       {waiting.length > 0 && (
-        <span className="flex items-center" title={t('queue.pendingCount', { count: waiting.length })}>
+        <span className="flex items-center flex-shrink-0" title={t('queue.pendingCount', { count: waiting.length })}>
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="-rotate-90">
             <circle cx="8" cy="8" r={R} fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="2.5" className="text-neon-purple" />
             <circle

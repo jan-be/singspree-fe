@@ -640,3 +640,166 @@ html[data-keynav] label:has(> input:focus-visible) {
   outline: 3px solid #fff;
   outline-offset: 2px;
 }
+
+/* The party page's QR code (PartyBar's card, sm up): big enough to scan from
+   across the room, smaller on a short screen (a phone in landscape). The
+   queue drawer opens beside the card, so it reads this too. */
+:root {
+  --party-qr: 6rem;
+}
+@media (max-height: 500px) {
+  :root { --party-qr: 4rem; }
+}
+
+/* The singing page's controls come and go like a video player's
+   (logic/useIdleControls.ts): while nobody touches the page its root carries
+   data-ui="idle". Then .ui-fade (the controls) fade out, and the progress
+   bar (.ui-bar, StageControls) gets slim and moves to the very bottom.
+   Visibility goes at the end of a fade, so a hidden control can be neither clicked nor focused, nor
+   reached by the arrow keys; it comes back at once, so the key that brought
+   the controls finds them focusable. Outside the layers: wins over the
+   utilities. */
+.ui-fade {
+  transition: opacity 250ms cubic-bezier(0.2, 0, 0, 1), transform 250ms cubic-bezier(0.2, 0, 0, 1), visibility 0s;
+}
+[data-ui="idle"] .ui-fade {
+  opacity: 0;
+  visibility: hidden;
+  transform: var(--ui-idle-transform, none);
+  transition: opacity 500ms cubic-bezier(0.2, 0, 0, 1), transform 500ms cubic-bezier(0.2, 0, 0, 1), visibility 0s linear 500ms;
+}
+/* How much room the controls give up when they go: as far as the bar's top
+   goes down (its move, and the 5px it loses in height) */
+:root {
+  --ui-room: 37px;
+}
+.ui-bar {
+  transition: transform 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+[data-ui="idle"] .ui-bar {
+  transform: translateY(calc(var(--ui-room) - 5px));
+  pointer-events: none;
+  transition-duration: 500ms;
+}
+.ui-bar-track {
+  transition: height 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+[data-ui="idle"] .ui-bar-track {
+  height: 5px;
+  transition-duration: 500ms;
+}
+/* The room the controls leave goes to the lyrics: the stage's bottom padding
+   (PartyPage, where the shown controls lie) gives up --ui-room. That much
+   room is taken by the free stage under the highway (.ui-room) as it is
+   given up, so the highway stays where it is and the lyrics move down; where
+   the lyrics are squeezed (a phone in landscape), that free stage gives way
+   first (its shrink weight) and the lyrics get the room for another line.
+   --ui-spare is that room while the controls are up, for the lyrics band to
+   count lines by (Lyrics.tsx): dragged taller than the stage has room for,
+   the band keeps the lines that fit once the controls are away. */
+.ui-stage {
+  --ui-spare: var(--ui-room);
+  transition: padding-bottom 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+[data-ui="idle"] .ui-stage {
+  --ui-spare: 0px;
+  padding-bottom: calc(3.75rem - var(--ui-room) + env(safe-area-inset-bottom));
+  transition-duration: 500ms;
+}
+.ui-room {
+  flex-basis: 0px;
+  flex-shrink: 1000;
+  transition: flex-basis 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+[data-ui="idle"] .ui-room {
+  flex-basis: var(--ui-room);
+  transition-duration: 500ms;
+}
+/* With songs in the queue, its button stays while the rest of the top-right
+   capsule goes (PartyBar): the capsule's own look fades with its other
+   buttons, and the queue button, where it was, takes that look itself. */
+.ui-capsule {
+  transition: background-color 250ms cubic-bezier(0.2, 0, 0, 1), border-color 250ms cubic-bezier(0.2, 0, 0, 1), box-shadow 250ms cubic-bezier(0.2, 0, 0, 1);
+}
+[data-ui="idle"] .ui-capsule {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  pointer-events: none;
+  transition-duration: 500ms;
+}
+[data-ui="idle"] .ui-queue {
+  background-color: rgba(30, 24, 62, 0.88);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.13), 0 10px 30px -12px rgba(0, 0, 0, 0.7);
+  pointer-events: auto;
+}
+/* Once the other buttons have faded, their room folds away (the queue button,
+   at the right, stays where it is), so an "Up next" in the button can widen
+   into it; it is back at once with them. */
+.ui-capsule-rest {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+.ui-capsule-rest > * {
+  min-width: 0;
+}
+[data-ui="idle"] .ui-capsule .ui-capsule-rest {
+  grid-template-columns: 0fr;
+  transition: grid-template-columns 300ms cubic-bezier(0.2, 0, 0, 1) 500ms;
+}
+
+/* The queue pill's word goes while the controls are away (only its icon and
+   count stay), and makes way for the queue's next song, which comes into the
+   pill in a song's last seconds (QueueUpNext). Both open and close through
+   their grid column, 0fr <-> 1fr, so the width follows (where a browser cannot
+   animate that, it just snaps); the negative margin takes back the pill's gap. */
+.ui-queue-label,
+.up-next {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-width: 0;
+  transition: grid-template-columns 300ms cubic-bezier(0.2, 0, 0, 1), opacity 300ms cubic-bezier(0.2, 0, 0, 1), margin-left 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+.ui-queue-label > *,
+.up-next > * {
+  min-width: 0;
+  overflow: hidden;
+}
+[data-ui="idle"] .ui-queue-label,
+.ui-queue:has(.up-next[data-shown]) .ui-queue-label {
+  grid-template-columns: 0fr;
+  opacity: 0;
+  margin-left: -0.375rem;
+}
+[data-ui="idle"] .ui-queue-label {
+  transition-duration: 500ms;
+}
+@media (max-width: 399.98px) {
+  .ui-queue-label {
+    display: none;
+  }
+}
+.up-next:not([data-shown]) {
+  grid-template-columns: 0fr;
+  opacity: 0;
+  margin-left: -0.375rem;
+  visibility: hidden;
+  transition: grid-template-columns 400ms cubic-bezier(0.2, 0, 0, 1), opacity 400ms cubic-bezier(0.2, 0, 0, 1), margin-left 400ms cubic-bezier(0.2, 0, 0, 1), visibility 0s linear 400ms;
+}
+.up-next[data-shown] {
+  transition-duration: 500ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ui="idle"] .ui-fade {
+    transform: none;
+  }
+  .ui-queue-label,
+  .up-next,
+  .up-next:not([data-shown]) {
+    transition-property: opacity, visibility;
+  }
+  [data-ui="idle"] .ui-capsule .ui-capsule-rest {
+    transition-duration: 0s;
+  }
+}

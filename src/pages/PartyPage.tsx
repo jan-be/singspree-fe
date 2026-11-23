@@ -5,8 +5,10 @@ import { useSongNames } from "../logic/useSongNames";
 import BackgroundImage from "../components/BackgroundImage";
 import { LiveStageLyrics, LiveMusicBars } from "../components/LiveView";
 import { highwayStats } from "../logic/highwayRenderer";
-import SongTimeline from "../components/SongTimeline";
+import StageControls from "../components/StageControls";
+import { songEndAt } from "../logic/upNext";
 import { songRegions } from "../logic/songRegions";
+import { useIdleControls } from "../logic/useIdleControls";
 import { useVideoBesideHighway } from "../logic/videoBesideHighway";
 import { popoverJustClosed, markPopoverClosed, promptJustAnswered, markPromptAnswered, stageClickAction } from "../logic/popoverGuard";
 import { savePartySession, loadPartySession, clearPartySession } from "../logic/partySession";
@@ -214,6 +216,9 @@ const WEB_AUDIO_SUPPORTED = typeof window !== 'undefined' && Boolean(window.Audi
 // s: how long the host's video may stand still (buffering, out of data)
 // before its stems stop and wait for it (see releaseHeldStems)
 const STALL_HOLD = 1.5;
+// A drag along the timeline counts as under way this long after its last seek
+// (ms): its full seek comes when it lets go, this only covers one that never does
+const SCRUB_HOLD_MS = 1500;
 
 // The stage's live parts follow the live store by themselves; from the page
 // they need a render only when their own props change, not on every queue,
@@ -222,7 +227,6 @@ const STALL_HOLD = 1.5;
 const StageMusicBars = React.memo(LiveMusicBars);
 const MAX_PROVISIONAL = 32; // pitches waiting for a note, far more than they live to be
 const StageLyrics = React.memo(LiveStageLyrics);
-const StageTimeline = React.memo(SongTimeline);
 
 /** A song with its id (a queue entry whose chart is still being made has none yet) */
 const hasSongId = <S extends { songId?: string | null }>(song: S): song is S & { songId: string } => Boolean(song.songId);
@@ -1087,6 +1091,11 @@ const PartyPage = () => {
   // it got there. A short stall they play through: on the stick "it stalled"
   // arrives seconds late, paused on it the music fell silent long after.
   const stemsHeldRef = useRef(false);
+  // When the last seek of a drag along the timeline went out (seekVideo's
+  // preview): the stems stay held while one is under way, and start where
+  // it lets go. Restarted between the drag's seeks they blipped, and seeking
+  // them on every move was what made the drag lag.
+  const scrubAtRef = useRef(-Infinity);
   const releaseHeldStems = useCallback(() => {
     if (!stemsHeldRef.current) {
       const sp = stemPlayerRef.current;
@@ -1098,6 +1107,7 @@ const PartyPage = () => {
       return;
     }
     if (videoClock.mode !== 'playing') return;
+    if (performance.now() - scrubAtRef.current < SCRUB_HOLD_MS) return; // a drag still under way
     stemsHeldRef.current = false;
     startStems(hostVideoTime());
   }, [startStems, hostVideoTime]);
@@ -1262,6 +1272,25 @@ const PartyPage = () => {
   const [playerParts, setPlayerParts] = useState<Record<string, number>>({});
   const [partPrompt, setPartPrompt] = useState(false);
   const hostDuetRef = useRef(false); // joiners: what the host's stage shows, applied once our song is loaded
+  // The part prompt closes, as the other popovers do, on a press anywhere else (not on its pill,
+  // which toggles it; a press on the stage only closes it, no pause) or on Escape; part 1 stays
+  const partPromptRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!partPrompt) return;
+    const onDown = (e: PointerEvent) => {
+      const el = e.target instanceof Element ? e.target : null;
+      if (el && (partPromptRef.current?.contains(el) || el.closest('[data-part-toggle]'))) return;
+      setPartPrompt(false);
+      markPopoverClosed();
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPartPrompt(false); };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [partPrompt]);
 
   // Track whether we've already sent song:start for the current activeSongId
   // to prevent duplicate sends across racing effects
@@ -1283,6 +1312,8 @@ const PartyPage = () => {
 
   // Whether the host says playback is active — used when local player is unavailable
   const hostIsPlayingRef = useRef(false);
+  // The same for what is drawn from it (the play / pause button, the controls staying while paused)
+  const [hostPlaying, setHostPlaying] = useState(false);
   const lastPlayRequestRef = useRef(0); // joiner: when playVideo() was last asked for
 
   // This page's way to the server, from the server's pings (ping:ack): a
@@ -1403,14 +1434,19 @@ const PartyPage = () => {
   const timelineRegions = useMemo(() => songRegions(timelineLyrics, liveGap), [timelineLyrics, liveGap]);
   // The host's seeks (the timeline, a skipped segment): the clock stands at
   // the target until the player reports it there — getCurrentTime() kept
-  // the old time until then, so a skip was asked for again on every frame
-  const seekVideo = useCallback((seconds: number) => {
-    try { iframePlayerRef.current?.seekTo?.(seconds, true); } catch { /* */ }
+  // the old time until then, so a skip was asked for again on every frame.
+  // `preview`: a drag along the timeline still under way (SongTimeline), a
+  // few times a second. YouTube's scrubbing seek then (allowSeekAhead false:
+  // no new download per step, as its API asks for a dragged progress bar),
+  // and the stems stay where they are until the drag's last, full seek.
+  const seekVideo = useCallback((seconds: number, preview = false) => {
+    try { iframePlayerRef.current?.seekTo?.(seconds, !preview); } catch { /* */ }
     videoClock.seeked(seconds);
     // The music waits at the target for the picture (releaseHeldStems)
     const sp = stemPlayerRef.current;
     if (sp?.playing) { sp.pause(); stemsHeldRef.current = true; stemSyncRef.current.seeks += 1; }
-    alignStems(seconds, true); // the stems jump with it, not at the next sync
+    scrubAtRef.current = preview ? performance.now() : -Infinity;
+    if (!preview) alignStems(seconds, true); // the stems jump with it, not at the next sync
     showTitleCover();
   }, [showTitleCover, alignStems]);
   // A co-host's seek (the timeline, a skipped intro) is the host page's to do.
@@ -1447,12 +1483,22 @@ const PartyPage = () => {
     try { if (player.getPlayerState?.() === 1) player.pauseVideo?.(); else player.playVideo?.(); } catch { /* */ }
   }, []);
 
+  // The controls come and go like a video player's (useIdleControls): a move
+  // of the mouse or a key brings them, a few quiet seconds take them away.
+  // They stay while the song does not play (a paused video's do too), and
+  // while the queue, the part prompt, the timing fix or a first-time hint is up.
+  const songPlaying = isHost ? videoState === 1 : hostPlaying;
+  const idleRootRef = useIdleControls(
+    !songPlaying || queueOpen || isFixingTiming || partPrompt || (stemsHint && hasStems) || (videoHint && showVideo),
+  );
+
   // The free stage pauses on a click and toggles fullscreen on a double one,
   // the way a video player does. Counting the clicks here rather than pairing
   // onClick with onDoubleClick keeps it working for the call sites that pass
   // no event (the bar's free area, the note highway's canvas), and means a
   // double click never pauses on its way to fullscreen — the price is that
-  // the pause waits out the double-click window.
+  // the pause waits out the double-click window. A tap does the same on a
+  // phone (and, as any touch, brings the controls up).
   const DOUBLE_CLICK_MS = 250;
   const clickTimerRef = useRef<number | null>(null);
   useEffect(() => () => clearTimeout(clickTimerRef.current), []);
@@ -3236,7 +3282,10 @@ const PartyPage = () => {
         const wasPlaying = hostIsPlayingRef.current;
         hostIsPlayingRef.current = !!jsonObj.data.isPlaying;
         setMicsActive(hostIsPlayingRef.current);
-        if (wasPlaying !== hostIsPlayingRef.current) checkMicRef.current?.(); // a closed microphone opens as the song starts
+        if (wasPlaying !== hostIsPlayingRef.current) {
+          checkMicRef.current?.(); // a closed microphone opens as the song starts
+          setHostPlaying(hostIsPlayingRef.current);
+        }
 
         // Sync stem audio for non-host joiners
         syncStemsToTime(getHostVideoTime(), !!jsonObj.data.isPlaying);
@@ -3293,6 +3342,7 @@ const PartyPage = () => {
         if (!status.connected) {
           // nothing plays without the host: idle the mic, pause our copy of the video and the stems
           hostIsPlayingRef.current = false;
+          setHostPlaying(false);
           hostClock.halt(performance.now() / 1000);
           setMicsActive(false);
           syncStemsToTime(getHostVideoTime(), false);
@@ -3680,6 +3730,8 @@ const PartyPage = () => {
   // charted does not count: it plays once it is ready.
   const queuedNext = firstPlayable(queue);
   const endNext = queuedNext ?? nextSongInfo;
+  // Where the song ends, for the queue pill's "Up next" in its last seconds: an outro the host's page skips ends it early
+  const upNextEnd = songEndAt(videoDuration, (isHost ? autoSkip : partySettings.autoSkip !== false) ? skipSegmentsRef.current : []);
   const endLocals = (endSuggestions ?? []).filter(s => s.videoId);
   const endTiles: QueueSong[] | null = canControl && !queuedNext && (endNext?.songId || endLocals.length > 0) ? [
     ...(endNext && hasSongId(endNext) ? [endNext] : []),
@@ -3691,7 +3743,7 @@ const PartyPage = () => {
     // leave dvh at a windowed height (with or without its toolbar, depending on
     // whether the toolbar had scrolled away), while a fixed box is always the
     // visible area
-    <div className="fixed inset-0 flex flex-col overflow-hidden">
+    <div ref={idleRootRef} className="fixed inset-0 flex flex-col overflow-hidden">
       {/* The blurred thumbnail is a full-screen layer; while the video plays,
           the player (black bars included) covers all of it */}
       <BackgroundImage videoId={videoId} hidden={showVideo && videoState === 1} />
@@ -3745,6 +3797,10 @@ const PartyPage = () => {
         queuePoppedOut={queuePopout.open}
         onToggleQueue={queuePopout.open ? queuePopoutCtl.focus : toggleQueue}
         queueCount={queue.length}
+        song={songMeta && songMeta.songId === activeSongId ? songMeta : null}
+        live={live}
+        upNextEnd={upNextEnd}
+        upNextSong={queuedNext}
         onFreeClick={handleStageClick}
         getReportContext={getReportContext}
         canControl={canControl && partySettings.known}
@@ -3811,6 +3867,12 @@ const PartyPage = () => {
             (taller as the player is scaled up, see videoScale.js) */}
         {showVideo && (
           <div aria-hidden="true" style={videoScale > 1 ? { height: `${4 * Math.min(videoScale, 4)}rem` } : undefined} className={`absolute inset-x-0 top-0 h-16 pointer-events-none bg-black/90 backdrop-blur-md transition-opacity duration-500 ${titleCover && stalled !== 'video' ? 'opacity-100' : 'opacity-0'}`} />
+        )}
+        {/* ...and its logo and "More videos" at the bottom, under the timeline
+            (the lyrics box covered them while the timeline was in it). No blur:
+            the band is nearly black at the bottom, where they sit */}
+        {showVideo && (
+          <div aria-hidden="true" style={videoScale > 1 ? { height: `${6 * Math.min(videoScale, 4)}rem` } : undefined} className={`absolute inset-x-0 bottom-0 h-24 pointer-events-none bg-gradient-to-t from-black from-65% to-transparent transition-opacity duration-500 ${titleCover && stalled !== 'video' ? 'opacity-100' : 'opacity-0'}`} />
         )}
         {/* Player state (only with a player: without one there is nothing to wait for) */}
         {showVideo && (
@@ -3907,10 +3969,12 @@ const PartyPage = () => {
         </div>
       )}
 
-      <div ref={stageScrollRef} className={`relative z-20 flex-1 min-h-0 flex flex-col lg:flex-row gap-4 px-4 pb-4 pt-14 overflow-y-auto lg:overflow-hidden ${stalled === 'video' ? 'pointer-events-none' : ''}`}>
+      {/* Down to the screen's bottom: the controls under the lyrics (StageControls) lie over its bottom
+          padding, which gives the lyrics their room while the controls are away (.ui-stage, index.css) */}
+      <div ref={stageScrollRef} className={`ui-stage relative z-20 flex-1 min-h-0 flex flex-col lg:flex-row gap-4 px-4 pt-14 pb-[calc(3.75rem+env(safe-area-inset-bottom))] overflow-y-auto lg:overflow-hidden ${stalled === 'video' ? 'pointer-events-none' : ''}`}>
         {/* Centre: the note highway floats in the middle of the video, the
-            lyrics and the timeline sit at the bottom; the free space around
-            them pauses / resumes on click */}
+            lyrics sit at the bottom (the timeline under them, StageControls);
+            the free space around them pauses / resumes on click */}
         <div className="flex-1 min-w-0 flex flex-col min-h-[60vh] lg:min-h-0">
           <button
             ref={stageTopRef}
@@ -3988,6 +4052,8 @@ const PartyPage = () => {
                 {duetMode && (
                   <button
                     onClick={() => setPartPrompt(p => !p)}
+                    data-part-toggle=""
+                    aria-expanded={partPrompt}
                     className="fill-hot h-7 px-3 text-xs font-semibold rounded-full transition-colors cursor-pointer"
                     title={t('party.changePart')}
                   >
@@ -3997,7 +4063,7 @@ const PartyPage = () => {
               </div>
             )}
             {duetMode && partPrompt && (
-              <div className="pop absolute top-11 right-3 z-30 w-64 p-4">
+              <div ref={partPromptRef} className="pop absolute top-11 right-3 z-30 w-64 p-4">
                 <div className="text-sm font-semibold text-white mb-3">{t('party.whichPart')}</div>
                 <div className="grid grid-cols-2 gap-2">
                   {[1, 2].map(part => {
@@ -4021,10 +4087,13 @@ const PartyPage = () => {
             )}
           </div>
 
+          {/* (the free stage under the highway also takes the room the controls leave, before the lyrics
+              need it: .ui-room, index.css; the highway stays where it is) */}
           <button
             type="button"
             onClick={handleStageClick}
             {...stageButtonProps}
+            className={`${stageButtonProps.className} ui-room`}
           />
 
           {/* Skip Intro / Outro / Interruption — Netflix-style button above the lyrics.
@@ -4052,38 +4121,46 @@ const PartyPage = () => {
               blur reads the video every frame, and in landscape this box sits
               on the picture (the Galaxy A36 stuttered). A denser tint looks the same. */}
           <div
-            className="relative flex flex-col shrink min-h-20 rounded-3xl overflow-hidden bg-[rgba(24,19,52,0.84)] ring-1 ring-white/[0.12] shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
+            className="relative flex flex-col shrink rounded-3xl overflow-hidden bg-[rgba(24,19,52,0.84)] ring-1 ring-white/[0.12] shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
             lang={lyricsScript.on && !(duetMode && hasDuetLyrics) ? SCRIPT_LANG[lyricsScript.tag] : undefined}
           >
             {/* Lyrics (both singers' lines stacked in a duet) */}
-            <StageLyrics store={live} p1Label={partLabel(1)} p2Label={partLabel(2)} resizeLabel={t('party.lyricsHeight')} />
-
-            {/* Song timeline: sung stretches marked per singer; the host can seek.
-                On a compositor layer of its own: the cursor moves every few
-                frames, and sharing the box's layer made each move re-raster the
-                box's large blurred shadow too (at 2.625x on the CPU: raster
-                2.4 -> 1.0 ms a frame) */}
-            <div className="shrink-0 will-change-[opacity]">
-              <StageTimeline
-                store={live}
-                regions={timelineRegions}
-                duration={videoDuration}
-                onSeek={isHost ? seekVideo : isCohost ? seekViaHost : undefined}
-                label={t('party.timeline')}
-              />
-            </div>
+            {/* (the host and co-hosts take the song to a line clicked or tapped, as on the timeline) */}
+            <StageLyrics
+              store={live}
+              p1Label={partLabel(1)}
+              p2Label={partLabel(2)}
+              resizeLabel={t('party.lyricsHeight')}
+              onSeek={isHost ? seekVideo : isCohost ? seekViaHost : undefined}
+            />
           </div>
         </div>
 
       </div>
 
+      {/* Under the lyrics, like a video player's: the song's timeline (sung
+          stretches marked per singer; the host and co-hosts seek), play /
+          pause, the time and fullscreen. Out of the lyrics box: its cursor
+          sharing the box's layer re-rastered the box's large blurred shadow
+          on every move (at 2.625x on the CPU: raster 2.4 -> 1.0 ms a frame) */}
+      <StageControls
+        store={live}
+        regions={timelineRegions}
+        duration={videoDuration}
+        onSeek={isHost ? seekVideo : isCohost ? seekViaHost : undefined}
+        label={t('party.timeline')}
+        playing={songPlaying}
+        onTogglePlay={canControl ? togglePlayback : undefined}
+      />
+
       {/* The focused highway's sign, at the screen's middle (stageSign) */}
       {stageSign}
 
       {/* Queue + similar songs: a drawer under the top-right pill (unless
-          the queue has a window of its own) */}
+          the queue has a window of its own); from sm up beside the QR card
+          (PartyBar: the code, its tile's and card's padding, the gap) */}
       {queueOpen && !queuePopout.open && (
-        <div ref={queueDrawerRef} className="absolute top-[4.25rem] left-3 right-3 sm:left-auto sm:right-4 bottom-4 z-40 sm:w-[22rem] overflow-y-auto overscroll-contain space-y-3">
+        <div ref={queueDrawerRef} className="absolute top-[4.25rem] left-3 right-3 sm:left-auto sm:right-[calc(var(--party-qr)+3.25rem+2px)] bottom-4 z-40 sm:w-[22rem] overflow-y-auto overscroll-contain space-y-3">
           <QueuePanel
             queue={queue}
             canManage={canControl}

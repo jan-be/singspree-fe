@@ -537,6 +537,8 @@
     "partyCode": "Party-Code",
     "exitFullscreen": "Vollbild beenden",
     "enterFullscreen": "Vollbild",
+    "play": "Abspielen",
+    "pause": "Pause",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

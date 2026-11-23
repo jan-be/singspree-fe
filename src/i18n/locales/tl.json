@@ -533,6 +533,8 @@
     "partyCode": "Code ng Party",
     "exitFullscreen": "Lumabas sa fullscreen",
     "enterFullscreen": "Mag-fullscreen",
+    "play": "I-play",
+    "pause": "I-pause",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

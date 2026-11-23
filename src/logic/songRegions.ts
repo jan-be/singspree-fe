@@ -62,6 +62,33 @@ export function songRegions(lyricData: RegionLyrics | null, gap = lyricData?.gap
   return [...p1, ...p2].sort((a, b) => a.start - b.start || a.player - b.player);
 }
 
+/** A stretch of the timeline and who sings in it: 1, 2, or 3 for both at once */
+export interface TimelineSegment {
+  start: number;
+  end: number;
+  who: 1 | 2 | 3;
+}
+
+/**
+ * The regions as the timeline draws them, all in one row: where the two
+ * singers' stretches overlap, a segment of its own for both (sorted by start,
+ * none overlapping).
+ */
+export function timelineSegments(regions: readonly SongRegion[]): TimelineSegment[] {
+  const cuts = [...new Set(regions.flatMap(r => [r.start, r.end]))].sort((a, b) => a - b);
+  const sings = (player: 1 | 2, t: number) => regions.some(r => r.player === player && r.start <= t && t < r.end);
+  const out: TimelineSegment[] = [];
+  for (let i = 0; i + 1 < cuts.length; i++) {
+    const start = cuts[i], end = cuts[i + 1], mid = (start + end) / 2;
+    const who = ((sings(1, mid) ? 1 : 0) + (sings(2, mid) ? 2 : 0)) as 0 | 1 | 2 | 3;
+    if (!who) continue;
+    const last = out[out.length - 1];
+    if (last && last.who === who && last.end === start) last.end = end;
+    else out.push({ start, end, who });
+  }
+  return out;
+}
+
 /**
  * Current video time for a frame of the live store (seconds), or 0. The
  * frame's own time (getTickData): its tick stands at 0 before the song's gap,

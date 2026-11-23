@@ -106,3 +106,42 @@ export function placeLyricLines(
   while (last < count - 1 && top(last + 1) + height(last + 1) + shift <= view + 1) last++;
   return { shift, first, last, long, cut: Math.max(0, -(top(current) + shift)) };
 }
+
+/**
+ * How far the viewer can scroll the list (lyricSeek.ts), as the `shift`
+ * placeLyricLines takes: from the first line in its place (`max`) to the
+ * last in its (`min`). Same arguments as placeLyricLines.
+ */
+export function lyricScrollBounds(
+  count: number,
+  top: (i: number) => number,
+  height: (i: number) => number,
+  view: number,
+  rowHeight: number,
+): { min: number; max: number } {
+  if (count <= 0) return { min: 0, max: 0 };
+  const max = placeLyricLines(count, 0, top, height, view, rowHeight).shift;
+  const min = placeLyricLines(count, count - 1, top, height, view, rowHeight).shift;
+  return { min: Math.min(min, max), max };
+}
+
+/**
+ * The lines of a list moved by `shift` px that have any of them between
+ * `from` and `to` px of the view (the list's top at 0 unmoved): what a list
+ * the viewer scrolls shows, the lines at its edges cut off. `first` > `last`
+ * when none does.
+ */
+export function linesInRange(
+  count: number,
+  top: (i: number) => number,
+  height: (i: number) => number,
+  shift: number,
+  from: number,
+  to: number,
+): { first: number; last: number } {
+  let first = 0;
+  while (first < count && top(first) + height(first) + shift <= from) first++;
+  let last = first - 1;
+  while (last + 1 < count && top(last + 1) + shift < to) last++;
+  return { first, last };
+}

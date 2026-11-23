@@ -43,27 +43,30 @@ export interface LiveStageLyricsProps {
   p2Label?: React.ReactNode;
   /** what the handle that sets the band's height is called */
   resizeLabel?: string;
+  /** takes the song to a line clicked or tapped (the host, a co-host; see Lyrics) */
+  onSeek?: (seconds: number) => void;
 }
 
 /**
  * The lyrics band at the bottom of the stage, as tall as the viewer has made
  * it: the singer's lines, the current one lit and the list moving up with the
  * song, or — while a second singer has a line — both singers' lists stacked
- * and labelled, each with half the band.
+ * and labelled, each with half the band. With `onSeek`, a line clicked or
+ * tapped is where the song goes, and the lists can be scrolled through.
  */
-export const LiveStageLyrics = ({ store, p1Label, p2Label, resizeLabel }: LiveStageLyricsProps) => {
+export const LiveStageLyrics = ({ store, p1Label, p2Label, resizeLabel, onSeek }: LiveStageLyricsProps) => {
   const { tickData, p2TickData } = useLiveLines(store);
   if (!p2TickData?.currentLine) {
     return (
       <LyricsBand resizeLabel={resizeLabel}>
-        <Lyrics tickData={tickData} store={store} pick={P1} />
+        <Lyrics tickData={tickData} store={store} pick={P1} onSeek={onSeek} />
       </LyricsBand>
     );
   }
   return (
     <LyricsBand duet resizeLabel={resizeLabel}>
-      <Lyrics tickData={tickData} store={store} pick={P1} label={p1Label} compact />
-      <Lyrics tickData={p2TickData} store={store} pick={P2} label={p2Label} compact />
+      <Lyrics tickData={tickData} store={store} pick={P1} label={p1Label} compact onSeek={onSeek} />
+      <Lyrics tickData={p2TickData} store={store} pick={P2} label={p2Label} compact onSeek={onSeek} />
     </LyricsBand>
   );
 };

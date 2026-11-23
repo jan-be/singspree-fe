@@ -531,6 +531,8 @@
     "partyCode": "派對代碼",
     "exitFullscreen": "退出全螢幕",
     "enterFullscreen": "進入全螢幕",
+    "play": "播放",
+    "pause": "暫停",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

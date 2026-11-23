@@ -533,6 +533,8 @@
     "partyCode": "Feestcode",
     "exitFullscreen": "Volledig scherm sluiten",
     "enterFullscreen": "Volledig scherm",
+    "play": "Afspelen",
+    "pause": "Pauzeren",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

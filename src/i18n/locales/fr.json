@@ -533,6 +533,8 @@
     "partyCode": "Code de la fête",
     "exitFullscreen": "Quitter le plein écran",
     "enterFullscreen": "Passer en plein écran",
+    "play": "Lecture",
+    "pause": "Pause",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

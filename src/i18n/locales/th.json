@@ -531,6 +531,8 @@
     "partyCode": "รหัสปาร์ตี้",
     "exitFullscreen": "ออกจากเต็มหน้าจอ",
     "enterFullscreen": "เข้าสู่เต็มหน้าจอ",
+    "play": "เล่น",
+    "pause": "หยุดชั่วคราว",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

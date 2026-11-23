@@ -37,6 +37,7 @@
 /* One part's lines. All of them are in the list, which is moved so that the
    line sung now is in view (Lyrics.tsx); this box cuts off the rest. */
 .lyrics {
+    position: relative;
     flex: 1 1 0;
     min-height: 0;
     display: flex;
@@ -71,6 +72,8 @@
 }
 
 .trackLabel {
+    position: relative;
+    z-index: 2; /* (over the scrolled list and its faded edge) */
     font-size: 11px;
     font-weight: 400;
     line-height: 1.2;
@@ -249,12 +252,71 @@
     transition: none;
 }
 
+/* The host's and co-hosts' lyrics are a way through the song (Lyrics.tsx,
+   lyricSeek.ts): a line clicked or tapped is where the song goes, and a
+   finger scrolls the list (the wheel too). A line under the mouse lights up
+   a little, at once. */
+.seekable {
+    touch-action: pan-x pinch-zoom;
+}
+.seekable .row {
+    cursor: pointer;
+}
+@media (hover: hover) {
+    .seekable .row:not(.current):hover {
+        opacity: 0.85;
+        transition-delay: 0s;
+        transition-duration: 0.12s;
+    }
+}
+
+/* Scrolled by the viewer (data-browse): every line with any of it in the box
+   shows, at once, its upper and lower edges fading out; the wheel's steps
+   glide a little, a finger's drag and fling not at all (data-drag). */
+.lyrics::before,
+.lyrics::after {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    height: calc(var(--pad) + 0.55em);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.lyrics::before {
+    top: 0;
+    background-image: linear-gradient(rgba(10, 10, 26, 0.95) 35%, rgba(10, 10, 26, 0));
+}
+.lyrics::after {
+    bottom: 0;
+    background-image: linear-gradient(0deg, rgba(10, 10, 26, 0.95) 35%, rgba(10, 10, 26, 0));
+}
+/* (a duet list's label is in the fade too) */
+.compact::before {
+    height: calc(24px + 0.5em);
+}
+.lyrics[data-browse]::before,
+.lyrics[data-browse]::after {
+    opacity: 1;
+}
+.lyrics[data-browse] .list {
+    transition: transform 0.15s ease-out;
+}
+.lyrics[data-drag] .list,
+.lyrics[data-browse] .row,
+.lyrics[data-browse] .row[data-out] {
+    transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .list,
     .row,
     .row[data-out],
     .glow,
-    .lead {
+    .lead,
+    .lyrics[data-browse] .list {
         transition: none;
     }
 }

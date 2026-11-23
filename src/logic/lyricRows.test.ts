@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clampLyricRows, lyricRowsShown, placeLyricLines, sungRowsAbove, DEFAULT_LYRIC_ROWS, MAX_LYRIC_ROWS } from './lyricRows';
+import { clampLyricRows, linesInRange, lyricRowsShown, lyricScrollBounds, placeLyricLines, sungRowsAbove, DEFAULT_LYRIC_ROWS, MAX_LYRIC_ROWS } from './lyricRows';
 
 /** A list of lines with these heights, one under the other */
 const list = (heights: number[]) => {
@@ -102,5 +102,41 @@ describe('placeLyricLines', () => {
 
   it('holds with a row height that could not be measured', () => {
     expect(place(even(4), 1, 100, NaN)).toEqual({ shift: -50, first: 1, last: 2 });
+  });
+});
+
+describe('lyricScrollBounds', () => {
+  it('scrolls from the first line in its place to the last in its', () => {
+    const l = list(even(10));
+    // a band of two: the line in its place is on top
+    expect(lyricScrollBounds(l.count, l.top, l.height, 100, 50)).toEqual({ min: -450, max: 0 });
+    // a band of four: a sung line above it, so the first line has a row free over it
+    expect(lyricScrollBounds(l.count, l.top, l.height, 200, 50)).toEqual({ min: -400, max: 50 });
+  });
+
+  it('holds for a list of one line, or none', () => {
+    const l = list([50]);
+    expect(lyricScrollBounds(1, l.top, l.height, 100, 50)).toEqual({ min: 0, max: 0 });
+    expect(lyricScrollBounds(0, l.top, l.height, 100, 50)).toEqual({ min: 0, max: 0 });
+  });
+});
+
+describe('linesInRange', () => {
+  it('takes the lines with any of them in the range, cut off or not', () => {
+    const l = list(even(10));
+    expect(linesInRange(l.count, l.top, l.height, -125, 0, 100)).toEqual({ first: 2, last: 4 });
+    expect(linesInRange(l.count, l.top, l.height, -100, 0, 100)).toEqual({ first: 2, last: 3 });
+    expect(linesInRange(l.count, l.top, l.height, -100, -12, 112)).toEqual({ first: 1, last: 4 });
+  });
+
+  it('knows lines of several rows', () => {
+    const l = list([50, 150, 50, 50]);
+    expect(linesInRange(l.count, l.top, l.height, -60, 0, 100)).toEqual({ first: 1, last: 1 });
+  });
+
+  it('has none for a range past the list', () => {
+    const l = list(even(3));
+    const { first, last } = linesInRange(l.count, l.top, l.height, -500, 0, 100);
+    expect(first).toBeGreaterThan(last);
   });
 });

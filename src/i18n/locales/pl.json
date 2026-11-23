@@ -537,6 +537,8 @@
     "partyCode": "Kod imprezy",
     "exitFullscreen": "Wyłącz pełny ekran",
     "enterFullscreen": "Włącz pełny ekran",
+    "play": "Odtwórz",
+    "pause": "Wstrzymaj",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"

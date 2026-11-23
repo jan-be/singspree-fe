@@ -533,6 +533,8 @@
     "partyCode": "Parti Kodu",
     "exitFullscreen": "Tam ekrandan çık",
     "enterFullscreen": "Tam ekrana geç",
+    "play": "Oynat",
+    "pause": "Duraklat",
     "autoSkipOn": "Auto-skip: On",
     "autoSkipOff": "Auto-skip: Off",
     "autoSkipHint": "Automatically skip intros, outros and non-music sections"
