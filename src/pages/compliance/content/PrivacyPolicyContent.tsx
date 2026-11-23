@@ -19,7 +19,7 @@ const PrivacyPolicyContent = () => (
     <div className="max-w-[65ch] text-[15px] sm:text-base leading-[1.7] text-white/75 space-y-9">
       <header className="space-y-2">
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-[-0.025em] leading-tight text-white">Privacy Policy</h1>
-        <p className="text-sm text-white/40">Last updated: 14 November 2026</p>
+        <p className="text-sm text-white/40">Last updated: 23 November 2026</p>
       </header>
 
       <section className="space-y-3">
@@ -67,6 +67,7 @@ const PrivacyPolicyContent = () => (
         <h2 className={heading}>Who else gets data</h2>
         <ul className={list}>
           <li><strong className={strong}>Other people in your party</strong> see your display name, picture and score.</li>
+          <li><strong className={strong}>Amazon Web Services</strong> runs our servers in the USA and Singapore.</li>
           <li><strong className={strong}>Cloudflare</strong> delivers and protects all traffic, sees your IP address and can relay voices.</li>
           <li>
             <strong className={strong}>Google:</strong> SingSpree uses YouTube API Services for its videos and thumbnails, so Google receives your IP address, and the player keeps some data in your browser&apos;s storage. Google also handles Google sign-in and our Android test list.{" "}
@@ -76,7 +77,12 @@ const PrivacyPolicyContent = () => (
           <li><strong className={strong}>Resend</strong> delivers our e-mails.</li>
           <li><strong className={strong}>Modal</strong> runs our AI when a chart is made. <strong className={strong}>Last.fm</strong> and <strong className={strong}>SponsorBlock</strong> help with similar songs and skipping non-music parts. These three get song details, nothing about you.</li>
         </ul>
-        <p>Some of these companies are outside the EU, mainly in the USA, so your data can be processed there.</p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className={heading}>Where your data is stored</h2>
+        <p>Our servers are in Germany, the USA and Singapore, so the site is quick wherever you are and keeps running if one server fails. Your data is kept on all three, except recordings and share videos, which stay in Germany.</p>
+        <p>Some of the companies above are outside the EU too, mainly in the USA. In the USA your data is protected by the EU&ndash;US Data Privacy Framework or the EU&apos;s standard contractual clauses, and in Singapore by those clauses. You can ask us for a copy.</p>
       </section>
 
       <section className="space-y-3">
