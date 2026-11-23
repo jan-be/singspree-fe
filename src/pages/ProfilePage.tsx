@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import WrapperPage from './WrapperPage';
 import StarRating from '../components/StarRating';
 import DifficultyTag from '../components/DifficultyTag';
+import LevelBadge from '../components/LevelBadge';
 import Avatar from '../components/Avatar';
 import { useAvatarEditor } from '../components/AvatarEditor';
 import ReportPicture from '../components/ReportPicture';
@@ -628,7 +629,7 @@ const FriendsSection = () => {
 
 /**
  * A profile whose owner keeps their stats private (logic/statsPrivacy.ts):
- * the header as everyone sees it, without the stars, and a note where the
+ * the header as everyone sees it, and a note where the
  * numbers, achievements and songs would be. Friends see it the same way.
  */
 const PrivateProfile = ({ data, onRelation }: { data: PrivateProfileData; onRelation: (relation: Relation) => void }) => {
@@ -786,7 +787,8 @@ const ProfilePage = () => {
         </div>
         {/* One row, so the header stays the size of the settings' */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 empty:hidden">
-          {hasScores && <StarRating stars={Math.min(3, Math.round((stats.averageBest / 10000) * 3))} size={18} label={`${stats.averageBest}`} />}
+          {/* The level, from the XP of every finished song (logic/level.ts); with the stats, and once there is some */}
+          {stats?.xp ? <LevelBadge xp={stats.xp} mine={isMe} /> : null}
           {/* Someone else's picture can be reported to the admins (guests too) */}
           {!isMe && data.user.avatar && <ReportPicture path={data.user.avatar} where={{ place: 'profile' }} />}
           {/* Your stats kept private, or to friends: who else sees what follows */}

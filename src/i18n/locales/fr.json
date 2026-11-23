@@ -875,6 +875,13 @@
     "signInToSave": "Vos scores restent dans ce navigateur – connectez-vous pour les conserver définitivement et les comparer à vos amis",
     "you": "Vous"
   },
+  "level": {
+    "badge": "Niveau {{level}}",
+    "up": "Niveau {{level}} atteint !",
+    "toNext": "Encore {{xp}} XP avant le niveau {{next}}",
+    "total": "{{xp}} XP au total",
+    "gained": "+{{xp}} XP"
+  },
   "settings": {
     "title": "Paramètres",
     "viewProfile": "Voir le profil",

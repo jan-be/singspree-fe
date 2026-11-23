@@ -133,6 +133,8 @@ export interface ProfileStats {
   fiveStars: number;
   /** the saved scores */
   plays: number;
+  /** from every finished play (logic/level.ts); missing from a backend before it */
+  xp?: number;
   friends: number;
   /** songs played at parties, never fewer than `plays` */
   played: number;

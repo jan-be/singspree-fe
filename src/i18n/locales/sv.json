@@ -875,6 +875,13 @@
     "signInToSave": "Dina poäng stannar i den här webbläsaren – logga in för att behålla dem för gott och jämföra med vänner",
     "you": "Du"
   },
+  "level": {
+    "badge": "Nivå {{level}}",
+    "up": "Nivå {{level}} nådd!",
+    "toNext": "{{xp}} XP kvar till nivå {{next}}",
+    "total": "{{xp}} XP totalt",
+    "gained": "+{{xp}} XP"
+  },
   "settings": {
     "title": "Inställningar",
     "viewProfile": "Visa profil",

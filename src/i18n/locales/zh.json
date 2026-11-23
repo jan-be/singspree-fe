@@ -870,6 +870,13 @@
     "signInToSave": "你的分数保存在此浏览器中 – 登录后可永久保留并与好友比较",
     "you": "你"
   },
+  "level": {
+    "badge": "等级 {{level}}",
+    "up": "升到 {{level}} 级！",
+    "toNext": "距 {{next}} 级还差 {{xp}} XP",
+    "total": "共 {{xp}} XP",
+    "gained": "+{{xp}} XP"
+  },
   "settings": {
     "title": "设置",
     "viewProfile": "查看主页",

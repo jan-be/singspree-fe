@@ -875,6 +875,13 @@
     "signInToSave": "Puanların bu tarayıcıda kalır – kalıcı olarak saklamak ve arkadaşlarınla karşılaştırmak için giriş yap",
     "you": "Sen"
   },
+  "level": {
+    "badge": "Seviye {{level}}",
+    "up": "Yeni seviye: {{level}}!",
+    "toNext": "Seviye {{next}} için {{xp}} XP kaldı",
+    "total": "Toplam {{xp}} XP",
+    "gained": "+{{xp}} XP"
+  },
   "settings": {
     "title": "Ayarlar",
     "viewProfile": "Profili gör",

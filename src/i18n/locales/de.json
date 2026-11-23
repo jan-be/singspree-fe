@@ -879,6 +879,13 @@
     "signInToSave": "Deine Punkte bleiben in diesem Browser – melde dich an, um sie dauerhaft zu behalten und mit Freunden zu vergleichen",
     "you": "Du"
   },
+  "level": {
+    "badge": "Level {{level}}",
+    "up": "Level {{level}} erreicht!",
+    "toNext": "Noch {{xp}} XP bis Level {{next}}",
+    "total": "{{xp}} XP insgesamt",
+    "gained": "+{{xp}} XP"
+  },
   "admin": {
     "title": "Admin",
     "subtitle": "Was gerade auf SingSpree los ist.",

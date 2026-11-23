@@ -885,6 +885,13 @@
     "signInToSave": "Twoje wyniki zostają w tej przeglądarce – zaloguj się, aby zachować je na stałe i porównać ze znajomymi",
     "you": "Ty"
   },
+  "level": {
+    "badge": "Poziom {{level}}",
+    "up": "Osiągnięto poziom {{level}}!",
+    "toNext": "Jeszcze {{xp}} XP do poziomu {{next}}",
+    "total": "Łącznie {{xp}} XP",
+    "gained": "+{{xp}} XP"
+  },
   "settings": {
     "title": "Ustawienia",
     "viewProfile": "Zobacz profil",

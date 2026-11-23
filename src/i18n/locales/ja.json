@@ -870,6 +870,13 @@
     "signInToSave": "スコアはこのブラウザに保存されています – ログインするとずっと残り、友達と比べられます",
     "you": "あなた"
   },
+  "level": {
+    "badge": "レベル{{level}}",
+    "up": "レベル{{level}}に到達！",
+    "toNext": "レベル{{next}}まであと{{xp}} XP",
+    "total": "合計{{xp}} XP",
+    "gained": "+{{xp}} XP"
+  },
   "settings": {
     "title": "設定",
     "viewProfile": "プロフィールを見る",

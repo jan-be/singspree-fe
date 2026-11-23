@@ -875,6 +875,13 @@
     "signInToSave": "Nananatili sa browser na ito ang mga score mo – mag-sign in para maitago ang mga ito nang tuluyan at maikumpara sa mga kaibigan",
     "you": "Ikaw"
   },
+  "level": {
+    "badge": "Level {{level}}",
+    "up": "Naabot ang level {{level}}!",
+    "toNext": "{{xp}} XP pa bago ang level {{next}}",
+    "total": "{{xp}} XP lahat",
+    "gained": "+{{xp}} XP"
+  },
   "settings": {
     "title": "Mga setting",
     "viewProfile": "Tingnan ang profile",

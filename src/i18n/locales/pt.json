@@ -875,6 +875,13 @@
     "signInToSave": "Suas pontuações ficam neste navegador – entre para guardá-las para sempre e comparar com amigos",
     "you": "Você"
   },
+  "level": {
+    "badge": "Nível {{level}}",
+    "up": "Nível {{level}} alcançado!",
+    "toNext": "Faltam {{xp}} XP para o nível {{next}}",
+    "total": "{{xp}} XP no total",
+    "gained": "+{{xp}} XP"
+  },
   "settings": {
     "title": "Configurações",
     "viewProfile": "Ver perfil",
