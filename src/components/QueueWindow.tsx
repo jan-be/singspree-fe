@@ -17,7 +17,7 @@ export interface QueueWindowSong extends SongNamesSource {
   beta?: boolean;
 }
 
-export interface QueueWindowProps extends Pick<QueuePanelProps, "canManage" | "currentUserName" | "onAdd" | "onAddJob" | "onRemove" | "onReorder" | "onSkip"> {
+export interface QueueWindowProps extends Pick<QueuePanelProps, "canManage" | "currentUserName" | "onAdd" | "onAddJob" | "onRemove" | "onReorder" | "onSkip" | "played"> {
   queue: QueueEntry[];
   partyId?: string;
   song: QueueWindowSong | null;
@@ -105,7 +105,7 @@ const NowPlaying = ({ song, singers, playerColors, playerAvatars }: { song: Queu
 const QueueWindow = ({
   partyId, song, singers = [], playerColors, playerAvatars, members,
   queue, canManage, currentUserName, onAdd, onAddJob, onRemove, onReorder, onSkip,
-  suggestFrom, onDock, extraAction,
+  suggestFrom, played, onDock, extraAction,
 }: QueueWindowProps) => {
   const { t, i18n } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -156,6 +156,7 @@ const QueueWindow = ({
             onReorder={onReorder}
             onSkip={onSkip}
             suggestFrom={suggestFrom}
+            played={played}
             headerAction={(onDock || extraAction) && (
               <div className="flex flex-wrap items-center justify-end gap-1.5">
                 {extraAction}

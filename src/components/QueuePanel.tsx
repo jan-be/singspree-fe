@@ -6,10 +6,14 @@ import { playerHue, type PlayerColors } from "../logic/playerColor";
 import { isPendingEntry, usePartyJob, type AddJobToParty, type ChartQueueEntry, type PendingEntry } from "../logic/partyChartJobs";
 import type { SongNamesSource } from "../logic/lyricsScripts";
 import type { AvatarPaths } from "../logic/avatar";
+import type { HistorySong } from "../logic/partyHistory";
 import QueueAddSong, { type AddToQueue } from "./QueueAddSong";
 import ChartJobProgress from "./ChartJobProgress";
+import { InListMark } from "./SongPicker";
 import SongThumb from "./SongThumb";
 import { useDragReorder, DragHandle, DRAG_OVER_CLASS } from "./DragReorder";
+import { DropdownChevron } from "./Dropdown";
+import { ToTopIcon, ToBottomIcon } from "./Icons";
 import Avatar from "./Avatar";
 import PartyPeople from "./PartyPeople";
 
@@ -32,6 +36,8 @@ export interface QueuePanelProps {
   headerAction?: React.ReactNode;
   /** the party so far, most telling first: what the suggestions under the queue fit (QueueAddSong) */
   suggestFrom?: string[];
+  /** the songs that played in the party (while this browser was in it), oldest first, without the one on now */
+  played?: readonly HistorySong[];
 }
 
 const FAILED = new Set<string | undefined>(['failed', 'rejected']);
@@ -62,12 +68,71 @@ const PendingProgress = ({ entry, waitsAtFront }: { entry: PendingEntry; waitsAt
 };
 
 /**
+ * What already played, above the queue: folded away under "Played · N" until
+ * opened, the songs greyed out, oldest first (so the list reads on into the queue).
+ * Each one's "+" puts it at the end of the queue again (onAdd); one already
+ * there has the tick instead (the server takes a song only once).
+ */
+const PlayedSongs = ({ played, queued, onAdd }: { played: readonly HistorySong[]; queued: ReadonlySet<string>; onAdd?: AddToQueue }) => {
+  const { t } = useTranslation();
+  const namesOf = useSongNames();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-white/[0.06]">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        className="w-full flex items-center gap-2 px-3.5 py-2 text-left text-xs text-white/55 hover:text-white/85 hover:bg-white/[0.03] transition-colors"
+      >
+        {/* (pointing right while folded, down when open) */}
+        <DropdownChevron open={false} className={open ? '' : '-rotate-90'} />
+        <span className="font-semibold">{t('queue.played')}</span>
+        <span className="tabular-nums text-white/40">{played.length}</span>
+      </button>
+      {open && (
+        <ol className="divide-y divide-white/[0.04] pb-1" aria-label={t('queue.played')}>
+          {played.map(song => {
+            const names = namesOf(song);
+            return (
+              <li key={song.songId} className="flex items-center gap-2.5 px-3 py-1.5">
+                <div className="flex-1 min-w-0 flex items-center gap-2.5 opacity-50">
+                  <span aria-hidden="true" className="w-4 text-center text-xs text-white/60 flex-shrink-0">✓</span>
+                  <SongThumb videoId={song.videoId} className="w-12" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-white truncate" lang={names.lang}>{names.title}</div>
+                    <div className="text-xs text-white/60 truncate" lang={names.lang}>{names.artist}</div>
+                  </div>
+                </div>
+                {onAdd && (queued.has(song.songId) ? <InListMark label={t('queue.inQueue')} /> : (
+                  <button
+                    type="button"
+                    onClick={() => onAdd(song, 'sing-again')}
+                    className="w-7 h-7 rounded-full bg-white/[0.08] text-white flex items-center justify-center text-base leading-none hover:bg-[#ff5cd6] transition-colors flex-shrink-0"
+                    title={t('queue.queueAgain')}
+                    aria-label={`${t('queue.queueAgain')}: ${names.title}`}
+                  >
+                    +
+                  </button>
+                ))}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </div>
+  );
+};
+
+/**
  * The party's queue: who sings what next. The first entry that can play is
  * marked "Up next"; a song still being charted (a pasted link, made by AI)
  * shows its progress and keeps its place — passed over until it is ready, so
  * one at the front plays as soon as it is. Every entry says who added it.
  *
- * canManage: the host or a co-host, who may remove any entry and reorder them (everyone else removes their own).
+ * canManage: the host or a co-host, who may remove any entry and reorder them (everyone else removes their own):
+ * by dragging, or each entry's arrows straight to the top (plays next) or the bottom.
+ * played: what already played, folded away above the queue (PlayedSongs), each one's "+" queues it again.
  * onSkip (host and co-hosts): skip the current song — armed on first click, fires on the second.
  * onAddJob(jobId, videoTitle): queue a song being charted (QueueAddSong)
  * suggestFrom: the party's songs (the queue newest first, the one on, what was sung), for the songs that fit it, under the queue
@@ -75,7 +140,7 @@ const PendingProgress = ({ entry, waitsAtFront }: { entry: PendingEntry; waitsAt
  * members: who is in the party (usernames), shown as avatars under the title; playerAvatars: their pictures;
  * partyId: goes along when someone reports a picture from there.
  */
-const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, playerAvatars, members, partyId, onRemove, onReorder, onAdd, onAddJob, onSkip, headerAction, suggestFrom }: QueuePanelProps) => {
+const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, playerAvatars, members, partyId, onRemove, onReorder, onAdd, onAddJob, onSkip, headerAction, suggestFrom, played = [] }: QueuePanelProps) => {
   const { t } = useTranslation();
   const namesOf = useSongNames();
   const [skipArmed, setSkipArmed] = useState(false);
@@ -105,11 +170,13 @@ const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, play
   const frontPending = queue.findIndex(e => isPendingEntry(e) && !FAILED.has(e.job.status));
   const pendingCount = queue.filter(e => isPendingEntry(e) && !FAILED.has(e.job.status)).length;
   const queuedIds = useMemo(() => queue.flatMap(e => (e?.songId ? [e.songId] : [])), [queue]);
+  const queuedSet = useMemo(() => new Set(queuedIds), [queuedIds]);
   // the add box does not move while someone adds (each add makes the queue above it a row longer)
   const { listRef, addRef } = useStayPut<HTMLDivElement, HTMLElement>();
 
   const items = (
     <>
+      {played.length > 0 && <PlayedSongs played={played} queued={queuedSet} onAdd={onAdd} />}
       {/* Queue items */}
       {queue.length === 0 ? (
         <div className="px-4 py-5 text-center">
@@ -156,6 +223,31 @@ const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, play
                   </div>
                   {pending && <PendingProgress entry={item} waitsAtFront={index === frontPending && (nextIndex === -1 || index < nextIndex)} />}
                 </div>
+                {/* Straight to the top (plays next) or the bottom, without dragging it there place by place */}
+                {canDrag && queue.length > 1 && (
+                  <div className="flex flex-col flex-shrink-0 -my-1">
+                    <button
+                      type="button"
+                      onClick={() => onReorder?.(index, 0)}
+                      disabled={index === 0}
+                      className="btn-icon w-7 h-7 text-white/40 hover:text-white disabled:invisible"
+                      title={t('queue.moveTop')}
+                      aria-label={`${t('queue.moveTop')}: ${names.title}`}
+                    >
+                      <ToTopIcon size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onReorder?.(index, queue.length - 1)}
+                      disabled={index === queue.length - 1}
+                      className="btn-icon w-7 h-7 text-white/40 hover:text-white disabled:invisible"
+                      title={t('queue.moveBottom')}
+                      aria-label={`${t('queue.moveBottom')}: ${names.title}`}
+                    >
+                      <ToBottomIcon size={14} />
+                    </button>
+                  </div>
+                )}
                 {canRemove && (
                   <button
                     onClick={() => onRemove?.(index)}

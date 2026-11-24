@@ -151,3 +151,21 @@ export const PlaylistIcon = ({ size = 14, strokeWidth = 2, className }: IconProp
     <circle cx="15" cy="18" r="2" />
   </svg>
 );
+
+/** An arrow up to a line — move to the top of a list (the queue: plays next). */
+export const ToTopIcon = ({ size = 14, strokeWidth = 2, className }: IconProps) => (
+  <svg width={size} height={size} strokeWidth={strokeWidth} className={className} aria-hidden="true" {...base}>
+    <path d="M5 4h14" />
+    <path d="M12 20V9" />
+    <path d="m7 13 5-5 5 5" />
+  </svg>
+);
+
+/** An arrow down to a line — move to the bottom of a list. */
+export const ToBottomIcon = ({ size = 14, strokeWidth = 2, className }: IconProps) => (
+  <svg width={size} height={size} strokeWidth={strokeWidth} className={className} aria-hidden="true" {...base}>
+    <path d="M5 20h14" />
+    <path d="M12 4v11" />
+    <path d="m7 11 5 5 5-5" />
+  </svg>
+);

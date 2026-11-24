@@ -103,7 +103,16 @@
     "saved": "플레이리스트에 저장됨",
     "cancel": "취소",
     "keep": "내 플레이리스트에 저장",
-    "kept": "저장됨"
+    "kept": "저장됨",
+    "withPlayed": "이미 재생한 곡 포함 ({{count}})",
+    "nameTaken": "“{{name}}” 이미 있음",
+    "update": "업데이트",
+    "updateHint": "곡을 이 곡들로 바꿉니다",
+    "addTo": "여기에 추가",
+    "addToHint": "아직 없는 곡을 끝에 추가합니다",
+    "saveNew": "새로 저장",
+    "saveNewHint": "같은 이름의 다른 플레이리스트로 저장합니다",
+    "updated": "플레이리스트 업데이트됨"
   },
   "forYou": {
     "title": "추천",
@@ -370,7 +379,11 @@
       "failed": "이 노래방은 만들 수 없었어요.",
       "unknown": "이 노래를 추가할 수 없었어요.",
       "unavailable": "지금은 노래방을 만들 수 없어요."
-    }
+    },
+    "played": "재생함",
+    "moveTop": "맨 위로",
+    "moveBottom": "맨 아래로",
+    "queueAgain": "대기열에 다시 추가"
   },
   "chartJob": {
     "stage": {

@@ -105,7 +105,16 @@
     "saved": "Guardada en tus listas",
     "cancel": "Cancelar",
     "keep": "Guardar en mis listas",
-    "kept": "Guardada"
+    "kept": "Guardada",
+    "withPlayed": "Incluir las canciones ya reproducidas ({{count}})",
+    "nameTaken": "«{{name}}» ya existe",
+    "update": "Actualizarla",
+    "updateHint": "Sus canciones pasan a ser estas",
+    "addTo": "Añadir a la lista",
+    "addToHint": "Añade al final las canciones que aún no tiene",
+    "saveNew": "Guardar como nueva",
+    "saveNewHint": "Guardarlas como otra lista con este nombre",
+    "updated": "Lista actualizada"
   },
   "forYou": {
     "title": "Para ti",
@@ -372,7 +381,11 @@
       "failed": "No se pudo crear ese karaoke.",
       "unknown": "No se pudo añadir esa canción.",
       "unavailable": "Ahora mismo no se pueden crear karaokes."
-    }
+    },
+    "played": "Reproducidas",
+    "moveTop": "Mover al principio",
+    "moveBottom": "Mover al final",
+    "queueAgain": "Volver a añadir a la cola"
   },
   "chartJob": {
     "stage": {

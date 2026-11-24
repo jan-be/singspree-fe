@@ -2,6 +2,7 @@ import { assert, describe, test, expect, beforeEach, vi } from 'vitest';
 import {
   notePartySong, notePartySingers, notePartyQueue, loadParties, lastHostedParty, missedSongs,
   isLongParty, leftoverParty, dismissParty, LEFTOVER_FOR_MS, historySongIds, savePendingQueue, takePendingQueue,
+  notePartyPlaylist, partyRecord,
 } from './partyHistory';
 
 // vitest runs in node: minimal storage stand-ins
@@ -133,13 +134,36 @@ describe('pending queue (Start again)', () => {
   beforeEach(() => sessionStorage.clear());
 
   test('taken once, without what the party already has', () => {
-    savePendingQueue([song('b'), song('c'), song('d')], T);
-    expect(takePendingQueue({ currentSong: { songId: 'b' }, queue: [song('d')] }, T + MIN).map(s => s.songId)).toEqual(['c']);
-    expect(takePendingQueue({}, T + MIN)).toEqual([]);
+    savePendingQueue([song('b'), song('c'), song('d')], { now: T });
+    expect(takePendingQueue({ currentSong: { songId: 'b' }, queue: [song('d')] }, T + MIN)).toEqual({ songs: [{ songId: 'c', artist: 'Artist c', title: 'Title c', videoId: 'vc' }], playlistId: null });
+    expect(takePendingQueue({}, T + MIN)).toEqual({ songs: [], playlistId: null });
   });
 
   test('a stale one is dropped', () => {
-    savePendingQueue([song('b')], T);
-    expect(takePendingQueue({}, T + 11 * MIN)).toEqual([]);
+    savePendingQueue([song('b')], { now: T, playlistId: 'p1' });
+    expect(takePendingQueue({}, T + 11 * MIN)).toEqual({ songs: [], playlistId: null });
+  });
+
+  test("a playlist's songs say which playlist they are", () => {
+    savePendingQueue([song('b')], { now: T, playlistId: 'p1' });
+    expect(takePendingQueue({}, T + MIN).playlistId).toBe('p1');
+  });
+});
+
+describe('the party record (Played, the playlist it started from)', () => {
+  beforeEach(() => localStorage.clear());
+
+  test('the songs played and the playlist, for the party going on under the code', () => {
+    notePartySong('PL1', song('a'), { host: true, now: T });
+    notePartyPlaylist('PL1', 'list-1', { now: T + MIN });
+    notePartySong('PL1', song('b'), { host: true, now: T + 5 * MIN });
+    const record = partyRecord('PL1', T + 6 * MIN);
+    expect(record?.songs.map(s => s.songId)).toEqual(['a', 'b']);
+    expect(record?.playlistId).toBe('list-1');
+    // nothing changed: the same object (what useSyncExternalStore needs)
+    expect(partyRecord('PL1', T + 6 * MIN)).toBe(record);
+    // the same code a day later is another party
+    notePartySong('OTHER', song('c'), { now: T + 30 * 60 * MIN });
+    expect(partyRecord('PL1', T + 30 * 60 * MIN)).toBe(null);
   });
 });

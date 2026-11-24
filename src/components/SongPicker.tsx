@@ -48,7 +48,7 @@ export interface SongPickerProps {
 }
 
 /** The tick of a song in the list */
-const InListMark = ({ label }: { label: string }) => (
+export const InListMark =({ label }: { label: string }) => (
   <span title={label} className="w-7 h-7 rounded-full bg-neon-green/15 text-neon-green flex items-center justify-center flex-shrink-0">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M5 12.5l4.5 4.5L19 7.5" />

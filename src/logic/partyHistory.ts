@@ -8,6 +8,7 @@
  * Every read and write is wrapped: without storage (private mode, blocked
  * site data) nothing is kept and the entry page simply shows neither card.
  */
+import { useSyncExternalStore } from 'react';
 
 const KEY = 'singspree_parties';
 const PENDING_KEY = 'singspree_pending_queue';
@@ -55,6 +56,8 @@ export interface PartyRecord {
   me?: string;
   /** its ✕ on the entry page */
   dismissed?: boolean;
+  /** the playlist it started from (Start on a playlist): what the queue's "Save as playlist" offers to update */
+  playlistId?: string;
 }
 
 /** What takePendingQueue reads of the party it opens in (party:state) */
@@ -75,8 +78,12 @@ function read(): PartyRecord[] {
   } catch { return []; }
 }
 
+/** What an open party page hears when its record changes in this window (usePartyRecord; another window's change comes as 'storage') */
+const CHANGED = 'singspree-parties';
+
 function write(parties: PartyRecord[]) {
-  try { localStorage.setItem(KEY, JSON.stringify({ v: 1, parties: parties.slice(0, MAX_PARTIES) })); } catch { /* full or blocked: not kept */ }
+  try { localStorage.setItem(KEY, JSON.stringify({ v: 1, parties: parties.slice(0, MAX_PARTIES) })); } catch { return; /* full or blocked: not kept */ }
+  try { window.dispatchEvent(new Event(CHANGED)); } catch { /* no window (tests) */ }
 }
 
 /** Is there a record of this party still going (the same code long after is another party)? */
@@ -133,8 +140,38 @@ export function notePartyQueue(partyId: string, queue: readonly (HistorySongInpu
   update(partyId, (p) => { p.host = true; p.queue = songs; }, now);
 }
 
+/** The party started from this playlist (the host's page, as the playlist's other songs join its queue) */
+export function notePartyPlaylist(partyId: string, playlistId: string, { now = Date.now() }: { now?: number } = {}) {
+  if (playlistId) update(partyId, (p) => { p.playlistId = playlistId; }, now);
+}
+
 /** The parties, most recent first */
 export const loadParties = () => read();
+
+let recordCache: { raw: string | null; partyId: string; record: PartyRecord | null } | null = null;
+
+/** This browser's record of the party going on under this code, or null (the same object while nothing changed) */
+export function partyRecord(partyId: string, now = Date.now()): PartyRecord | null {
+  let raw: string | null = null;
+  try { raw = localStorage.getItem(KEY); } catch { return null; }
+  if (recordCache && recordCache.raw === raw && recordCache.partyId === partyId) return recordCache.record;
+  const record = read().find(p => p.partyId === partyId && now - (p.lastAt ?? 0) < SAME_PARTY_MS) ?? null;
+  recordCache = { raw, partyId, record };
+  return record;
+}
+
+/** The party's record, kept current while its songs play (the queue's Played list, Save as playlist) */
+export function usePartyRecord(partyId: string | null | undefined): PartyRecord | null {
+  return useSyncExternalStore(
+    (onChange) => {
+      window.addEventListener(CHANGED, onChange);
+      window.addEventListener('storage', onChange);
+      return () => { window.removeEventListener(CHANGED, onChange); window.removeEventListener('storage', onChange); };
+    },
+    () => (partyId ? partyRecord(partyId) : null),
+    () => null,
+  );
+}
 
 /** The last party this browser hosted that played something, or null */
 export function lastHostedParty(parties = read()): PartyRecord | null {
@@ -183,20 +220,26 @@ export function historySongIds(parties = read(), limit = 100): string[] {
 /**
  * Start again: the songs after the first wait in sessionStorage until the
  * new party's page is in its party (takePendingQueue), the first is the song
- * the page opens with.
+ * the page opens with. `playlistId`: they are a playlist's (its Start), which
+ * the party then remembers (notePartyPlaylist).
  */
-export function savePendingQueue(songs: readonly HistorySongInput[], now = Date.now()) {
-  try { sessionStorage.setItem(PENDING_KEY, JSON.stringify({ at: now, songs: songs.map(songOf).filter(Boolean).slice(0, MAX_SONGS) })); } catch { /* */ }
+export function savePendingQueue(songs: readonly HistorySongInput[], { now = Date.now(), playlistId }: { now?: number; playlistId?: string } = {}) {
+  try {
+    sessionStorage.setItem(PENDING_KEY, JSON.stringify({ at: now, songs: songs.map(songOf).filter(Boolean).slice(0, MAX_SONGS), ...(playlistId ? { playlistId } : {}) }));
+  } catch { /* */ }
 }
 
-/** The songs waiting for this party's queue (once: they are gone after), minus what it has already */
-export function takePendingQueue(party: PartyQueueState = {}, now = Date.now()): HistorySong[] {
-  let pending: { at: number; songs: HistorySong[] } | null = null;
+/** The songs waiting for this party's queue (once: they are gone after), minus what it has already, and the playlist they came from */
+export function takePendingQueue(party: PartyQueueState = {}, now = Date.now()): { songs: HistorySong[]; playlistId: string | null } {
+  let pending: { at: number; songs: HistorySong[]; playlistId?: unknown } | null = null;
   try {
     pending = JSON.parse(sessionStorage.getItem(PENDING_KEY) || 'null');
     sessionStorage.removeItem(PENDING_KEY);
-  } catch { return []; }
-  if (!pending || !Array.isArray(pending.songs) || now - pending.at > PENDING_MS) return [];
+  } catch { return { songs: [], playlistId: null }; }
+  if (!pending || !Array.isArray(pending.songs) || now - pending.at > PENDING_MS) return { songs: [], playlistId: null };
   const has = new Set([party.currentSong?.songId, ...(party.queue ?? []).map(e => e.songId)].filter(Boolean));
-  return pending.songs.filter(s => s?.songId && !has.has(s.songId));
+  return {
+    songs: pending.songs.filter(s => s?.songId && !has.has(s.songId)),
+    playlistId: typeof pending.playlistId === 'string' && pending.playlistId ? pending.playlistId : null,
+  };
 }

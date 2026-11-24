@@ -103,7 +103,16 @@
     "saved": "Tersimpan di playlist",
     "cancel": "Batal",
     "keep": "Simpan ke playlist saya",
-    "kept": "Tersimpan"
+    "kept": "Tersimpan",
+    "withPlayed": "Sertakan lagu yang sudah diputar ({{count}})",
+    "nameTaken": "“{{name}}” sudah ada",
+    "update": "Perbarui",
+    "updateHint": "Lagunya diganti dengan ini",
+    "addTo": "Tambahkan ke sana",
+    "addToHint": "Menambahkan lagu yang belum ada di akhir",
+    "saveNew": "Simpan sebagai baru",
+    "saveNewHint": "Simpan sebagai playlist lain dengan nama ini",
+    "updated": "Playlist diperbarui"
   },
   "forYou": {
     "title": "Untukmu",
@@ -370,7 +379,11 @@
       "failed": "Karaoke itu tidak bisa dibuat.",
       "unknown": "Lagu itu tidak bisa ditambahkan.",
       "unavailable": "Pembuatan karaoke sedang tidak tersedia."
-    }
+    },
+    "played": "Sudah diputar",
+    "moveTop": "Pindah ke atas",
+    "moveBottom": "Pindah ke bawah",
+    "queueAgain": "Tambahkan lagi ke antrean"
   },
   "chartJob": {
     "stage": {

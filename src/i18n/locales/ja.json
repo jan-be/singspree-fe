@@ -103,7 +103,16 @@
     "saved": "プレイリストに保存しました",
     "cancel": "キャンセル",
     "keep": "マイプレイリストに保存",
-    "kept": "保存しました"
+    "kept": "保存しました",
+    "withPlayed": "再生済みの曲も含める（{{count}}）",
+    "nameTaken": "「{{name}}」はすでにあります",
+    "update": "更新",
+    "updateHint": "曲をこれらに置き換えます",
+    "addTo": "追加",
+    "addToHint": "まだ入っていない曲を末尾に追加します",
+    "saveNew": "新規として保存",
+    "saveNewHint": "同じ名前の別のプレイリストとして保存します",
+    "updated": "プレイリストを更新しました"
   },
   "forYou": {
     "title": "あなたへのおすすめ",
@@ -370,7 +379,11 @@
       "failed": "そのカラオケは作成できませんでした。",
       "unknown": "その曲を追加できませんでした。",
       "unavailable": "現在カラオケの作成はご利用いただけません。"
-    }
+    },
+    "played": "再生済み",
+    "moveTop": "一番上へ",
+    "moveBottom": "一番下へ",
+    "queueAgain": "もう一度キューに追加"
   },
   "chartJob": {
     "stage": {

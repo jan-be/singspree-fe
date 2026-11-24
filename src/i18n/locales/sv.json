@@ -105,7 +105,16 @@
     "saved": "Sparad i spellistor",
     "cancel": "Avbryt",
     "keep": "Spara i mina spellistor",
-    "kept": "Sparad"
+    "kept": "Sparad",
+    "withPlayed": "Ta med låtar som redan spelats ({{count}})",
+    "nameTaken": "”{{name}}” finns redan",
+    "update": "Uppdatera",
+    "updateHint": "Dess låtar blir de här",
+    "addTo": "Lägg till i den",
+    "addToHint": "Lägger sist till låtarna den inte har än",
+    "saveNew": "Spara som ny",
+    "saveNewHint": "Spara dem som en till spellista med det här namnet",
+    "updated": "Spellistan uppdaterad"
   },
   "forYou": {
     "title": "För dig",
@@ -372,7 +381,11 @@
       "failed": "Den karaoken kunde inte skapas.",
       "unknown": "Den låten kunde inte läggas till.",
       "unavailable": "Det går inte att skapa karaoker just nu."
-    }
+    },
+    "played": "Spelade",
+    "moveTop": "Flytta högst upp",
+    "moveBottom": "Flytta längst ner",
+    "queueAgain": "Lägg i kön igen"
   },
   "chartJob": {
     "stage": {

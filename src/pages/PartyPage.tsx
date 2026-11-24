@@ -117,7 +117,7 @@ import DebugOverlay from "../components/DebugOverlay";
 import AiBadge from "../components/AiBadge";
 import { browserCoversVideos } from "../logic/videoTakeover";
 import { createPartyAccess, fetchInParty, makeParty } from "../logic/partyAccess";
-import { notePartySong, notePartySingers, notePartyQueue, takePendingQueue, historySongIds } from "../logic/partyHistory";
+import { notePartySong, notePartySingers, notePartyQueue, notePartyPlaylist, takePendingQueue, historySongIds, usePartyRecord } from "../logic/partyHistory";
 import { useSuggestions } from "../logic/useSuggestions";
 import { noteSongFinished, useFeedbackPrompt } from "../logic/feedbackPrompt";
 import FeedbackPrompt from "../components/FeedbackPrompt";
@@ -3068,7 +3068,10 @@ const PartyPage = () => {
         if (isHost) {
           notePartyQueue(recordId, state.queue);
           // Start again from the entry page: the last party's other songs join the queue, once
-          for (const song of takePendingQueue({ currentSong: state.currentSong ?? { songId: activeSongIdRef.current }, queue: state.queue })) {
+          // (a playlist's Start: the party remembers the playlist, for "Save as playlist" to update)
+          const pending = takePendingQueue({ currentSong: state.currentSong ?? { songId: activeSongIdRef.current }, queue: state.queue });
+          if (pending.playlistId) notePartyPlaylist(recordId, pending.playlistId);
+          for (const song of pending.songs) {
             sendQueueAdd(wss, { ...song, source: 'sing-again' });
           }
         }
@@ -3619,6 +3622,11 @@ const PartyPage = () => {
 
   // What "Save as playlist" keeps: the song on stage, then the queue (logic/playlists.ts)
   const playlistSongs = [songMeta && songMeta.songId === activeSongId ? songMeta : null, ...queue];
+  // This browser's record of the party (logic/partyHistory.ts): what already played here (the queue's Played list,
+  // which "Save as playlist" can keep too) and the playlist the party started from (which it offers to update)
+  const partyRecord = usePartyRecord(partyId);
+  const playedSongs = useMemo(() => (partyRecord?.songs ?? []).filter(s => s.songId !== activeSongId), [partyRecord, activeSongId]);
+  const savePlaylist = canControl ? <SavePlaylistButton songs={playlistSongs} played={playedSongs} sourceId={partyRecord?.playlistId} /> : null;
 
   // What the songs suggested under the queue fit (QueuePanel), and the host's tiles after a song: the queue newest
   // first (the first few are what is asked about: each add changes them), the song on, then what this browser sang
@@ -3649,8 +3657,9 @@ const PartyPage = () => {
       onReorder={handleQueueReorder}
       onSkip={canControl && wss ? handleSkipSong : undefined}
       suggestFrom={partySuggestFrom}
+      played={playedSongs}
       onDock={popInQueue}
-      extraAction={canControl ? <SavePlaylistButton songs={playlistSongs} /> : null}
+      extraAction={savePlaylist}
     />,
     queuePopout.container,
   ) : null;
@@ -4176,9 +4185,10 @@ const PartyPage = () => {
             onReorder={handleQueueReorder}
             onSkip={canControl && wss ? handleSkipSong : undefined}
             suggestFrom={partySuggestFrom}
+            played={playedSongs}
             headerAction={popOutSupported ? (
               <div className="flex flex-wrap items-center justify-end gap-1.5">
-                {canControl && <SavePlaylistButton songs={playlistSongs} />}
+                {savePlaylist}
                 <PopOutButton onClick={popOutQueue} />
               </div>
             ) : null}

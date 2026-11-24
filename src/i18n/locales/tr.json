@@ -105,7 +105,16 @@
     "saved": "Listelere kaydedildi",
     "cancel": "İptal",
     "keep": "Listelerime kaydet",
-    "kept": "Kaydedildi"
+    "kept": "Kaydedildi",
+    "withPlayed": "Çalınmış şarkıları da ekle ({{count}})",
+    "nameTaken": "“{{name}}” zaten var",
+    "update": "Güncelle",
+    "updateHint": "Şarkıları bunlarla değiştirilir",
+    "addTo": "Ona ekle",
+    "addToHint": "Henüz içinde olmayan şarkıları sonuna ekler",
+    "saveNew": "Yeni olarak kaydet",
+    "saveNewHint": "Bu adla başka bir liste olarak kaydet",
+    "updated": "Liste güncellendi"
   },
   "forYou": {
     "title": "Senin için",
@@ -372,7 +381,11 @@
       "failed": "Bu karaoke oluşturulamadı.",
       "unknown": "Bu şarkı eklenemedi.",
       "unavailable": "Karaoke oluşturma şu anda kullanılamıyor."
-    }
+    },
+    "played": "Çalındı",
+    "moveTop": "En üste taşı",
+    "moveBottom": "En alta taşı",
+    "queueAgain": "Yeniden sıraya ekle"
   },
   "chartJob": {
     "stage": {

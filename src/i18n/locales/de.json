@@ -105,7 +105,16 @@
     "saved": "In Playlists gespeichert",
     "cancel": "Abbrechen",
     "keep": "In meine Playlists",
-    "kept": "Gespeichert"
+    "kept": "Gespeichert",
+    "withPlayed": "Schon gespielte Songs einschließen ({{count}})",
+    "nameTaken": "„{{name}}“ gibt es schon",
+    "update": "Aktualisieren",
+    "updateHint": "Ihre Songs werden durch diese ersetzt",
+    "addTo": "Hinzufügen",
+    "addToHint": "Songs, die ihr noch fehlen, ans Ende anfügen",
+    "saveNew": "Als neue speichern",
+    "saveNewHint": "Als weitere Playlist mit diesem Namen speichern",
+    "updated": "Playlist aktualisiert"
   },
   "forYou": {
     "title": "Für dich",
@@ -376,7 +385,11 @@
       "failed": "Dieser Chart konnte nicht erstellt werden.",
       "unknown": "Der Song konnte nicht hinzugefügt werden.",
       "unavailable": "Charts erstellen ist gerade nicht möglich."
-    }
+    },
+    "played": "Gespielt",
+    "moveTop": "Ganz nach oben",
+    "moveBottom": "Ganz nach unten",
+    "queueAgain": "Wieder in die Warteschlange"
   },
   "chartJob": {
     "stage": {

@@ -105,7 +105,16 @@
     "saved": "Opgeslagen in playlists",
     "cancel": "Annuleren",
     "keep": "Opslaan in mijn playlists",
-    "kept": "Opgeslagen"
+    "kept": "Opgeslagen",
+    "withPlayed": "Al gespeelde nummers meenemen ({{count}})",
+    "nameTaken": "“{{name}}” bestaat al",
+    "update": "Bijwerken",
+    "updateHint": "De nummers erin worden deze",
+    "addTo": "Toevoegen",
+    "addToHint": "Voegt de nummers die er nog niet in staan achteraan toe",
+    "saveNew": "Opslaan als nieuwe",
+    "saveNewHint": "Bewaar ze als nog een playlist met deze naam",
+    "updated": "Playlist bijgewerkt"
   },
   "forYou": {
     "title": "Voor jou",
@@ -372,7 +381,11 @@
       "failed": "Die karaoke kon niet worden gemaakt.",
       "unknown": "Dat liedje kon niet worden toegevoegd.",
       "unavailable": "Karaokes maken is nu niet beschikbaar."
-    }
+    },
+    "played": "Gespeeld",
+    "moveTop": "Naar boven",
+    "moveBottom": "Naar onderen",
+    "queueAgain": "Opnieuw in de wachtrij zetten"
   },
   "chartJob": {
     "stage": {

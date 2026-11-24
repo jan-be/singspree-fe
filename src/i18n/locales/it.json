@@ -105,7 +105,16 @@
     "saved": "Salvata nelle playlist",
     "cancel": "Annulla",
     "keep": "Salva nelle mie playlist",
-    "kept": "Salvata"
+    "kept": "Salvata",
+    "withPlayed": "Includi le canzoni già riprodotte ({{count}})",
+    "nameTaken": "«{{name}}» esiste già",
+    "update": "Aggiornala",
+    "updateHint": "Le sue canzoni diventano queste",
+    "addTo": "Aggiungi a questa",
+    "addToHint": "Aggiunge in fondo le canzoni che non ha ancora",
+    "saveNew": "Salva come nuova",
+    "saveNewHint": "Salvale come un'altra playlist con questo nome",
+    "updated": "Playlist aggiornata"
   },
   "forYou": {
     "title": "Per te",
@@ -372,7 +381,11 @@
       "failed": "Non è stato possibile creare questo karaoke.",
       "unknown": "Non è stato possibile aggiungere questa canzone.",
       "unavailable": "La creazione di karaoke non è disponibile al momento."
-    }
+    },
+    "played": "Già riprodotte",
+    "moveTop": "Sposta in cima",
+    "moveBottom": "Sposta in fondo",
+    "queueAgain": "Rimetti in coda"
   },
   "chartJob": {
     "stage": {

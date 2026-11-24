@@ -103,7 +103,16 @@
     "saved": "Đã lưu vào danh sách phát",
     "cancel": "Hủy",
     "keep": "Lưu vào danh sách của tôi",
-    "kept": "Đã lưu"
+    "kept": "Đã lưu",
+    "withPlayed": "Gồm cả các bài đã phát ({{count}})",
+    "nameTaken": "“{{name}}” đã có",
+    "update": "Cập nhật",
+    "updateHint": "Thay các bài trong danh sách bằng những bài này",
+    "addTo": "Thêm vào",
+    "addToHint": "Thêm các bài chưa có vào cuối danh sách",
+    "saveNew": "Lưu thành danh sách mới",
+    "saveNewHint": "Lưu thành một danh sách khác cùng tên",
+    "updated": "Đã cập nhật danh sách phát"
   },
   "forYou": {
     "title": "Dành cho bạn",
@@ -370,7 +379,11 @@
       "failed": "Không thể tạo karaoke đó.",
       "unknown": "Không thể thêm bài đó.",
       "unavailable": "Hiện không thể tạo karaoke."
-    }
+    },
+    "played": "Đã phát",
+    "moveTop": "Lên đầu",
+    "moveBottom": "Xuống cuối",
+    "queueAgain": "Thêm lại vào hàng chờ"
   },
   "chartJob": {
     "stage": {

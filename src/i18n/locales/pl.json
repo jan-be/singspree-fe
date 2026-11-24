@@ -109,7 +109,16 @@
     "saved": "Zapisano w playlistach",
     "cancel": "Anuluj",
     "keep": "Zapisz w moich playlistach",
-    "kept": "Zapisano"
+    "kept": "Zapisano",
+    "withPlayed": "Dołącz już zagrane piosenki ({{count}})",
+    "nameTaken": "„{{name}}” już istnieje",
+    "update": "Zaktualizuj",
+    "updateHint": "Jej piosenki zostaną zastąpione tymi",
+    "addTo": "Dodaj do niej",
+    "addToHint": "Dodaje na końcu piosenki, których jeszcze w niej nie ma",
+    "saveNew": "Zapisz jako nową",
+    "saveNewHint": "Zapisz je jako kolejną playlistę o tej nazwie",
+    "updated": "Zaktualizowano playlistę"
   },
   "forYou": {
     "title": "Dla ciebie",
@@ -376,7 +385,11 @@
       "failed": "Nie udało się utworzyć tego karaoke.",
       "unknown": "Nie udało się dodać tej piosenki.",
       "unavailable": "Tworzenie karaoke jest teraz niedostępne."
-    }
+    },
+    "played": "Zagrane",
+    "moveTop": "Przenieś na górę",
+    "moveBottom": "Przenieś na dół",
+    "queueAgain": "Dodaj ponownie do kolejki"
   },
   "chartJob": {
     "stage": {

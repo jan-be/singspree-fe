@@ -25,7 +25,7 @@ function useStart(onStarted: () => void) {
   return (list: Playlist) => {
     const [first, ...rest] = list.songs;
     if (!first) return;
-    savePendingQueue(rest);
+    savePendingQueue(rest, { playlistId: list.id }); // (the party's "Save as playlist" offers to update this one)
     trackPick('playlist', { songId: first.songId, position: 0 });
     onStarted();
     navigate(`/sing/${first.songId}`);

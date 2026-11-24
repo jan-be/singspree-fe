@@ -105,7 +105,16 @@
     "saved": "Na-save sa mga playlist",
     "cancel": "Kanselahin",
     "keep": "I-save sa aking mga playlist",
-    "kept": "Na-save"
+    "kept": "Na-save",
+    "withPlayed": "Isama ang mga kantang napatugtog na ({{count}})",
+    "nameTaken": "Mayroon nang “{{name}}”",
+    "update": "I-update",
+    "updateHint": "Papalitan ng mga ito ang mga kanta nito",
+    "addTo": "Idagdag dito",
+    "addToHint": "Idinadagdag sa dulo ang mga kantang wala pa rito",
+    "saveNew": "I-save bilang bago",
+    "saveNewHint": "I-save bilang isa pang playlist na may ganitong pangalan",
+    "updated": "Na-update ang playlist"
   },
   "forYou": {
     "title": "Para sa iyo",
@@ -372,7 +381,11 @@
       "failed": "Hindi nagawa ang karaokeng iyan.",
       "unknown": "Hindi naidagdag ang kantang iyan.",
       "unavailable": "Hindi puwedeng gumawa ng karaoke sa ngayon."
-    }
+    },
+    "played": "Napatugtog na",
+    "moveTop": "Ilipat sa itaas",
+    "moveBottom": "Ilipat sa ibaba",
+    "queueAgain": "Idagdag ulit sa pila"
   },
   "chartJob": {
     "stage": {

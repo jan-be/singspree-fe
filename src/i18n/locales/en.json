@@ -105,7 +105,16 @@
     "saved": "Saved to playlists",
     "cancel": "Cancel",
     "keep": "Save to my playlists",
-    "kept": "Saved"
+    "kept": "Saved",
+    "withPlayed": "Include the songs already played ({{count}})",
+    "nameTaken": "“{{name}}” already exists",
+    "update": "Update it",
+    "updateHint": "Replace its songs with these",
+    "addTo": "Add to it",
+    "addToHint": "Add the songs it doesn't have yet to its end",
+    "saveNew": "Save as new",
+    "saveNewHint": "Keep these as another playlist with this name",
+    "updated": "Playlist updated"
   },
   "forYou": {
     "title": "For you",
@@ -376,7 +385,11 @@
       "failed": "That chart could not be made.",
       "unknown": "That song could not be added.",
       "unavailable": "Making charts isn't available right now."
-    }
+    },
+    "played": "Played",
+    "moveTop": "Move to the top",
+    "moveBottom": "Move to the bottom",
+    "queueAgain": "Add to the queue again"
   },
   "chartJob": {
     "stage": {

@@ -105,7 +105,16 @@
     "saved": "Enregistrée dans les playlists",
     "cancel": "Annuler",
     "keep": "Ajouter à mes playlists",
-    "kept": "Enregistrée"
+    "kept": "Enregistrée",
+    "withPlayed": "Inclure les chansons déjà passées ({{count}})",
+    "nameTaken": "« {{name}} » existe déjà",
+    "update": "La mettre à jour",
+    "updateHint": "Ses chansons deviennent celles-ci",
+    "addTo": "Y ajouter",
+    "addToHint": "Ajoute à la fin les chansons qu'elle n'a pas encore",
+    "saveNew": "Enregistrer comme nouvelle",
+    "saveNewHint": "Les garder dans une autre playlist de ce nom",
+    "updated": "Playlist mise à jour"
   },
   "forYou": {
     "title": "Pour vous",
@@ -372,7 +381,11 @@
       "failed": "Ce karaoké n'a pas pu être créé.",
       "unknown": "Cette chanson n'a pas pu être ajoutée.",
       "unavailable": "La création de karaokés n'est pas disponible pour le moment."
-    }
+    },
+    "played": "Déjà passées",
+    "moveTop": "Placer en tête",
+    "moveBottom": "Placer à la fin",
+    "queueAgain": "Remettre dans la file"
   },
   "chartJob": {
     "stage": {

@@ -103,7 +103,16 @@
     "saved": "已存入歌单",
     "cancel": "取消",
     "keep": "存到我的歌单",
-    "kept": "已保存"
+    "kept": "已保存",
+    "withPlayed": "包括已播放的歌曲（{{count}}）",
+    "nameTaken": "“{{name}}”已存在",
+    "update": "更新",
+    "updateHint": "把歌单里的歌换成这些",
+    "addTo": "加入其中",
+    "addToHint": "把歌单里还没有的歌加到末尾",
+    "saveNew": "另存为新歌单",
+    "saveNewHint": "存为另一个同名歌单",
+    "updated": "歌单已更新"
   },
   "forYou": {
     "title": "为你推荐",
@@ -370,7 +379,11 @@
       "failed": "无法制作这个卡拉OK。",
       "unknown": "无法添加这首歌。",
       "unavailable": "目前无法制作卡拉OK。"
-    }
+    },
+    "played": "已播放",
+    "moveTop": "移到最前",
+    "moveBottom": "移到最后",
+    "queueAgain": "再次加入队列"
   },
   "chartJob": {
     "stage": {
