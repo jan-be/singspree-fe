@@ -8,6 +8,7 @@ import SearchBar from "../components/SearchBar";
 import PartyRecap from "../components/PartyRecap";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import SocialLinks from "../components/SocialLinks";
+import { CupIcon, SUPPORT_URL } from "../components/SupportLink";
 import { DuetIcon } from "../components/Icons";
 import SongFilterBar from "../components/SongFilterBar";
 import { readFilters, writeFilters, filtersToQuery, hasTagFilters, listContext, type BrowseSong, type ListContext, type SongFilters } from "../logic/songFilters";
@@ -408,6 +409,11 @@ const EntryPage = () => {
           <Link to="/contact" className="text-white/45 hover:text-white transition-colors">
             {t('footer.contact')}
           </Link>
+          {/* (the bar is not in our apps, as SupportLink wants) */}
+          <a href={SUPPORT_URL} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 text-white/45 hover:text-white transition-colors no-underline">
+            <CupIcon className="w-3.5 h-3.5" />
+            {t('footer.support')}
+          </a>
         </div>
         <div className="flex items-center gap-3 sm:gap-4">
           <SocialLinks size={15} />
