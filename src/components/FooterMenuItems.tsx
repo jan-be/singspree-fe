@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supportedLanguages, languageNames, chooseLanguage } from '../i18n/i18n';
 import SocialLinks from './SocialLinks';
+import { CupIcon, SUPPORT_URL, supportShown } from './SupportLink';
 
 /** language code -> its own name; i18next's language may be one without a name here */
 const NAMES: Record<string, string | undefined> = languageNames;
@@ -16,7 +17,8 @@ const PAGES = [
 /**
  * The footer as a menu's items (our apps' AppMenu, the phone's SideMenu): the
  * language (a list that opens under it), the privacy policy, terms and
- * contact, and SingSpree elsewhere (`out`: the outbound clicks' place, see
+ * contact, help with the server costs (SupportLink: not in our apps), and
+ * SingSpree elsewhere (`out`: the outbound clicks' place, see
  * data-out; none: not shown, as on a TV, where such a link could only say
  * "open it on your phone").
  *
@@ -26,6 +28,7 @@ const PAGES = [
 const FooterMenuItems = ({ onNavigate, out }: { onNavigate: () => void; out?: string }) => {
   const { t, i18n } = useTranslation();
   const [languages, setLanguages] = useState(false);
+  const [support] = useState(supportShown);
   const languageRef = useRef<HTMLButtonElement>(null);
   const current = i18n.language || 'en';
 
@@ -80,6 +83,12 @@ const FooterMenuItems = ({ onNavigate, out }: { onNavigate: () => void; out?: st
             {t(label)}
           </Link>
         ))}
+        {out && support && (
+          <a href={SUPPORT_URL} target="_blank" rel="noopener" data-out={out} onClick={onNavigate} className="menu-item no-underline gap-2.5">
+            <CupIcon className="w-4 h-4 text-white/55" />
+            {t('footer.support')}
+          </a>
+        )}
       </div>
       {out && (
         <div data-out={out} className="mt-1 pt-1 border-t border-white/10 flex justify-center">
