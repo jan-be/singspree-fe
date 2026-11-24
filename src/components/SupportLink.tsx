@@ -1,12 +1,12 @@
 import { inOurApp } from '../logic/androidApp';
 
 /**
- * Help pay for the servers: SingSpree's page on Ko-fi, where anyone may chip in.
+ * "Support us": SingSpree's page on Ko-fi, where anyone may chip in.
  *
  * A plain link, not Ko-fi's button script: nothing of theirs loads here (no
  * script, no cookies, nothing for the content security policy) until someone
  * clicks it. Nothing comes in return and nothing is unlocked by it: everything
- * stays free for everyone, so keep any wording about it to sharing the costs.
+ * stays free for everyone. Keep it that way: no perks for supporters.
  *
  * Not in our apps (supportShown(), like the store pages in SocialLinks): Google Play and
  * Amazon want tips to the developer to go through their own billing, and on a
