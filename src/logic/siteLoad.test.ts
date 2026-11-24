@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { bucketMiddle, formatPeople, loadRows, loadSummary, loadTotals, niceTop, siteColour, timeMarks } from './siteLoad';
+import { bucketMiddle, formatPeople, hourIn, hourTime, loadRows, loadSummary, loadTotals, niceTop, siteColour, timeMarks } from './siteLoad';
 import type { SiteLoad } from './authApi';
 
 const HOUR = 3_600_000;
@@ -109,5 +109,27 @@ describe('the lines in time', () => {
     const rows = loadRows(long);
     expect(rows.map(r => [new Date(r.from).getDate(), r.hour])).toEqual([[12, false], [11, false], [10, false]]);
     expect(rows.map(r => r.players[0])).toEqual([4, 2, 1]);
+  });
+});
+
+describe('the hours of the day', () => {
+  it('reads an hour as a clock does, by the hour given and not by the zone of this browser', () => {
+    expect(hourTime(0, 'de')).toBe('00:00');
+    expect(hourTime(21, 'de')).toBe('21:00');
+    expect(hourTime(24, 'de')).toBe('00:00');
+    expect(hourTime(21, 'en-US')).toBe('09:00 PM');
+  });
+
+  it('knows the hour it is in a zone', () => {
+    const at = Date.UTC(2026, 10, 24, 23, 30);
+    expect(hourIn('UTC', at)).toBe(23);
+    expect(hourIn('Europe/Berlin', at)).toBe(0);
+    expect(hourIn('America/New_York', at)).toBe(18);
+    expect(hourIn('Asia/Singapore', at)).toBe(7);
+    expect(hourIn('Mars/Olympus_Mons', at)).toBe(new Date(at).getHours());
+  });
+
+  it('adds up the sites per hour', () => {
+    expect(loadTotals({ sites: [{ site: 'home', players: [1, 0.5] }, { site: 'ohio', players: [0, 2] }] })).toEqual([1, 2.5]);
   });
 });

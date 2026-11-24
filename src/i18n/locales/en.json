@@ -1626,6 +1626,14 @@
         "table": "The same as a table",
         "when": "When"
       },
+      "hours": {
+        "title": "By hour of the day",
+        "hint": "Per site, the average number of people in a song at once in each hour of the day over the chosen days, by the clock in {{zone}}.",
+        "busiest": "busiest {{hour}}, {{peak}} on average then",
+        "nobody": "nobody yet",
+        "spoken": "{{site}}: busiest {{hour}}, {{peak}} people on average then.",
+        "spokenNobody": "{{site}}: nobody yet."
+      },
       "usage": {
         "title": "Where people sing",
         "hint": "By the site a party lived at, which its code says. The ping is one way, singer to site: the middle one of all singers' songs, and the one nine in ten stayed under.",

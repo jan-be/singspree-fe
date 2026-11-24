@@ -438,6 +438,8 @@ export interface AdminSites {
   usage: { bySite: SiteUsage[]; byCountry: CountryUsage[] };
   /** absent from a backend that does not count it yet */
   load?: SiteLoad;
+  /** absent from a backend that does not count it yet */
+  hours?: SiteHours;
 }
 
 /**
@@ -448,6 +450,16 @@ export interface SiteLoad {
   from: number;
   bucketMs: number;
   lastMs: number;
+  sites: { site: string; players: number[] }[];
+}
+
+/**
+ * People in a song at once per site and hour of the day (backend siteLoad.ts): 24 numbers per site, each the average
+ * over every such hour from `from` to now, the hours in `zone` (the time zone this browser asked for, or UTC)
+ */
+export interface SiteHours {
+  zone: string;
+  from: number;
   sites: { site: string; players: number[] }[];
 }
 
@@ -998,7 +1010,11 @@ export const markNotificationsSeen = (until: string) => post('/notifications/see
 /** Numbers for the tiles plus every party running right now. */
 export const getAdminOverview = () => get<{ data: AdminOverview }>('/admin/overview').then(j => j.data);
 /** How each site stands and where people sang over the last `days`; null where there is one site */
-export const getAdminSites = (days = 7) => get<{ data: AdminSites | null }>(`/admin/sites?days=${days}`).then(j => j.data);
+/** (the hours of the day come in this browser's time zone) */
+export const getAdminSites = (days = 7) => {
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return get<{ data: AdminSites | null }>(`/admin/sites?days=${days}${zone ? `&tz=${encodeURIComponent(zone)}` : ''}`).then(j => j.data);
+};
 /** One row of counts per day (in Berlin) for the last `days` and the `days` before, with each range's totals (logic/trends.ts reads them). */
 export const getAdminTrends = (days = 30) => get<{ data: TrendsData }>(`/admin/trends?days=${days}`).then(j => j.data);
 export const getAdminPlays = (offset = 0, limit = 20, { party, song, singer, scored }: AdminPlayFilter = {}) => {

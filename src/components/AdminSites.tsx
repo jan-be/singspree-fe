@@ -5,7 +5,7 @@ import { formatDuration } from '../logic/duration';
 import { formatBytes, hasProblem, pagesState, shortBuild } from '../logic/siteStatus';
 import { getAdminSites } from '../logic/authApi';
 import { apiUrl } from '../GlobalConsts';
-import AdminSiteLoad from './AdminSiteLoad';
+import AdminSiteLoad, { AdminSiteHours } from './AdminSiteLoad';
 import type { AdminSites as SitesData, AdminSiteStatus, SiteProblem, SiteUsage } from '../logic/authApi';
 
 /**
@@ -15,7 +15,8 @@ import type { AdminSites as SitesData, AdminSiteStatus, SiteProblem, SiteUsage }
  * people sang since parties live at the site nearest their host, and the
  * ping they got there, per site and per country against the ping from when
  * there was one site. Between the two, how many people were in a song at
- * once at each site over the chosen days (AdminSiteLoad.tsx).
+ * once at each site over the chosen days, and by the hour of the day: when
+ * each site is busy (AdminSiteLoad.tsx).
  */
 
 const REFRESH_MS = 15_000; // (a site reports every 30 s)
@@ -208,6 +209,17 @@ const AdminSites = ({ onError }: { onError: (e: unknown) => void }) => {
           </>
         )}
       </Section>
+
+      {/* (from when parties live at their nearest site: before, the home site's day was everyone's) */}
+      {data.hours && (
+        <Section title={t('admin.sites.hours.title')}>
+          <Hint>
+            {t('admin.sites.hours.hint', { zone: data.hours.zone.replace(/_/g, ' ') })}
+            {cut && data.since !== null ? ` ${t('admin.sites.usage.since', { date: date(data.since) })}` : ''}
+          </Hint>
+          <AdminSiteHours hours={data.hours} sites={data.sites} />
+        </Section>
+      )}
 
       <Section title={t('admin.sites.usage.title')}>
         <Hint>{t('admin.sites.usage.hint')}{cut && data.since !== null ? ` ${t('admin.sites.usage.since', { date: date(data.since) })}` : ''}</Hint>

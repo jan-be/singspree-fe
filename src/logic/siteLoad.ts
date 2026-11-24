@@ -2,7 +2,7 @@
  * The Sites tab's lines of people in a song at once (the backend's
  * siteLoad.ts counts them): a colour per site, the numbers beside the lines,
  * the top of the scale, where the marks of the time axis go, and the same
- * numbers as a table.
+ * numbers as a table; for the hours of the day, how an hour reads.
  */
 import type { SiteLoad } from './authApi';
 
@@ -37,8 +37,8 @@ export function loadSummary(players: number[], bucketMs: number, lastMs: number)
   return { average: time > 0 ? sum / time : 0, peak, peakIndex };
 }
 
-/** All sites together, per bucket */
-export const loadTotals = (load: SiteLoad): number[] =>
+/** All sites together, per bucket (or hour of the day) */
+export const loadTotals = (load: Pick<SiteLoad, 'sites'>): number[] =>
   (load.sites[0]?.players ?? []).map((_, i) => load.sites.reduce((n, s) => n + (s.players[i] ?? 0), 0));
 
 /**
@@ -58,6 +58,22 @@ export function formatPeople(value: number, lang = 'en'): string {
   if (!(value >= 0.005)) return new Intl.NumberFormat(lang).format(0); // (less than shows in two decimals: nobody)
   const digits = value >= 9.95 ? 0 : value >= 0.995 ? 1 : 2;
   return new Intl.NumberFormat(lang, { maximumFractionDigits: digits, minimumFractionDigits: digits === 2 ? 2 : 0 }).format(value);
+}
+
+/**
+ * "21:00" (or "09:00 PM", as the language writes it): an hour of the day, 0 to 24, as it reads on a clock. Not by
+ * this browser's own clock: the hours come in the time zone they were asked for, which may be UTC.
+ */
+export const hourTime = (hour: number, lang = 'en'): string =>
+  new Date(Date.UTC(2000, 0, 1, hour)).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+
+/** The hour of the day it is now in a time zone (0 to 23); this browser's own where the zone is none */
+export function hourIn(zone: string, now = Date.now()): number {
+  try {
+    return Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: zone }).format(now)) % 24;
+  } catch {
+    return new Date(now).getHours();
+  }
 }
 
 /** A mark on the time axis: when, and whether it is a day's start (else an hour of the day) */

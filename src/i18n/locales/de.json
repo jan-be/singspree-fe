@@ -1626,6 +1626,14 @@
         "table": "Dasselbe als Tabelle",
         "when": "Wann"
       },
+      "hours": {
+        "title": "Nach Tageszeit",
+        "hint": "Je Standort die durchschnittliche Zahl gleichzeitig singender Leute in jeder Stunde des Tages über die gewählten Tage, nach der Uhr in {{zone}}.",
+        "busiest": "am meisten los {{hour}}, dann im Schnitt {{peak}}",
+        "nobody": "noch niemand",
+        "spoken": "{{site}}: am meisten los {{hour}}, dann im Schnitt {{peak}} Leute.",
+        "spokenNobody": "{{site}}: noch niemand."
+      },
       "usage": {
         "title": "Wo gesungen wird",
         "hint": "Nach dem Standort, an dem eine Party lief; ihr Code sagt ihn. Der Ping gilt für eine Richtung, vom Sänger zum Standort: der mittlere aller gesungenen Songs und der, unter dem neun von zehn blieben.",
