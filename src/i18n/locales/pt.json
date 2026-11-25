@@ -488,7 +488,9 @@
     "done": "Obrigado! Vamos escrever para {{email}} assim que você estiver na lista.",
     "privacy": "Usamos o endereço só para este teste e o apagamos quando ele terminar.",
     "already": "Já está na lista?",
-    "open": "Abrir o teste no Google Play"
+    "open": "Abrir o teste no Google Play",
+    "askTitle": "Experimente o app para Android",
+    "askText": "Ajude a levar o SingSpree ao Google Play: entre no teste do app."
   },
   "ios": {
     "title": "SingSpree para iOS",

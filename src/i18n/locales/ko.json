@@ -486,7 +486,9 @@
     "done": "감사합니다! 목록에 추가되는 대로 {{email}}(으)로 연락드릴게요.",
     "privacy": "이 주소는 이번 테스트에만 사용하며 테스트가 끝나면 삭제합니다.",
     "already": "이미 목록에 있나요?",
-    "open": "Google Play에서 테스트 열기"
+    "open": "Google Play에서 테스트 열기",
+    "askTitle": "Android 앱을 사용해 보세요",
+    "askText": "SingSpree가 Google Play에 출시될 수 있도록 앱 테스트에 참여해 주세요."
   },
   "ios": {
     "title": "iOS용 SingSpree",

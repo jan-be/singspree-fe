@@ -120,7 +120,8 @@ import { createPartyAccess, fetchInParty, makeParty } from "../logic/partyAccess
 import { notePartySong, notePartySingers, notePartyQueue, notePartyPlaylist, takePendingQueue, historySongIds, usePartyRecord } from "../logic/partyHistory";
 import { useSuggestions } from "../logic/useSuggestions";
 import { noteSongFinished, useFeedbackPrompt } from "../logic/feedbackPrompt";
-import FeedbackPrompt from "../components/FeedbackPrompt";
+import { useAppTestPrompt } from "../logic/appTestPrompt";
+import AfterSongsPrompt from "../components/AfterSongsPrompt";
 import type { LyricData } from "../logic/LyricsParser";
 import type { ScriptChoice } from "../logic/lyricsScripts";
 import type { StemName, StemUrls } from "../logic/stemPlayer";
@@ -310,6 +311,7 @@ const PartyPage = () => {
   );
   // A signed-in host plays under the account name; joiners chose theirs on the join page
   const { user: authUser, loading: authLoading, refresh: refreshAuth, refreshBest } = useAuth();
+  const { open: appTestCardOpen } = useAppTestPrompt();
   const { open: feedbackCardOpen } = useFeedbackPrompt();
   // (a new one when the account is renamed mid-party: player:renamed)
   const [chosenUserName, setChosenUserName] = useState<string | null>(routerState?.currentUserName ?? savedSession?.username ?? null);
@@ -4224,7 +4226,7 @@ const PartyPage = () => {
             <Wordmark height={28} />
           </Link>
           {/* The card after a few songs sits under all this below lg: the scores make room for it (useCardRoom), so it covers no button */}
-          <div className={`h-full flex p-4 pt-12 short:p-2 short:pt-10 ${feedbackCardOpen ? 'max-lg:pb-(--song-card-room)!' : ''}`}>
+          <div className={`h-full flex p-4 pt-12 short:p-2 short:pt-10 ${appTestCardOpen || feedbackCardOpen ? 'max-lg:pb-(--song-card-room)!' : ''}`}>
           <div className="m-auto w-full max-w-lg max-h-full flex flex-col text-center">
           {/* The part that scrolls. Its bottom padding (--fade) fades out, so
               what scrolls under the buttons has no hard edge; -mx-1 px-1 is
@@ -4511,8 +4513,8 @@ const PartyPage = () => {
       {debugEnabled && <DebugOverlay snapshot={debugSnapshot} />}
       {/* The score screen's share video: stays open while the next song starts */}
       <ShareDialog share={shareVideo} onClose={() => setShareVideo(null)} />
-      {/* "How do you like SingSpree?", after a few songs on the score screen (stays while someone types) */}
-      <FeedbackPrompt where="party" between={songEnded} getContext={() => ({ host: isHost, nickname: currentUserNameRef.current, partyId })} />
+      {/* "How do you like SingSpree?", on Android the app's test for now, after a few songs on the score screen (stays while someone types) */}
+      <AfterSongsPrompt where="party" between={songEnded} getContext={() => ({ host: isHost, nickname: currentUserNameRef.current, partyId })} />
     </div>
   );
 };

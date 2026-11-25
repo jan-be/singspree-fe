@@ -486,7 +486,9 @@
     "done": "谢谢！你一进入名单，我们就会写信到 {{email}}。",
     "privacy": "此地址仅用于本次测试，测试结束后即删除。",
     "already": "已经在名单上了？",
-    "open": "在 Google Play 上打开测试"
+    "open": "在 Google Play 上打开测试",
+    "askTitle": "试用 Android 应用",
+    "askText": "帮 SingSpree 上架 Google Play：加入应用测试。"
   },
   "ios": {
     "title": "SingSpree iOS 版",

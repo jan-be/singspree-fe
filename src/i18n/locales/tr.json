@@ -488,7 +488,9 @@
     "done": "Teşekkürler! Listeye eklenir eklenmez {{email}} adresine yazacağız.",
     "privacy": "Adresi yalnızca bu test için kullanır, test bitince sileriz.",
     "already": "Zaten listede misiniz?",
-    "open": "Testi Google Play’de aç"
+    "open": "Testi Google Play’de aç",
+    "askTitle": "Android uygulamasını deneyin",
+    "askText": "SingSpree’nin Google Play’e çıkmasına yardım edin: uygulamanın testine katılın."
   },
   "ios": {
     "title": "iOS için SingSpree",

@@ -486,7 +486,9 @@
     "done": "Cảm ơn bạn! Chúng tôi sẽ viết đến {{email}} ngay khi bạn có tên trong danh sách.",
     "privacy": "Chúng tôi chỉ dùng địa chỉ này cho đợt thử nghiệm và xóa khi kết thúc.",
     "already": "Đã có tên trong danh sách?",
-    "open": "Mở thử nghiệm trên Google Play"
+    "open": "Mở thử nghiệm trên Google Play",
+    "askTitle": "Dùng thử ứng dụng Android",
+    "askText": "Hãy giúp SingSpree lên Google Play: tham gia thử nghiệm ứng dụng."
   },
   "ios": {
     "title": "SingSpree cho iOS",
