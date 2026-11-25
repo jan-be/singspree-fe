@@ -1,109 +1,89 @@
 # SingSpree
 
-Free online karaoke with friends. Pick a song, start a party, and sing together in real-time with pitch scoring.
+**Free online karaoke with friends.** Sing on whatever screen you have, from a TV to just your phone, and see who hits the notes.
 
-**[SingSpree](https://singspree.com)**
+**[▶ Start singing at singspree.com](https://singspree.com)**
 
-![SingSpree screenshot](screenshot.png)
+![Three friends singing Never Gonna Give You Up on SingSpree: their voices drawn live over the music video, scores and stars above, the lyrics below](screenshot.png)
+
+## How it works
+
+1. **Open [singspree.com](https://singspree.com)** on any device (a phone, tablet, laptop or TV) and pick a song.
+2. **Sing right there, or bring friends in:** they scan the QR code with their phones (no app, no account) and each phone becomes a microphone.
+3. **Sing!** Every voice shows up on screen as a line in its own color, scored note by note.
+
+<p align="center">
+  <img src="docs/screenshots/join.webp" width="260" alt="Joining a party on a phone: the party code, what's playing, a name and the Join button">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/phone-scores.webp" width="260" alt="The score screen on a singer's phone: a new personal best, a level reached, and a button to share the score">
+</p>
 
 ## Features
 
-- **20,000+ songs** with synced lyrics and pitch targets
-- **Real-time multiplayer** -- host a party, share the code, sing together
-- **Pitch scoring** -- client-side pitch detection (ONNX model via Web Audio API) with server-authoritative scoring
-- **Live note visualization** -- see your pitch and other players' notes in real-time on a scrolling music bar
-- **Song queue** -- drag-to-reorder queue so the party keeps going
-- **Share cards** -- Spotify-Wrapped-style score cards you can share to social media
-- **21 languages** -- full i18n; the language is a client-side preference, not part of the URL (one canonical URL per page)
-- **Mobile-friendly** -- responsive layout with portrait and landscape support
-- **Auto-skip** -- optionally skip intros, outros, and non-music sections
-- **Gap correction** -- drag-to-fix timing offset for any song
+### 30,000+ songs
+Pop, rock, Schlager, K-pop and more in over 20 languages, each with synced lyrics and the melody to sing. Search by title or artist, filter for duets or a language, or let SingSpree listen to music playing in the room: it finds the song and starts right where it was.
 
-## Tech Stack
+![The home page: the search, filters and the first songs](docs/screenshots/home.webp)
 
-- **React 19** with React Router 7
-- **Tailwind CSS v4** -- dark neon theme, no component library
-- **Vite 8** -- dev server, build, and HMR
-- **Web Audio API** -- real-time pitch detection via AudioWorklet + ONNX Runtime (WASM)
-- **WebSocket** -- live multiplayer sync (notes, scores, queue, player state)
-- **i18next** -- 21 locales with browser language detection
-- **Nginx** -- production serving; bots get prerendered HTML from the backend (`/prerendered` volume), legacy `/{lang}/…` and slug URLs get 301s
+### Turn the singer down
+For most songs the original vocals are separated from the music. Slide the singer down and sing over the band yourself, or leave a little in as a guide.
 
-## Getting Started
+![The volume panel during a song, with sliders for Volume, Instrumental and Vocals, the vocals turned down to 25 %](docs/screenshots/vocals-slider.webp)
 
-Requires [Bun](https://bun.sh) >= 1.2.
+### Everyone adds songs
+Anyone in the party can queue songs from their phone. Reorder them, see who picked what, get suggestions that fit the party, and save the night's queue as a playlist for next time.
 
-```bash
-bun install
-bun run dev
-```
+![The queue: up next, who added each song, and songs suggested for the party](docs/screenshots/queue.webp)
 
-Dev server starts on [localhost:3001](http://localhost:3001), proxying API requests to the backend at `localhost:3000`.
+### Scores, stars and a winner
+Your pitch is drawn as you sing, right over the notes you should hit. Points and stars fill up live, the score screen crowns the winner, and you level up as you sing. Everyone picks their own difficulty, from very easy to very hard.
 
-## Scripts
+![The score screen after the song: three singers ranked with their points and stars](docs/screenshots/scores.webp)
 
-| Command | Description |
-| --- | --- |
-| `bun run dev` | Start Vite dev server |
-| `bun run build` | Production build to `build/` |
-| `bun run preview` | Preview production build locally |
-| `bun run test` | Run tests (Vitest) |
-| `bun run test:e2e` | Playwright end-to-end tests (needs the backend on :3000) |
-| `bun run test:stress` | Many-singer stress test, see below |
+### And more
+- **Any song from YouTube** (beta): paste a link and AI times the lyrics and melody for it in a minute or two. Needs a free account.
+- **Duets** with a part for each singer.
+- **Hear yourselves**: phones can send their singer's voice to the host's speakers.
+- **Slow a song down** to learn it, or speed it up, without changing the key.
+- **Tap a lyric line** to jump there.
+- **Co-hosts** run the music from their own phones.
+- **Big parties**: up to eight singers on screen at once; with more, they take turns line by line.
+- **Share your score** as a card, or as a short video of your best moment.
+- **On the TV too**: works with a TV remote, and there's a [Fire TV app](https://singspree.com/firetv). An [Android app](https://singspree.com/android) is in testing.
+- **A free account, if you like**, keeps your scores and recordings for good, with a profile picture and your best songs.
 
-### Stress test
+<details>
+<summary><b>Tech stack</b></summary>
 
-`bun run test:stress` puts a dozen singers into one party: real Chrome contexts
-with a fake microphone, each running the whole pipeline (AudioWorklet → ONNX
-pitch worker → WebSocket), the first one hosting. Every browser carries an
-in-page monitor, and the run ends with a per-client table (frame rate, long
-tasks, JS heap, notes in/out, latency) plus assertions that nobody
-disconnected, everyone is on the scoreboard, the singers' notes reached the
-host and the host stayed above `MIN_FPS`. Past eight singers the server puts
-only eight on screen (three top scores pinned, five lanes rotating one per
-lyric line), so from then on the host hears the lanes rather than everyone,
-and the run prints who they were.
+- **React 19** and React Router 7, written in **TypeScript 7** (strict)
+- **Vite 8** for the dev server and build, **Tailwind CSS 4** for styling (no component library)
+- **Pitch detection in the browser**: an AudioWorklet feeds the swift-f0 model, which runs in a worker on our own minimal build of ONNX Runtime 1.31 for WebAssembly
+- **The note highway** is painted in a worker on an OffscreenCanvas: WebGL 2 where it works, 2D canvas otherwise
+- **WebSocket** for the party itself (notes, scores, queue, playback), **WebRTC** for singers' voices on the host's speakers
+- **YouTube IFrame Player** for the video; the separated vocals and instrumental play through Web Audio, kept in sync with it
+- **i18next** for the 21 interface languages
+- **Vitest** for unit tests, **Playwright** for end-to-end and many-singer stress tests
+- **Bun** as package manager and script runner; **nginx** serves the build, and crawlers get prerendered pages
 
-| Env | Default | Meaning |
-| --- | --- | --- |
-| `REAL_SINGERS` | 12 | Chrome contexts (incl. the host) |
-| `BOT_SINGERS` | 0 | extra synthetic singers driven from Bun over WebSocket (`e2e/wsSinger.js`), cheap enough for dozens |
-| `STRESS_SECONDS` | 30 | how long everyone sings |
-| `MIN_FPS` | 20 | host frame-rate threshold |
-| `CPU_THROTTLE` | 1 | DevTools-style CPU slowdown for every real browser: 4 ≈ mid-range phone, 6 ≈ an old low-end one |
+The backend (Bun, Express, PostgreSQL, Meilisearch) lives in a separate repository.
+</details>
 
-Serve the production build for realistic numbers (`bun run build && bunx vite preview`;
-the test reuses whatever is on :3001), because React's development runtime
-alone dominates a profile. Emulating an old phone with a dozen singers:
-`REAL_SINGERS=1 BOT_SINGERS=11 CPU_THROTTLE=6 bun run test:stress`.
-
-Mind what you are measuring: every real context runs its own ONNX pitch
-worker and YouTube player, so a dozen of them on one laptop saturate the CPU
-and every client (host included) stalls — the run then prints a warning that
-the host video stopped advancing. That measures the machine, not the app. To
-measure the frontend's cost of *rendering* many singers, keep the real
-browsers few and add bots: `REAL_SINGERS=2 BOT_SINGERS=40 bun run test:stress`.
-
-## Docker
-
-```bash
-docker build -t singspree-fe .
-docker run -p 80:80 singspree-fe
-```
-
-Multi-stage build: Bun 1 Alpine for `bun install --frozen-lockfile && bun run build`, then Nginx Alpine to serve the static files. The build stage is deliberately not cached in CI -- installing takes about eight seconds, and caching it meant pulling a 577 MB `node_modules` layer out of the GitHub Actions cache first.
-
-## Project Structure
+<details>
+<summary><b>Project structure</b></summary>
 
 ```
 src/
-  components/    UI components (MusicBars, Lyrics, ShareCard, ...)
-  logic/         Pitch detection, mic input, lyrics parsing, WebSocket handling
-  pages/         Route pages (Entry, Party, Join, compliance pages)
-  i18n/locales/  21 locale JSON files
-  index.css      Tailwind v4 theme (neon-cyan, neon-purple, neon-magenta, neon-green)
+  pages/         Home, party, join, profile, settings, admin and info pages
+  components/    UI: note highway, lyrics, queue, score cards, menus, …
+  logic/         Pitch detection, party sync, stem playback, voices, the highway's painting
+  i18n/locales/  The 21 interface languages
+  seasons/       Seasonal looks (Halloween, Christmas, …)
+  prerender/     Static pages rendered at build time for crawlers
+  vendor/        The minimal ONNX Runtime build the pitch worker loads
+public/          Icons, web app manifest and the pitch model
+e2e/             Playwright tests, including the many-singer stress test
+bench/           Pitch model benchmarks (WASM vs WebGPU, the minimal runtime)
+tools/           Building the minimal ONNX Runtime, the crawler list, song pitch tracks
+docs/            The screenshots in this README
 ```
-
-## License
-
-MIT
+</details>
