@@ -268,7 +268,6 @@
     "scores": "スコア",
     "hideVideo": "動画を隠す",
     "showVideo": "動画を表示",
-    "skipIntro": "イントロをスキップ »",
     "songComplete": "曲が完了しました！",
     "total": "合計：",
     "upNext": "次の曲：",
@@ -285,8 +284,6 @@
     "defaultHost": "ホスト",
     "pickASong": "Pick a song to start the party",
     "browseSongs": "Browse Songs",
-    "skipOutro": "Skip Outro »",
-    "skipInterruption": "Skip Interruption »",
     "duetP1": "プレイヤー1",
     "duetP2": "プレイヤー2",
     "duetOn": "デュエット",
@@ -548,9 +545,10 @@
     "enterFullscreen": "全画面表示",
     "play": "再生",
     "pause": "一時停止",
-    "autoSkipOn": "Auto-skip: On",
-    "autoSkipOff": "Auto-skip: Off",
-    "autoSkipHint": "Automatically skip intros, outros and non-music sections"
+    "speed": "再生速度",
+    "speedNormal": "標準",
+    "speedReset": "標準の速度に戻す",
+    "speedNote": "標準以外の速度では、この端末は歌声入りの元の音声を再生します。"
   },
   "footer": {
     "privacyPolicy": "プライバシーポリシー",

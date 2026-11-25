@@ -270,7 +270,6 @@
     "scores": "Mga Puntos",
     "hideVideo": "Itago ang Video",
     "showVideo": "Ipakita ang Video",
-    "skipIntro": "Laktawan ang Intro »",
     "songComplete": "Tapos na ang Kanta!",
     "total": "Kabuuan:",
     "upNext": "Susunod:",
@@ -287,8 +286,6 @@
     "defaultHost": "Host",
     "pickASong": "Pick a song to start the party",
     "browseSongs": "Browse Songs",
-    "skipOutro": "Skip Outro »",
-    "skipInterruption": "Skip Interruption »",
     "duetP1": "Manlalaro 1",
     "duetP2": "Manlalaro 2",
     "duetOn": "Duet",
@@ -550,9 +547,10 @@
     "enterFullscreen": "Mag-fullscreen",
     "play": "I-play",
     "pause": "I-pause",
-    "autoSkipOn": "Auto-skip: On",
-    "autoSkipOff": "Auto-skip: Off",
-    "autoSkipHint": "Automatically skip intros, outros and non-music sections"
+    "speed": "Bilis",
+    "speedNormal": "Normal",
+    "speedReset": "Ibalik sa normal na bilis",
+    "speedNote": "Sa ibang bilis, ang orihinal na tunog kasama ang boses ang tumutugtog sa device na ito."
   },
   "footer": {
     "privacyPolicy": "Patakaran sa Privacy",

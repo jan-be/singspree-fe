@@ -320,4 +320,66 @@ describe('songTimeAhead', () => {
     expect(songTimeAhead(10, true, leg)).toBeCloseTo(10.05, 6);
     expect(songTimeAhead(10, false, leg)).toBe(10);
   });
+
+  it('counts the way in song seconds at the song\'s speed', () => {
+    const leg = new Leg();
+    leg.ack(50);
+    expect(songTimeAhead(10, true, leg, 0.8)).toBeCloseTo(10.04, 6);
+  });
+});
+
+describe('HostClock at another speed', () => {
+  /** The host plays at `rate` from `from` at wall `w0`: n messages EVERY s apart, each `way` s on its way. */
+  const playAt = (c: HostClock, rate: number, n: number, way: (i: number) => number, { from = 0, w0 = 100 } = {}) => {
+    let arrived = -Infinity;
+    for (let i = 0; i < n; i++) {
+      const sent = w0 + i * EVERY;
+      arrived = Math.max(arrived, sent + way(i));
+      c.report(from + i * EVERY * rate, true, arrived, rate);
+    }
+    return w0 + n * EVERY;
+  };
+
+  it('runs at the rate the messages say', () => {
+    const c = new HostClock();
+    c.report(10, true, 100, 0.75);
+    expect(c.timeAt(102)).toBeCloseTo(11.5, 6);
+    expect(c.rate).toBe(0.75);
+  });
+
+  it('keeps the best message of the window when slowed down (the rhythm is in song seconds)', () => {
+    const c = new HostClock();
+    const rand = rng(7);
+    // 30 ms best way, up to 150 ms more by chance; 0.75 s of song per s
+    const end = playAt(c, 0.75, 40, () => 0.03 + rand() * 0.15);
+    // the true song time at `end`: behind by about the best message's way (at 0.75×), not by the last one's
+    // (a rhythm taken in wall seconds threw the window away with every message: 262 ms of song < 300)
+    const truth = (end - 100) * 0.75;
+    expect(truth - c.timeAt(end)!).toBeGreaterThanOrEqual(0);
+    expect(truth - c.timeAt(end)!).toBeLessThan(0.06 * 0.75);
+    expect(c.samples.length).toBeGreaterThan(10);
+  });
+
+  it('starts over on a new rate, from the first message at it', () => {
+    const c = new HostClock();
+    const end = playAt(c, 1, 10, () => 0.02);
+    const epoch = c.epoch;
+    const t = (end - 100); // where the song is, at 1×
+    c.report(t, true, end + 0.02, 0.5);
+    expect(c.epoch).toBe(epoch + 1);
+    expect(c.timeAt(end + 1.02)).toBeCloseTo(t + 0.5, 6);
+  });
+
+  it('adds its own leg in song seconds', () => {
+    const c = new HostClock({ leg: 0.1 });
+    c.report(10, true, 100, 0.5);
+    expect(c.timeAt(100)).toBeCloseTo(10.05, 6);
+  });
+
+  it('takes a rate that is no number as 1', () => {
+    const c = new HostClock();
+    c.report(10, true, 100, NaN);
+    expect(c.rate).toBe(1);
+    expect(c.timeAt(101)).toBeCloseTo(11, 6);
+  });
 });

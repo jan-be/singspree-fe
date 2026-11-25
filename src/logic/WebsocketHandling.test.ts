@@ -235,11 +235,17 @@ describe('sendVideoTime', () => {
       sendVideoTime(mockWs, { videoTime: 2, isPlaying: true, duration: 165.2 });
       now += 100;
       sendVideoTime(mockWs, { videoTime: 2.1, isPlaying: true, duration: 165.2 }); // throttled
+      now += 400;
+      sendVideoTime(mockWs, { videoTime: 3, isPlaying: true, rate: 1 });
+      now += 400;
+      sendVideoTime(mockWs, { videoTime: 3.3, isPlaying: true, rate: 0.85 });
     } finally { clock.mockRestore(); }
     expect(sent.map(m => m.data)).toEqual([
       { videoTime: 0, isPlaying: false },
       { videoTime: 1, isPlaying: true },
       { videoTime: 2, isPlaying: true, duration: 165.2 },
+      { videoTime: 3, isPlaying: true }, // normal speed: no rate
+      { videoTime: 3.3, isPlaying: true, rate: 0.85 },
     ]);
   });
 });
@@ -277,6 +283,7 @@ describe('host and co-host messages', () => {
     expect(capture(ws => sendPlaybackControl(ws, { action: 'seek', time: 42.5 }))).toEqual([{ type: 'playback:control', data: { action: 'seek', time: 42.5 } }]);
     // @ts-expect-error a truthy non-boolean `on` still goes out as true
     expect(capture(ws => sendPlaybackControl(ws, { action: 'duet', on: 1 }))).toEqual([{ type: 'playback:control', data: { action: 'duet', on: true } }]);
+    expect(capture(ws => sendPlaybackControl(ws, { action: 'speed', rate: 0.8, time: 3 }))).toEqual([{ type: 'playback:control', data: { action: 'speed', rate: 0.8 } }]);
   });
 
   it('co-hosts and the joining switch', () => {

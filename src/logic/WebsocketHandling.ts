@@ -267,13 +267,12 @@ export interface PartyJoin {
 /** party:settings, each optional (sendPartySettings) */
 export interface PartySettings {
   joiningOpen?: boolean;
-  autoSkip?: boolean;
   /** the singers' microphones on the host page's speakers */
   voices?: boolean;
 }
 
 /** What a co-host has the host's page do (playback:control) */
-export type PlaybackAction = 'play' | 'pause' | 'seek' | 'duet';
+export type PlaybackAction = 'play' | 'pause' | 'seek' | 'duet' | 'speed';
 
 /** queue:add (sendQueueAdd) */
 export interface QueueAdd {
@@ -335,21 +334,21 @@ export const sendKick = (ws: ObjSocket, username: string) => {
 
 /**
  * Host or co-host: the party's settings, each optional: whether new people may
- * join by the QR code or the link, and the host page's auto-skip (that page
- * reports its own when it joins). A server from before ignores the message.
+ * join by the QR code or the link, and the voices on the host's speakers. A
+ * server from before ignores the message.
  */
 export const sendPartySettings = (ws: ObjSocket, settings: PartySettings) => {
   ws.sendObj({ type: "party:settings", data: settings });
 };
 
 /**
- * Co-host: what the host's page plays — 'play', 'pause', 'seek' (time, s) or
- * 'duet' (on). Done there: that page plays the video and the music.
+ * Co-host: what the host's page plays — 'play', 'pause', 'seek' (time, s),
+ * 'duet' (on) or 'speed' (rate). Done there: that page plays the video and the music.
  */
-export const sendPlaybackControl = (ws: ObjSocket, { action, time, on }: { action: PlaybackAction; time?: number; on?: boolean }) => {
+export const sendPlaybackControl = (ws: ObjSocket, { action, time, on, rate }: { action: PlaybackAction; time?: number; on?: boolean; rate?: number }) => {
   ws.sendObj({
     type: "playback:control",
-    data: { action, ...(action === 'seek' ? { time } : {}), ...(action === 'duet' ? { on: !!on } : {}) },
+    data: { action, ...(action === 'seek' ? { time } : {}), ...(action === 'duet' ? { on: !!on } : {}), ...(action === 'speed' ? { rate } : {}) },
   });
 };
 
@@ -535,15 +534,16 @@ export const sendSongGap = (ws: RawSocket, { gap }: { gap: number }) => {
   }));
 };
 
-export const sendVideoTime = (ws: ObjSocket, { videoTime, isPlaying, duration, mix }: { videoTime: number; isPlaying: boolean; duration?: number; mix?: { v: number; i: number } }) => {
+export const sendVideoTime = (ws: ObjSocket, { videoTime, isPlaying, duration, rate = 1, mix }: { videoTime: number; isPlaying: boolean; duration?: number; rate?: number; mix?: { v: number; i: number } }) => {
   const now = performance.now();
   if (now - lastVideoTimeSent < 333) return; // ~3/sec
   lastVideoTimeSent = now;
   ws.sendObj({
     type: "video:time",
     // duration: the video's length in s, once the player knows it (optional: older servers relay it, older clients ignore it)
+    // rate: the speed the video plays at, when it is not 1 (the joiners' clocks run at it)
     // mix: the host's vocals/instrumental sliders while the song has stems (the server banks them with the playtime)
-    data: { videoTime, isPlaying, ...(duration !== undefined && duration > 0 ? { duration } : {}), ...(mix ? { mix } : {}) },
+    data: { videoTime, isPlaying, ...(duration !== undefined && duration > 0 ? { duration } : {}), ...(rate !== 1 ? { rate } : {}), ...(mix ? { mix } : {}) },
   });
 };
 

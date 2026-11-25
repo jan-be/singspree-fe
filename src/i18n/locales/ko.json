@@ -268,7 +268,6 @@
     "scores": "점수",
     "hideVideo": "동영상 숨기기",
     "showVideo": "동영상 보기",
-    "skipIntro": "인트로 건너뛰기 »",
     "songComplete": "노래 완료!",
     "total": "합계:",
     "upNext": "다음 곡:",
@@ -285,8 +284,6 @@
     "defaultHost": "호스트",
     "pickASong": "Pick a song to start the party",
     "browseSongs": "Browse Songs",
-    "skipOutro": "Skip Outro »",
-    "skipInterruption": "Skip Interruption »",
     "duetP1": "플레이어 1",
     "duetP2": "플레이어 2",
     "duetOn": "듀엣",
@@ -548,9 +545,10 @@
     "enterFullscreen": "전체 화면",
     "play": "재생",
     "pause": "일시정지",
-    "autoSkipOn": "Auto-skip: On",
-    "autoSkipOff": "Auto-skip: Off",
-    "autoSkipHint": "Automatically skip intros, outros and non-music sections"
+    "speed": "재생 속도",
+    "speedNormal": "보통",
+    "speedReset": "보통 속도로 되돌리기",
+    "speedNote": "다른 속도에서는 이 기기에서 보컬이 포함된 원래 소리가 재생됩니다."
   },
   "footer": {
     "privacyPolicy": "개인정보 보호정책",

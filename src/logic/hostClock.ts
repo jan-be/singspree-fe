@@ -36,6 +36,11 @@
 // millisecond, and in real parties phones in the room measured the host's
 // speakers some 150 ms earlier than the host did (two legs of 85 ms). Without
 // it their lyrics ran that far behind the music in the room.
+//
+// The song may play at another speed (the party's speed slider): each message
+// says the rate (none: 1), the song time moves that much per second of ours,
+// and the times, the rhythm and the legs above are in song seconds at it. A
+// new rate is a new line: the messages before it say nothing about it.
 
 export const WINDOW = 8;       // s: how long a message counts as the best the way can do
 export const SLEW = 0.1;       // s per s: how fast the estimate comes down to a lower bound
@@ -73,8 +78,8 @@ export class Leg {
   get seconds() { return this.pings.length ? Math.min(...this.pings) : 0; }
 }
 
-/** What the host sends as its time: the song's at the moment the message reaches the server. */
-export const songTimeAhead = (time: number, playing: boolean, leg: Leg) => (playing ? time + leg.seconds : time);
+/** What the host sends as its time: the song's at the moment the message reaches the server (at its playback `rate`). */
+export const songTimeAhead = (time: number, playing: boolean, leg: Leg, rate = 1) => (playing ? time + leg.seconds * rate : time);
 
 export class HostClock {
   declare mode: HostClockMode;
@@ -89,12 +94,14 @@ export class HostClock {
   declare offsetAt: number;
   declare lastTime: number | null;
   declare lastAt: number;
+  declare rate: number;
 
   /** `window`, `slew`: see WINDOW and SLEW; `leg`: the one-way way from the server, in seconds */
   constructor({ window = WINDOW, slew = SLEW, leg = 0 } = {}) {
     this.window = window;
     this.slew = slew;
     this.leg = leg;
+    this.rate = 1;           // the song's speed, by the last message (kept from song to song, as the host keeps it)
     this.reset();
   }
 
@@ -105,7 +112,7 @@ export class HostClock {
     this.epoch = 0;          // counts the jumps: whatever moved the song other than playing on
     this.samples = [];       // the messages of the last `window` seconds
     this.best = 0;           // the highest offset among them, plus our leg
-    this.offset = 0;         // the estimate of (song time − our clock) as of offsetAt
+    this.offset = 0;         // the estimate of (song time − rate × our clock) as of offsetAt
     this.offsetAt = 0;
     this.lastTime = null;    // the last message's time
     this.lastAt = 0;
@@ -115,8 +122,8 @@ export class HostClock {
   private start(time: number, at: number) {
     this.mode = 'playing';
     this.epoch += 1;
-    this.samples = [{ at, offset: time - at }];
-    this.best = this.offset = time - at + this.leg;
+    this.samples = [{ at, offset: time - at * this.rate }];
+    this.best = this.offset = time - at * this.rate + this.leg * this.rate;
     this.offsetAt = at;
   }
 
@@ -135,11 +142,14 @@ export class HostClock {
   }
 
   /**
-   * Takes in a video:time message: the host's `time`, whether it plays, and
-   * when the message came (seconds on any steady clock).
+   * Takes in a video:time message: the host's `time`, whether it plays, when
+   * the message came (seconds on any steady clock) and the song's speed.
    */
-  report(time: number, playing: boolean, at: number) {
+  report(time: number, playing: boolean, at: number, rate = 1) {
     if (!Number.isFinite(time) || !Number.isFinite(at)) return;
+    const r = Number.isFinite(rate) && rate > 0 ? rate : 1;
+    const newRate = r !== this.rate;
+    this.rate = r;
     const last = this.lastTime;
     this.lastTime = time;
     this.lastAt = at;
@@ -151,17 +161,17 @@ export class HostClock {
       this.start(time, at);
       return;
     }
-    if (moved < -BACK || moved > SILENT) { this.start(time, at); return; }
+    if (newRate || moved < -BACK || moved > SILENT * r) { this.start(time, at); return; }
     if (moved < MOVED) { this.stop(time); return; }
     this.offset = this.offsetBy(at);
     this.offsetAt = at;
-    if (moved < RHYTHM) this.samples = []; // what the host said before this no longer counts
+    if (moved < RHYTHM * r) this.samples = []; // what the host said before this no longer counts
     const { samples } = this;
-    samples.push({ at, offset: time - at });
+    samples.push({ at, offset: time - at * r });
     while (samples[0].at < at - this.window) samples.shift();
     let best = -Infinity;
     for (const s of samples) if (s.offset > best) best = s.offset;
-    this.best = best + this.leg;
+    this.best = best + this.leg * r;
     if (this.best > this.offset) this.offset = this.best;
   }
 
@@ -176,15 +186,15 @@ export class HostClock {
     switch (this.mode) {
       case 'unknown': return null;
       case 'stopped': return this.frozen;
-      case 'playing': return now + this.offsetBy(now);
+      case 'playing': return now * this.rate + this.offsetBy(now);
     }
   }
 
   /** For the debug overlay: how far the newest message sat below the bound, how old it is, the leg it is taken to have come. */
   info(now: number) {
     return {
-      mode: this.mode, epoch: this.epoch, time: this.timeAt(now), messages: this.samples.length, leg: this.leg,
-      lag: this.mode === 'playing' && this.lastTime !== null ? this.best - this.leg - (this.lastTime - this.lastAt) : null,
+      mode: this.mode, epoch: this.epoch, time: this.timeAt(now), messages: this.samples.length, leg: this.leg, rate: this.rate,
+      lag: this.mode === 'playing' && this.lastTime !== null ? this.best - this.leg * this.rate - (this.lastTime - this.lastAt * this.rate) : null,
       age: this.lastTime === null ? null : now - this.lastAt,
     };
   }

@@ -108,6 +108,7 @@ import { StreamingStemPlayer } from "../logic/streamStemPlayer";
 import { stemPlayback } from "../logic/stemPlayback";
 import { VideoClock, readPlayer } from "../logic/videoClock";
 import { HostClock, Leg, songTimeAhead } from "../logic/hostClock";
+import { catchUpRate, clampSpeed } from "../logic/playbackSpeed";
 import { shouldRestart } from "../logic/stemSync";
 import { audioLatencyHint } from "../logic/audioLatencyFlag";
 import { leadEstimate, nextLead } from "../logic/outputLead";
@@ -157,8 +158,8 @@ type TakeUpload = Awaited<ReturnType<MicRecorder['stopAndUpload']>>;
 /**
  * What the page uses of the song's two stem players: decoded whole
  * (StemPlayer, stemPlayer.ts) or streamed (StreamingStemPlayer); only the
- * latter has `urls`, `failed`, `waiting` and `realign`, only the former
- * `buffers`. `songId` is the page's note of whose stems they are.
+ * latter has `urls`, `failed`, `waiting`, `realign` and `setRate`, only the
+ * former `buffers`. `songId` is the page's note of whose stems they are.
  */
 interface PageStemPlayer {
   songId?: string;
@@ -179,6 +180,7 @@ interface PageStemPlayer {
   pause(): void;
   seek(time: number): void;
   realign?(): void;
+  setRate?(rate: number): void;
   dispose(): void;
 }
 
@@ -612,7 +614,7 @@ const PartyPage = () => {
   const learnPlayerAvatars = useCallback((players: Parameters<typeof learnAvatars>[1]) => setPlayerAvatars(prev => learnAvatars(prev, players)), []);
   const [members, setMembers] = useState<string[]>([]);
   // Who runs the party with the host (co-hosts), whether new people may join
-  // and the host page's auto-skip: the server's party:settings
+  // and the voices on the speakers: the server's party:settings
   // (logic/partyRoles.ts). The host's name, and the seats that are another
   // microphone of a page (no people: never co-hosts), for the QR code card.
   const [partySettings, setPartySettings] = useState(NO_SETTINGS);
@@ -649,43 +651,21 @@ const PartyPage = () => {
     }
     return () => { active = false; };
   }, [songEnded, activeSongId]); // eslint-disable-line react-hooks/exhaustive-deps
-  const [activeSkipSegment, setActiveSkipSegmentState] = useState<SkipSegment | null>(null); // current skippable segment or null
-  // The frame loop asks every frame; only a different segment is a state change
-  const activeSkipRef = useRef<SkipSegment | null>(null);
-  const setActiveSkipSegment = useCallback((seg: SkipSegment | null) => {
-    if (activeSkipRef.current === seg) return;
-    activeSkipRef.current = seg;
-    setActiveSkipSegmentState(seg);
-  }, []);
+  // The video's intros, outros and other non-music stretches (SponsorBlock):
+  // the host's page skips them, always (the frame loop)
   const skipSegmentsRef = useRef<SkipSegment[]>([]); // [{start, end, category}] from SponsorBlock
 
-  // Auto-skip toggle: when enabled, host auto-seeks past SponsorBlock segments
-  // without needing to press the Skip button. Persisted to localStorage.
-  const [autoSkip, setAutoSkip] = useState(() => {
-    try {
-      const stored = localStorage.getItem('singspree_auto_skip');
-      return stored === null ? true : stored === 'true'; // default ON
-    }
-    catch { return true; }
-  });
-  const autoSkipRef = useRef(autoSkip);
-  autoSkipRef.current = autoSkip;
-  // The host page's switch, also when a co-host flips it (party:settings): the
-  // host page tells the party what it does, so co-hosts see it in their menu
-  const applyAutoSkip = useCallback((next: boolean) => {
-    autoSkipRef.current = next;
-    setAutoSkip(next);
-    try { localStorage.setItem('singspree_auto_skip', String(next)); } catch { /* */ }
-  }, []);
-  const toggleAutoSkip = useCallback(() => {
-    const w = wssRef.current;
-    if (isHostRef.current) {
-      applyAutoSkip(!autoSkipRef.current);
-      if (w) sendPartySettings(w, { autoSkip: autoSkipRef.current });
-    } else if (w && partyAutoSkipRef.current !== null) {
-      sendPartySettings(w, { autoSkip: !partyAutoSkipRef.current }); // done on the host page, which tells everyone
-    }
-  }, [applyAutoSkip]);
+  // The song's speed (the speed slider in the settings menu, the host's and
+  // co-hosts'). The host's page plays its video and its stems at it and tells
+  // the party with every video:time (`rate`); everyone else's clock, video
+  // and stems follow that (hostClock.ts). Here: on the host's page the speed
+  // asked for, elsewhere the one the host's last video:time said. Kept from
+  // song to song; a reload of the host's page starts at normal speed again.
+  const [songRate, setSongRate] = useState(1);
+  const songRateRef = useRef(1);
+  songRateRef.current = songRate;
+  // A co-host's move of the slider: the host's word on it is on its way for a moment (see the video:time handler)
+  const rateAskedAtRef = useRef(-Infinity);
 
   // ── Stem audio: when both karaoke + vocals are available, mute YouTube and
   //    play both stems from our server with independent volume control. ──
@@ -697,7 +677,12 @@ const PartyPage = () => {
   // (`listed`: the song has stems at the server, whether or not this device can play them)
   const [stemsFor, setStemsFor] = useState<{ songId: string | null; has: boolean; listed?: boolean; pass?: string | null }>({ songId: null, has: false });
   const stemsKnown = stemsFor.songId === activeSongId;
-  const hasStems = stemsKnown && stemsFor.has;
+  // Stems decoded whole (Apple's WebKit, stemPlayback.ts) cannot keep their
+  // pitch at another speed: they sit out while the song plays at one, and
+  // YouTube carries the sound (its player keeps the pitch), vocals and all
+  const [decodedStems] = useState(() => stemPlayback() === 'memory');
+  const stemsSitOut = decodedStems && songRate !== 1;
+  const hasStems = stemsKnown && stemsFor.has && !stemsSitOut;
   const hasStemsRef = useRef(false); // quick ref for use in callbacks
   const stemsUnplayableRef = useRef(false); // a stem failed to load or decode: no stems for the rest of the session
   const stemsLoadRef = useRef<{ state: string; ms?: number; startedAt?: number } | null>(null); // { state: 'loading' | 'memory' | 'streaming', ms } for the current song's stems
@@ -850,10 +835,11 @@ const PartyPage = () => {
     // (the host's video, a joiner's host time), which it measures itself
     const songClock = () => {
       const t = isHostRef.current ? hostVideoTime() : (hostIsPlayingRef.current ? getHostVideoTime() : null);
-      return t === null ? null : t + stemLeadRef.current;
+      return t === null ? null : t + stemLead();
     };
     const player: PageStemPlayer = stemPlayback() === 'stream' ? new StreamingStemPlayer(ctx, stemGains, { clock: songClock }) : new StemPlayer(ctx, stemGains);
     player.songId = activeSongId; // whose stems these are (the singing delay measures against the instrumental)
+    player.setRate?.(clockRate()); // the song's speed (decoded stems never play at another: they sit out, see stemsSitOut)
     stemPlayerRef.current = player;
     const loadStartedAt = performance.now();
     stemsLoadRef.current = { state: 'loading', startedAt: loadStartedAt };
@@ -944,6 +930,16 @@ const PartyPage = () => {
     else unsilenceYouTube(iframePlayerRef.current, volume);
   }, [stemsKnown, hasStems, activeSongId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Decoded stems that sit out a song played at another speed (above): YouTube
+  // takes the sound over at once. Back at normal speed the stems load again,
+  // and their effect silences YouTube as they do.
+  const stemsSatOut = stemsKnown && stemsFor.has && stemsSitOut;
+  useEffect(() => {
+    if (!stemsSatOut) return;
+    debugLog('stems', `speed ${songRateRef.current}: decoded stems sit out, YouTube plays the sound`);
+    if (joinerSoundOnRef.current) unsilenceYouTube(iframePlayerRef.current, volumeRef.current);
+  }, [stemsSatOut]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Poll YouTube iframe volume every 500ms:
   //  - Kept silent (stems, a joiner's sound off): if the user turned it up via
   //    the iframe, silence it again and show the tooltip (stems); muted where
@@ -1027,10 +1023,15 @@ const PartyPage = () => {
     stemLeadRef.current = nextLead(stemLeadRef.current, leadEstimate(audioRef.current?.ctx));
     return stemLeadRef.current;
   }, []);
+  // The speed the song's clock runs at (the host's video as its player reports
+  // it, a joiner's host clock), and the lead in song seconds at it (the lead is
+  // the audio's way in seconds of ours: at 0.8× that is 0.8 of it in song time)
+  const clockRate = () => (isHostRef.current ? videoClock.rate : hostClock.rate);
+  const stemLead = () => stemLeadRef.current * clockRate();
   const alignStems = useCallback((clockTime: number, immediate = false) => {
     const player = stemPlayerRef.current;
     if (!player?.loaded) return;
-    const targetTime = clockTime + stemLeadRef.current;
+    const targetTime = clockTime + stemLead();
     if (!player.playing) { if (immediate) player.seek(targetTime); return; }
     // a streamed pair still finding its place (hidden, seeking, out of data): not drift to chase
     if (player.waiting && !immediate) return;
@@ -1075,10 +1076,11 @@ const PartyPage = () => {
     // was a second audio stream for nothing
     if (player.mode === 'memory') keepAudioSession();
     updateStemLead();
+    player.setRate?.(clockRate());
     if (player.playing) alignStems(time);
     else {
-      player.play(time + stemLeadRef.current);
-      debugLog('sync', `stems started at ${time.toFixed(2)} + ${Math.round(stemLeadRef.current * 1000)} ms lead`);
+      player.play(time + stemLead());
+      debugLog('sync', `stems started at ${time.toFixed(2)} + ${Math.round(stemLeadRef.current * 1000)} ms lead${clockRate() !== 1 ? ` at ${clockRate()}×` : ''}`);
     }
   }, [alignStems, keepAudioSession, updateStemLead]);
 
@@ -1129,6 +1131,7 @@ const PartyPage = () => {
       if (isHost) releaseHeldStems();
       if (!stemPlayerRef.current?.playing) return;
       if (!isHost && !hostIsPlayingRef.current) { pauseStems(); return; }
+      stemPlayerRef.current.setRate?.(clockRate()); // (the frame loop and video:time set it first)
       stemPlayerRef.current.realign?.(); // a streamed pair that a stall parted (streamStemPlayer.ts)
       if (!isHost) { alignStems(getHostVideoTime()); return; }
       const time = hostVideoTime();
@@ -1200,8 +1203,6 @@ const PartyPage = () => {
   isCohostRef.current = isCohost;
   const canControlRef = useRef(canControl);
   canControlRef.current = canControl;
-  const partyAutoSkipRef = useRef<boolean | null>(null); // the host page's auto-skip, as the party heard it
-  partyAutoSkipRef.current = partySettings.autoSkip;
   const activeSongIdRef = useRef(activeSongId);
   activeSongIdRef.current = activeSongId;
   // What was sent while the socket was down (a song that ended during a
@@ -1338,10 +1339,10 @@ const PartyPage = () => {
   // with the host. The call-mode audio issue is solved by MediaStreamTrackProcessor
   // (no AudioContext for mic), so playback rate changes are safe.
   //
-  // Thresholds:
+  // Thresholds, at the song's speed (the host's, hostClock.rate):
   //   drift > 3s    → hard seek (debounced)
   //   drift > 20ms  → speed up (1.25x) or slow down (0.75x)
-  //   drift ≤ 20ms  → normal speed (1x)
+  //   drift ≤ 20ms  → the song's speed
   const playerStateRef = useRef(-1);
 
   // YouTube player state for the stage (-1 unstarted, 0 ended, 1 playing,
@@ -1452,7 +1453,7 @@ const PartyPage = () => {
     if (!preview) alignStems(seconds, true); // the stems jump with it, not at the next sync
     showTitleCover();
   }, [showTitleCover, alignStems]);
-  // A co-host's seek (the timeline, a skipped intro) is the host page's to do.
+  // A co-host's seek (the timeline, a lyric line) is the host page's to do.
   // A drag along the timeline asks on every move: the host page gets the
   // latest position five times a second, not sixty seeks
   const coSeekRef = useRef<{ at: number; timer: number | null; time: number }>({ at: 0, timer: null, time: 0 }); // (time: set before every send)
@@ -1470,8 +1471,24 @@ const PartyPage = () => {
     else if (!s.timer) s.timer = setTimeout(send, wait);
   }, []);
   useEffect(() => () => clearTimeout(coSeekRef.current.timer), []);
-  // The segment a co-host asked to skip: not offered again while the host's time still shows it
-  const skippedSegRef = useRef<SkipSegment | null>(null);
+  // The speed slider (the host and co-hosts). On the host's page the video
+  // plays at it at once; the stems follow the video's clock, and the next
+  // video:time tells the party. A co-host's goes to the host's page
+  // (playback:control), whose next video:time brings it back here.
+  const applySpeed = useCallback((rate: number) => {
+    songRateRef.current = rate;
+    setSongRate(rate);
+    try { iframePlayerRef.current?.setPlaybackRate?.(rate); } catch { /* a player being replaced: set once it plays (handleVideoStateChange) */ }
+  }, []);
+  const changeSpeed = useCallback((rate: number) => {
+    const r = clampSpeed(rate);
+    if (isHostRef.current) { applySpeed(r); return; }
+    const w = wssRef.current;
+    if (!isCohostRef.current || !w) return;
+    rateAskedAtRef.current = performance.now();
+    setSongRate(r);
+    sendPlaybackControl(w, { action: 'speed', rate: r });
+  }, [applySpeed]);
   const togglePlayback = useCallback(() => {
     // The host pauses the song; a co-host has the host's page do it. A
     // joiner's own pause stopped its copy of the video and the music until
@@ -1634,6 +1651,13 @@ const PartyPage = () => {
     // recording while it stands still (paused, buffering, ended, not started)
     if (isHost) { setMicsActive(state === 1); checkMicRef.current?.(); }
     try { const d = iframePlayerRef.current?.getDuration?.() ?? 0; /* no player: 0, not > 0 */ if (d > 0) setVideoDuration(prev => (Math.abs(prev - d) > 0.5 ? d : prev)); } catch { /* */ }
+    // The party's speed: a new video, or a new player, starts at YouTube's normal one
+    if (isHost && state === 1) {
+      try {
+        const player = iframePlayerRef.current;
+        if (player && player.getPlaybackRate?.() !== songRateRef.current) player.setPlaybackRate(songRateRef.current);
+      } catch { /* a player being replaced */ }
+    }
 
     // Sync stem audio with YouTube player state. Buffering is left to the
     // clock (releaseHeldStems): on a starved device "buffering" and "playing"
@@ -1657,23 +1681,19 @@ const PartyPage = () => {
     const localTime = player.getCurrentTime?.() ?? 0;
     const drift = localTime - hostTime; // positive = ahead, negative = behind
 
+    const base = hostClock.rate; // the song's speed
     if (Math.abs(drift) > 3) {
       const now = performance.now();
       if (now - lastSeekRef.current < 3000) return;
       lastSeekRef.current = now;
-      player.setPlaybackRate(1);
+      player.setPlaybackRate(catchUpRate(base, 0));
       player.seekTo(hostTime, true);
       showTitleCover();
       return;
     }
 
-    if (drift < -0.02) {
-      player.setPlaybackRate(1.25);
-    } else if (drift > 0.02) {
-      player.setPlaybackRate(0.75);
-    } else if (player.getPlaybackRate?.() !== 1) {
-      player.setPlaybackRate(1);
-    }
+    const rate = catchUpRate(base, drift);
+    if (Math.abs(drift) > 0.02 || player.getPlaybackRate?.() !== rate) player.setPlaybackRate(rate);
   };
 
   // ── Playback that never starts ──
@@ -1973,7 +1993,6 @@ const PartyPage = () => {
           titles: jsonObj.data.titles, language: jsonObj.data.language,
         });
         skipSegmentsRef.current = jsonObj.data.skipSegments ?? [];
-        setActiveSkipSegment(null);
         // (the chart came from a site without the stems: this browser's pass for them, and for its take, at the site that has them)
         const homePass = homePassOf(jsonObj.home);
         rememberHomePass(activeSongId, homePass);
@@ -2075,6 +2094,7 @@ const PartyPage = () => {
             let videoTime: number;
             if (isHostRef.current) {
               videoTime = hostVideoTime();
+              stemPlayerRef.current?.setRate?.(videoClock.rate); // the stems at the video's speed, once its player reports it
               releaseHeldStems();
             } else {
               // Always the host's clock, for display too (lyrics/bars). The YouTube
@@ -2123,24 +2143,13 @@ const PartyPage = () => {
               }
             }
 
-            // Check if current time is inside a skippable segment (host only)
-            if (isHostRef.current && skipSegmentsRef.current.length > 0) {
+            // The host's page skips intros, outros and other non-music stretches:
+            // a seek past the segment. Without a player yet (loading, or a failed
+            // video coming back) the clock stands at 0:00, inside an intro: the seek
+            // waits for the player. The clock stands at seg.end from the seek on (seekVideo).
+            if (isHostRef.current && player && skipSegmentsRef.current.length > 0) {
               const seg = skipSegmentsRef.current.find(s => videoTime >= s.start && videoTime < s.end);
-              if (autoSkipRef.current) {
-                // Auto-skip: seek past the segment, never offer the Skip button. Without a
-                // player yet (loading, or a failed video coming back) the clock stands at 0:00,
-                // inside an intro: the seek waits for the player, and the button stays away
-                // (it showed there before). The clock stands at seg.end from the seek on (seekVideo).
-                if (seg && player) seekVideo(seg.end);
-                setActiveSkipSegment(null);
-              } else {
-                setActiveSkipSegment(seg ?? null);
-              }
-            } else if (isCohostRef.current && skipSegmentsRef.current.length > 0) {
-              // A co-host is offered the button where the host's page does not skip by itself
-              const seg = skipSegmentsRef.current.find(s => videoTime >= s.start && videoTime < s.end) ?? null;
-              if (seg !== skippedSegRef.current) skippedSegRef.current = null;
-              setActiveSkipSegment(partyAutoSkipRef.current === false && seg !== skippedSegRef.current ? seg : null);
+              if (seg) seekVideo(seg.end);
             }
 
             const w = wssRef.current;
@@ -2153,10 +2162,12 @@ const PartyPage = () => {
                 try {
                   const isPlaying = player.getPlayerState() === 1;
                   sendVideoTime(w, {
-                    videoTime: songTimeAhead(videoTime, isPlaying, legToServer),
+                    videoTime: songTimeAhead(videoTime, isPlaying, legToServer, videoClock.rate),
                     isPlaying,
                     // Joiners without a video have no other way to learn its length
                     duration: player.getDuration?.(),
+                    // The speed the video plays at, as its player reports it: the joiners' clocks run at it
+                    rate: videoClock.rate,
                     // The sliders, while the song has stems: how often a party turns the singer down (song_playtime)
                     ...(hasStemsRef.current ? { mix: { v: vocalsLevelRef.current, i: instrumentalLevelRef.current } } : {}),
                   });
@@ -2322,6 +2333,7 @@ const PartyPage = () => {
   const startRecordingIfActive = useCallback((songId: string | undefined, info: SongApiData | null, ld: LyricData | null, recorderInstance?: MicRecorder) => {
     const rec = recorderInstance || micRecorderRef.current;
     if (!rec || !songId || songId === 'none' || !saveRecordingsRef.current) return;
+    if (songRateRef.current !== 1) return; // (see the take effect below)
     const sessionId = getSessionId();
     const play = currentPlayRef.current;
     rec.start({
@@ -2343,6 +2355,15 @@ const PartyPage = () => {
       isHost: !!isHostRef.current,
     });
   }, []);
+
+  // A take sung at another speed would not line up with the song: its audio
+  // is laid on the song second for second (the server's takes.ts). So none is
+  // kept of a song while it plays at one; the next song at normal speed records again.
+  useEffect(() => {
+    if (songRate === 1 || !micRecorderRef.current?.isRecording) return;
+    micRecorderRef.current.discard();
+    debugLog('mic', `speed ${songRate}: no take of this song`);
+  }, [songRate]);
 
   // The microphone panel's difficulty slider: at once, for the song so far too (the server counts every level)
   const handleDifficultyChange = useCallback((level: Difficulty) => {
@@ -2447,13 +2468,13 @@ const PartyPage = () => {
       const ci = videoClock.info();
       let api: number | undefined;
       try { api = player?.getCurrentTime?.(); } catch { /* */ }
-      lines.push(`clock: ${ci.mode} #${ci.epoch} t=${ci.time?.toFixed(2) ?? '-'} reports=${ci.reports} lag=${ms(ci.lag)} age=${ms(ci.age)} api-clock=${ms(api !== undefined && Number.isFinite(api) && ci.time !== null ? api - ci.time : null)}`);
+      lines.push(`clock: ${ci.mode} #${ci.epoch} t=${ci.time?.toFixed(2) ?? '-'} rate=${videoClock.rate} reports=${ci.reports} lag=${ms(ci.lag)} age=${ms(ci.age)} api-clock=${ms(api !== undefined && Number.isFinite(api) && ci.time !== null ? api - ci.time : null)}`);
     } else {
       // A joiner's estimate of it (hostClock.ts): lag = how far the newest
       // message sat below the best of the window, age = how long ago it came,
       // leg = this page's way from the server
       const ci = hostClock.info(performance.now() / 1000);
-      lines.push(`clock: ${ci.mode} #${ci.epoch} t=${ci.time?.toFixed(2) ?? '-'} messages=${ci.messages} lag=${ms(ci.lag)} age=${ms(ci.age)} leg=${ms(ci.leg)}`);
+      lines.push(`clock: ${ci.mode} #${ci.epoch} t=${ci.time?.toFixed(2) ?? '-'} rate=${ci.rate} messages=${ci.messages} lag=${ms(ci.lag)} age=${ms(ci.age)} leg=${ms(ci.leg)}`);
     }
     const audio = audioRef.current;
     const ctx = audio?.ctx;
@@ -2959,8 +2980,6 @@ const PartyPage = () => {
       // Lyrics for server-side scoring go with it (may have been fetched before WS connected)
       if (isHost) {
         announceSong(wsInstance);
-        // What this page does with intros and outros: co-hosts see it and can switch it
-        sendPartySettings(wsInstance, { autoSkip: autoSkipRef.current });
         if (pageSpeed.slow) sendPartyPace(wsInstance, true); // (the server keeps it per socket)
       }
 
@@ -3112,26 +3131,22 @@ const PartyPage = () => {
       // The voices on the speakers: their connections' setup, the host coming back, someone leaving
       voicesRef.current?.onMessage(jsonObj);
 
-      // Co-hosts, the joining switch, the host page's auto-skip, the voices (also in party:state)
+      // Co-hosts, the joining switch, the voices (also in party:state)
       if (jsonObj.type === "party:state" || jsonObj.type === "party:settings") {
         setPartySettings(prev => readSettings(prev, jsonObj.data));
-        // A co-host switched auto-skip: this page is the one that skips. Not
-        // from party:state, which comes before this page's own word (onOpen).
-        if (isHost && jsonObj.type === "party:settings" && typeof jsonObj.data?.autoSkip === 'boolean' && jsonObj.data.autoSkip !== autoSkipRef.current) {
-          applyAutoSkip(jsonObj.data.autoSkip);
-        }
       }
 
-      // A co-host's play, pause, seek or duet switch: this page plays the
+      // A co-host's play, pause, seek, duet switch or speed: this page plays the
       // song, so it is done here (its video:time and lyrics tell the others)
       if (isHost && jsonObj.type === "playback:control") {
-        const { action, time, on } = jsonObj.data ?? {};
+        const { action, time, on, rate } = jsonObj.data ?? {};
         const player = iframePlayerRef.current;
         try {
           if (action === 'pause') player?.pauseVideo?.();
           else if (action === 'play') player?.playVideo?.();
           else if (action === 'seek' && time !== undefined && Number.isFinite(time) && player) seekVideo(time);
           else if (action === 'duet' && typeof on === 'boolean' && on !== duetModeRef.current) applyDuetMode(on);
+          else if (action === 'speed' && typeof rate === 'number') changeSpeed(rate);
         } catch { /* a player being replaced: the co-host can press again */ }
       }
 
@@ -3281,7 +3296,15 @@ const PartyPage = () => {
 
       if (jsonObj.type === "video:time" && !isHost) {
         hostClock.leg = legToServer.seconds;
-        hostClock.report(jsonObj.data.videoTime ?? 0, !!jsonObj.data.isPlaying, performance.now() / 1000);
+        // (rate: the song's speed, none at normal speed or from a host page from before the slider)
+        hostClock.report(jsonObj.data.videoTime ?? 0, !!jsonObj.data.isPlaying, performance.now() / 1000, Number(jsonObj.data.rate) || 1);
+        stemPlayerRef.current?.setRate?.(hostClock.rate);
+        // The speed for the slider (co-hosts), the decoded stems and the take. A co-host who
+        // just moved the slider keeps what they asked for until the host's page has it
+        if (hostClock.rate !== songRateRef.current && performance.now() - rateAskedAtRef.current > 2000) {
+          songRateRef.current = hostClock.rate;
+          setSongRate(hostClock.rate);
+        }
         // The host's video length (newer hosts send it): same-state updates do not re-render
         const hostDuration = Number(jsonObj.data.duration);
         if (hostDuration > 0) setVideoDuration(prev => (Math.abs(prev - hostDuration) > 0.5 ? hostDuration : prev));
@@ -3743,7 +3766,7 @@ const PartyPage = () => {
   const queuedNext = firstPlayable(queue);
   const endNext = queuedNext ?? nextSongInfo;
   // Where the song ends, for the queue pill's "Up next" in its last seconds: an outro the host's page skips ends it early
-  const upNextEnd = songEndAt(videoDuration, (isHost ? autoSkip : partySettings.autoSkip !== false) ? skipSegmentsRef.current : []);
+  const upNextEnd = songEndAt(videoDuration, skipSegmentsRef.current);
   const endLocals = (endSuggestions ?? []).filter(s => s.videoId);
   const endTiles: QueueSong[] | null = canControl && !queuedNext && (endNext?.songId || endLocals.length > 0) ? [
     ...(endNext && hasSongId(endNext) ? [endNext] : []),
@@ -3767,8 +3790,9 @@ const PartyPage = () => {
         onGoToMenu={handleGoToMenu}
         onEndParty={handleEndParty}
         onLeaveParty={handleLeaveParty}
-        autoSkip={isHost ? autoSkip : partySettings.autoSkip}
-        onToggleAutoSkip={isHost || (isCohost && partySettings.autoSkip !== null) ? toggleAutoSkip : undefined}
+        speed={songRate}
+        onSpeedChange={canControl ? changeSpeed : undefined}
+        speedNote={stemsSatOut}
         isFixingTiming={isFixingTiming}
         onFixingTimingChange={setIsFixingTiming}
         gapData={gapData}
@@ -4107,27 +4131,6 @@ const PartyPage = () => {
             {...stageButtonProps}
             className={`${stageButtonProps.className} ui-room`}
           />
-
-          {/* Skip Intro / Outro / Interruption — Netflix-style button above the lyrics.
-              Label depends on SponsorBlock segment category. */}
-          {activeSkipSegment && (isHost ? !autoSkip : isCohost && partySettings.autoSkip === false) && (
-            <div className="flex justify-end pb-2">
-              <button
-                onClick={() => {
-                  if (!isHost) { seekViaHost(activeSkipSegment.end); skippedSegRef.current = activeSkipSegment; }
-                  else if (iframePlayerRef.current?.seekTo) seekVideo(activeSkipSegment.end);
-                  setActiveSkipSegment(null);
-                }}
-                className="btn btn-primary shadow-[0_10px_30px_-10px_rgba(0,0,0,0.9)]"
-              >
-                {activeSkipSegment.category === 'outro'
-                  ? t('party.skipOutro')
-                  : activeSkipSegment.category === 'music_offtopic'
-                    ? t('party.skipInterruption')
-                    : t('party.skipIntro')}
-              </button>
-            </div>
-          )}
 
           {/* No backdrop-filter on anything that stays over the playing video: a
               blur reads the video every frame, and in landscape this box sits

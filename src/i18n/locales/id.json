@@ -268,7 +268,6 @@
     "scores": "Skor",
     "hideVideo": "Sembunyikan Video",
     "showVideo": "Tampilkan Video",
-    "skipIntro": "Lewati Intro »",
     "songComplete": "Lagu Selesai!",
     "total": "Total:",
     "upNext": "Selanjutnya:",
@@ -285,8 +284,6 @@
     "defaultHost": "Tuan Rumah",
     "pickASong": "Pick a song to start the party",
     "browseSongs": "Browse Songs",
-    "skipOutro": "Skip Outro »",
-    "skipInterruption": "Skip Interruption »",
     "duetP1": "Pemain 1",
     "duetP2": "Pemain 2",
     "duetOn": "Duet",
@@ -548,9 +545,10 @@
     "enterFullscreen": "Masuk layar penuh",
     "play": "Putar",
     "pause": "Jeda",
-    "autoSkipOn": "Auto-skip: On",
-    "autoSkipOff": "Auto-skip: Off",
-    "autoSkipHint": "Automatically skip intros, outros and non-music sections"
+    "speed": "Kecepatan",
+    "speedNormal": "Normal",
+    "speedReset": "Kembali ke kecepatan normal",
+    "speedNote": "Pada kecepatan lain, perangkat ini memutar suara asli, termasuk vokalnya."
   },
   "footer": {
     "privacyPolicy": "Kebijakan Privasi",

@@ -4,13 +4,12 @@
 // sends neither, and its party is then shown as always: open, no co-hosts,
 // no controls for them (`known` false).
 
-/** Who runs the party with the host, whether new people may join, the host page's auto-skip (null until it said), voices on the speakers */
+/** Who runs the party with the host, whether new people may join, voices on the speakers */
 export interface PartyRoleSettings {
   /** false: a server from before co-hosts */
   known: boolean;
   cohosts: string[];
   joiningOpen: boolean;
-  autoSkip: boolean | null;
   /** the singers' microphones on the host page's speakers (voiceLink.ts, voiceMixer.ts); false on a server from before */
   voices: boolean;
 }
@@ -19,7 +18,6 @@ export interface PartyRoleSettings {
 export interface PartySettingsData {
   cohosts?: unknown;
   joiningOpen?: unknown;
-  autoSkip?: unknown;
   voices?: unknown;
   [key: string]: unknown;
 }
@@ -33,7 +31,7 @@ export interface CardPerson {
   away: boolean;
 }
 
-export const NO_SETTINGS: Readonly<PartyRoleSettings> = Object.freeze({ known: false, cohosts: [], joiningOpen: true, autoSkip: null, voices: false });
+export const NO_SETTINGS: Readonly<PartyRoleSettings> = Object.freeze({ known: false, cohosts: [], joiningOpen: true, voices: false });
 
 /** The settings in a party:state or party:settings message, or `prev` when it has none. */
 export function readSettings(prev: PartyRoleSettings, data: PartySettingsData): PartyRoleSettings {
@@ -42,7 +40,6 @@ export function readSettings(prev: PartyRoleSettings, data: PartySettingsData): 
     known: true,
     cohosts: Array.isArray(data.cohosts) ? data.cohosts.filter((n): n is string => typeof n === 'string') : [],
     joiningOpen: data.joiningOpen,
-    autoSkip: typeof data.autoSkip === 'boolean' ? data.autoSkip : null,
     voices: data.voices === true,
   };
 }

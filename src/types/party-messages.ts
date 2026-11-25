@@ -56,7 +56,6 @@ export interface PartyStatePlayer {
 export type PartySettingsData = {
   cohosts?: string[];
   joiningOpen?: boolean;
-  autoSkip?: boolean | null;
   /** the singers' microphones on the host page's speakers */
   voices?: boolean;
 };
@@ -128,7 +127,7 @@ export type PartyServerMessage =
   | { type: 'party:lanes'; data: { pinned: string[] | null; spotlight: string[] | null } }
   | { type: 'party:state'; data: PartyStateData }
   | { type: 'party:settings'; data: PartySettingsData }
-  | { type: 'playback:control'; data: { action?: 'play' | 'pause' | 'seek' | 'duet'; time?: number; on?: boolean; by?: string } }
+  | { type: 'playback:control'; data: { action?: 'play' | 'pause' | 'seek' | 'duet' | 'speed'; time?: number; on?: boolean; rate?: number; by?: string } }
   | { type: 'player:color_changed'; data: { username: string; color: number | null } }
   | { type: 'player:avatar'; data: { username: string; avatar?: string | null } }
   | { type: 'player:renamed'; data: { from: string; to: string } }
@@ -145,7 +144,8 @@ export type PartyServerMessage =
   | { type: 'party:song_ended'; data: { scores?: EndScore[]; nextSong?: NextSong | null } }
   | { type: 'party:achievements'; data: { players?: { username: string; keys?: string[] }[] } }
   | { type: 'party:countdown_cancelled'; data: Record<string, never> }
-  | { type: 'video:time'; data: { videoTime: number; isPlaying?: boolean; duration?: number; username?: string } }
+  /** rate: the speed the host's video plays at (none: 1) */
+  | { type: 'video:time'; data: { videoTime: number; isPlaying?: boolean; duration?: number; rate?: number; username?: string } }
   | { type: 'ping:request'; data: { serverTs: number } }
   | { type: 'ping:ack'; data: { latencyMs?: number } }
   | { type: 'party:gap'; data: { gap?: number; songId?: string } }

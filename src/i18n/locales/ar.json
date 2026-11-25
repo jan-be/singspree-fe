@@ -278,7 +278,6 @@
     "scores": "النتائج",
     "hideVideo": "إخفاء الفيديو",
     "showVideo": "إظهار الفيديو",
-    "skipIntro": "تخطي المقدمة »",
     "songComplete": "اكتملت الأغنية!",
     "total": "المجموع:",
     "upNext": "التالي:",
@@ -295,8 +294,6 @@
     "defaultHost": "المضيف",
     "pickASong": "Pick a song to start the party",
     "browseSongs": "Browse Songs",
-    "skipOutro": "Skip Outro »",
-    "skipInterruption": "Skip Interruption »",
     "duetP1": "اللاعب 1",
     "duetP2": "اللاعب 2",
     "duetOn": "ثنائي",
@@ -558,9 +555,10 @@
     "enterFullscreen": "وضع ملء الشاشة",
     "play": "تشغيل",
     "pause": "إيقاف مؤقت",
-    "autoSkipOn": "Auto-skip: On",
-    "autoSkipOff": "Auto-skip: Off",
-    "autoSkipHint": "Automatically skip intros, outros and non-music sections"
+    "speed": "السرعة",
+    "speedNormal": "عادية",
+    "speedReset": "العودة إلى السرعة العادية",
+    "speedNote": "بسرعة أخرى يشغّل هذا الجهاز الصوت الأصلي، والغناء معه."
   },
   "footer": {
     "privacyPolicy": "سياسة الخصوصية",

@@ -268,7 +268,6 @@
     "scores": "得分",
     "hideVideo": "隱藏影片",
     "showVideo": "顯示影片",
-    "skipIntro": "跳過前奏 »",
     "songComplete": "歌曲完成！",
     "total": "總分：",
     "upNext": "下一首：",
@@ -285,8 +284,6 @@
     "defaultHost": "主持人",
     "pickASong": "Pick a song to start the party",
     "browseSongs": "Browse Songs",
-    "skipOutro": "Skip Outro »",
-    "skipInterruption": "Skip Interruption »",
     "duetP1": "玩家1",
     "duetP2": "玩家2",
     "duetOn": "對唱",
@@ -548,9 +545,10 @@
     "enterFullscreen": "進入全螢幕",
     "play": "播放",
     "pause": "暫停",
-    "autoSkipOn": "Auto-skip: On",
-    "autoSkipOff": "Auto-skip: Off",
-    "autoSkipHint": "Automatically skip intros, outros and non-music sections"
+    "speed": "播放速度",
+    "speedNormal": "正常",
+    "speedReset": "恢復正常速度",
+    "speedNote": "在其他速度下，此裝置會播放含人聲的原始音訊。"
   },
   "footer": {
     "privacyPolicy": "隱私權政策",

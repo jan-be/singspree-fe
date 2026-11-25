@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useId } from "react";
 import { useTranslation } from "react-i18next";
 import GapCorrector, { type GapData } from "./GapCorrector";
 import ReportSongDialog from "./ReportSongDialog";
@@ -21,6 +21,7 @@ import PartyQrCard, { type PartyQrCardProps } from "./PartyQrCard";
 import { partyJoinUrl } from "../logic/referrer";
 import { useSongNames } from "../logic/useSongNames";
 import type { SongNamesSource } from "../logic/lyricsScripts";
+import { SPEED_MAX, SPEED_MIN, SPEED_STEP, speedLabel } from "../logic/playbackSpeed";
 
 // What goes while nobody touches the page (useIdleControls; index.css, .ui-fade)
 const FADE = 'ui-fade [--ui-idle-transform:translateY(-0.25rem)]';
@@ -38,8 +39,11 @@ export interface PartyBarProps
   onGoToMenu?: () => void;
   onEndParty?: () => void;
   onLeaveParty?: () => void;
-  autoSkip?: boolean | null;
-  onToggleAutoSkip?: () => void;
+  /** the song's speed (1: normal); onSpeedChange for the host and co-hosts, who get the slider */
+  speed?: number;
+  onSpeedChange?: (speed: number) => void;
+  /** this device's stems sit out the other speed: YouTube's sound, vocals and all (PartyPage stemsSitOut) */
+  speedNote?: boolean;
   isHost: boolean;
   isFixingTiming: boolean;
   onFixingTimingChange: (fixing: boolean) => void;
@@ -74,7 +78,7 @@ export interface PartyBarProps
 // canControl: the host or a co-host (logic/partyRoles.ts), who also get the
 // party's door in the QR code card: joiningOpen and its switch, and `people`
 // with their co-host switches (onSetCohost(name, on), onSetJoiningOpen(open)).
-const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeaveParty, autoSkip, onToggleAutoSkip, isHost, isFixingTiming, onFixingTimingChange, volume, restoreVolume, vocalsLevel, instrumentalLevel, onVolumeChange, onVocalsLevelChange, onInstrumentalLevelChange, hasStems, volumeTooltip, stemsHint, onDismissStemsHint,
+const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeaveParty, speed = 1, onSpeedChange, speedNote = false, isHost, isFixingTiming, onFixingTimingChange, volume, restoreVolume, vocalsLevel, instrumentalLevel, onVolumeChange, onVocalsLevelChange, onInstrumentalLevelChange, hasStems, volumeTooltip, stemsHint, onDismissStemsHint,
   micActive, micPhase, micError, onJoinSinging, onLeaveSinging, micStatsRef, micDeviceId, onMicDeviceChange, multiMic, onMicPanelOpenChange, ownColor, onColorChange, latency,
   difficulty, onDifficultyChange, saveRecordings, onSaveRecordingsChange, camera,
   showVideo, onToggleVideo, videoHint, onDismissVideoHint, queueOpen, queuePoppedOut, onToggleQueue, queueCount = 0, song = null, live, upNextEnd = 0, upNextSong = null, onFreeClick,
@@ -270,11 +274,11 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
             </div>
           )}
 
-          {/* Settings: auto-skip (host and co-hosts) + fix timing */}
+          {/* Settings: the song's speed (host and co-hosts) + fix timing */}
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen(p => !p)}
-              className={`btn-icon ${isFixingTiming ? 'is-on text-neon-purple' : ''}`}
+              className={`btn-icon relative ${isFixingTiming ? 'is-on text-neon-purple' : ''}`}
               title={t('bottom.settings')}
               aria-expanded={menuOpen}
             >
@@ -282,23 +286,20 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
                 <circle cx="12" cy="12" r="3" />
                 <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
               </svg>
+              {/* Another speed than normal stays in sight, so the next song does not surprise anyone */}
+              {onSpeedChange && speed !== 1 && (
+                <span data-speed-badge="" className="absolute -bottom-1 -right-1.5 px-1 rounded-full bg-neon-cyan text-ink text-[10px] font-bold leading-[1.05rem] tabular-nums pointer-events-none">
+                  {speedLabel(speed)}
+                </span>
+              )}
             </button>
             {menuOpen && (
               <div className="pop absolute top-full right-0 mt-2.5 p-1.5 z-50 min-w-60">
-                {onToggleAutoSkip && (
-                  <button
-                    onClick={onToggleAutoSkip}
-                    title={t('bottom.autoSkipHint')}
-                    role="menuitemcheckbox"
-                    aria-checked={!!autoSkip}
-                    className={`menu-item ${autoSkip ? 'text-neon-green hover:text-neon-green' : ''}`}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
-                      <polygon points="13,6 23,12 13,18" />
-                      <polygon points="2,6 12,12 2,18" />
-                    </svg>
-                    {autoSkip ? t('bottom.autoSkipOn') : t('bottom.autoSkipOff')}
-                  </button>
+                {onSpeedChange && (
+                  <>
+                    <SpeedSlider speed={speed} onChange={onSpeedChange} note={speedNote} />
+                    <div className="my-1 h-px bg-white/8" aria-hidden="true" />
+                  </>
                 )}
                 {canFixTiming && (
                   <button
@@ -441,6 +442,51 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
         </div>
       )}
     </nav>
+  );
+};
+
+/**
+ * The song's speed, for the whole party: half to one and a half times, in
+ * steps of 0.05, normal in the middle (a mark under it). The value, when not
+ * normal, takes it back to normal.
+ */
+const SpeedSlider = ({ speed, onChange, note }: { speed: number; onChange: (speed: number) => void; note: boolean }) => {
+  const { t } = useTranslation();
+  const id = useId();
+  const at = (speed - SPEED_MIN) / (SPEED_MAX - SPEED_MIN);
+  return (
+    <div className="px-3 pt-2 pb-2.5" data-speed="">
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <span id={`${id}-label`} className="flex items-center gap-2.5 text-white/85">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 14l4-4" />
+            <path d="M3.34 19a10 10 0 1 1 17.32 0" />
+          </svg>
+          {t('bottom.speed')}
+        </span>
+        {speed !== 1 ? (
+          <button type="button" onClick={() => onChange(1)} title={t('bottom.speedReset')} className="text-xs font-semibold text-neon-cyan tabular-nums hover:text-white">
+            {speedLabel(speed)}
+          </button>
+        ) : (
+          <span className="text-xs text-white/45 tabular-nums">{t('bottom.speedNormal')}</span>
+        )}
+      </div>
+      {/* (left to right in every language: slower to faster, the track's fill with it) */}
+      <input
+        type="range" min={SPEED_MIN} max={SPEED_MAX} step={SPEED_STEP} value={speed}
+        onChange={e => onChange(Number(e.target.value))}
+        dir="ltr"
+        aria-labelledby={`${id}-label`}
+        aria-valuetext={speedLabel(speed)}
+        className="range mt-1.5"
+        style={{ '--v': `${at * 100}%`, '--accent': 'var(--color-neon-cyan)' } as React.CSSProperties}
+      />
+      <div dir="ltr" aria-hidden="true" className="flex justify-center -mt-0.5">
+        <span className={`w-1 h-1 rounded-full ${speed === 1 ? 'bg-white' : 'bg-white/30'}`} />
+      </div>
+      {note && <p className="mt-1.5 text-xs text-white/45 leading-snug max-w-56">{t('bottom.speedNote')}</p>}
+    </div>
   );
 };
 

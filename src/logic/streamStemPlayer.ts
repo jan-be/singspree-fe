@@ -33,7 +33,10 @@
 // the rest of the song.)
 //
 // Same surface as StemPlayer: load / play / pause / seek / dispose, loaded,
-// playing, currentTime, duration, ended.
+// playing, currentTime, duration, ended. And setRate, which StemPlayer has
+// not: an AudioBufferSourceNode at another speed changes the pitch with it,
+// while an element keeps it (preservesPitch), so decoded stems sit out a song
+// played at another speed and YouTube carries its sound (PartyPage).
 
 import type { MixNode, StemFade, StemGains, StemName, StemUrls } from './stemPlayer';
 
@@ -54,6 +57,10 @@ export interface StemElement {
   readonly seeking: boolean;
   readonly readyState: number;
   readonly error: { readonly code: number } | null;
+  /** the song's speed (setRate): `defaultPlaybackRate` is what a load starts at, the pitch is kept */
+  playbackRate?: number;
+  defaultPlaybackRate?: number;
+  preservesPitch?: boolean;
   addEventListener(type: 'canplay' | 'error' | 'ended' | 'playing' | 'progress' | 'seeked', listener: () => void, options?: { once?: boolean }): void;
   play(): Promise<void>;
   pause(): void;
@@ -123,6 +130,15 @@ const learned = (() => {
 })();
 const saveLeads = () => { try { localStorage.setItem(LEADS_KEY, JSON.stringify(learned)); } catch { /* */ } };
 
+/** A stem's element at the song's speed, its pitch kept; a load starts at the default rate, so that one too */
+function setElementRate(el: StemElement, rate: number) {
+  try {
+    el.preservesPitch = true;
+    el.defaultPlaybackRate = rate;
+    if (el.playbackRate !== rate) el.playbackRate = rate;
+  } catch { /* a rate the browser does not play: the page's sync keeps the stems near the video */ }
+}
+
 export class StreamingStemPlayer {
   declare ctx: StreamingStemContext;
   declare gains: StemGains;
@@ -154,6 +170,7 @@ export class StreamingStemPlayer {
   declare quiet: Record<StemName, number>;
   declare dryMs: number;
   declare watchTimer: number | null;
+  declare rate: number;
 
   /**
    * @param {AudioContext} ctx
@@ -193,6 +210,18 @@ export class StreamingStemPlayer {
     this.log = () => {};
     this.settleToken = 0;    // counts settle()s: an older one's events no longer count
     this.vocalsToken = 0;    // the same for realign()'s moves
+    this.rate = 1;           // the song's speed (setRate)
+  }
+
+  /**
+   * The song's speed (the party's speed slider): both elements play at it,
+   * their pitch kept (the browser stretches the sound, as YouTube's player does).
+   */
+  setRate(rate: number) {
+    const r = Number.isFinite(rate) && rate > 0 ? rate : 1;
+    if (r === this.rate) return; // (asked on every frame)
+    this.rate = r;
+    for (const el of Object.values(this.els ?? {})) setElementRate(el, r);
   }
 
   /**
@@ -209,6 +238,7 @@ export class StreamingStemPlayer {
       const el = this.createElement();
       el.crossOrigin = 'anonymous';
       el.preload = 'auto';
+      setElementRate(el, this.rate);
       const fade = this.ctx.createGain();
       fade.connect(this.gains[name]);
       const source = this.ctx.createMediaElementSource(el);

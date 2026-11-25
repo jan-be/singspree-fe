@@ -268,7 +268,6 @@
     "scores": "Điểm số",
     "hideVideo": "Ẩn video",
     "showVideo": "Hiện video",
-    "skipIntro": "Bỏ qua phần mở đầu »",
     "songComplete": "Hoàn thành bài hát!",
     "total": "Tổng:",
     "upNext": "Tiếp theo:",
@@ -285,8 +284,6 @@
     "defaultHost": "Chủ phòng",
     "pickASong": "Pick a song to start the party",
     "browseSongs": "Browse Songs",
-    "skipOutro": "Skip Outro »",
-    "skipInterruption": "Skip Interruption »",
     "duetP1": "Người chơi 1",
     "duetP2": "Người chơi 2",
     "duetOn": "Song ca",
@@ -548,9 +545,10 @@
     "enterFullscreen": "Toàn màn hình",
     "play": "Phát",
     "pause": "Tạm dừng",
-    "autoSkipOn": "Auto-skip: On",
-    "autoSkipOff": "Auto-skip: Off",
-    "autoSkipHint": "Automatically skip intros, outros and non-music sections"
+    "speed": "Tốc độ",
+    "speedNormal": "Bình thường",
+    "speedReset": "Trở về tốc độ bình thường",
+    "speedNote": "Ở tốc độ khác, thiết bị này phát âm thanh gốc, kèm cả giọng hát."
   },
   "footer": {
     "privacyPolicy": "Chính sách bảo mật",

@@ -271,9 +271,6 @@
     "scores": "Scores",
     "hideVideo": "Hide Video",
     "showVideo": "Show Video",
-    "skipIntro": "Skip Intro »",
-    "skipOutro": "Skip Outro »",
-    "skipInterruption": "Skip Interruption »",
     "duetP1": "Player 1",
     "duetP2": "Player 2",
     "duetOn": "Duet",
@@ -554,9 +551,10 @@
     "enterFullscreen": "Enter fullscreen",
     "play": "Play",
     "pause": "Pause",
-    "autoSkipOn": "Auto-skip: On",
-    "autoSkipOff": "Auto-skip: Off",
-    "autoSkipHint": "Automatically skip intros, outros and non-music sections"
+    "speed": "Speed",
+    "speedNormal": "Normal",
+    "speedReset": "Back to normal speed",
+    "speedNote": "At other speeds this device plays the original sound, vocals included."
   },
   "footer": {
     "privacyPolicy": "Privacy Policy",

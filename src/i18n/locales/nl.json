@@ -270,7 +270,6 @@
     "scores": "Scores",
     "hideVideo": "Video verbergen",
     "showVideo": "Video tonen",
-    "skipIntro": "Intro overslaan »",
     "songComplete": "Liedje voltooid!",
     "total": "Totaal:",
     "upNext": "Volgende:",
@@ -287,8 +286,6 @@
     "defaultHost": "Host",
     "pickASong": "Pick a song to start the party",
     "browseSongs": "Browse Songs",
-    "skipOutro": "Skip Outro »",
-    "skipInterruption": "Skip Interruption »",
     "duetP1": "Speler 1",
     "duetP2": "Speler 2",
     "duetOn": "Duet",
@@ -550,9 +547,10 @@
     "enterFullscreen": "Volledig scherm",
     "play": "Afspelen",
     "pause": "Pauzeren",
-    "autoSkipOn": "Auto-skip: On",
-    "autoSkipOff": "Auto-skip: Off",
-    "autoSkipHint": "Automatically skip intros, outros and non-music sections"
+    "speed": "Snelheid",
+    "speedNormal": "Normaal",
+    "speedReset": "Terug naar normale snelheid",
+    "speedNote": "Op een andere snelheid speelt dit apparaat het originele geluid af, inclusief zang."
   },
   "footer": {
     "privacyPolicy": "Privacybeleid",

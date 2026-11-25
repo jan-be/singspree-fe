@@ -274,7 +274,6 @@
     "scores": "Очки",
     "hideVideo": "Скрыть видео",
     "showVideo": "Показать видео",
-    "skipIntro": "Пропустить вступление »",
     "songComplete": "Песня завершена!",
     "total": "Итого:",
     "upNext": "Далее:",
@@ -291,8 +290,6 @@
     "defaultHost": "Ведущий",
     "pickASong": "Pick a song to start the party",
     "browseSongs": "Browse Songs",
-    "skipOutro": "Skip Outro »",
-    "skipInterruption": "Skip Interruption »",
     "duetP1": "Игрок 1",
     "duetP2": "Игрок 2",
     "duetOn": "Дуэт",
@@ -554,9 +551,10 @@
     "enterFullscreen": "Полноэкранный режим",
     "play": "Воспроизвести",
     "pause": "Пауза",
-    "autoSkipOn": "Auto-skip: On",
-    "autoSkipOff": "Auto-skip: Off",
-    "autoSkipHint": "Automatically skip intros, outros and non-music sections"
+    "speed": "Скорость",
+    "speedNormal": "Обычная",
+    "speedReset": "Вернуть обычную скорость",
+    "speedNote": "На другой скорости это устройство играет исходный звук вместе с вокалом."
   },
   "footer": {
     "privacyPolicy": "Политика конфиденциальности",

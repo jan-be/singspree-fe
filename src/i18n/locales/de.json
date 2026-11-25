@@ -271,7 +271,6 @@
     "scores": "Punkte",
     "hideVideo": "Video ausblenden",
     "showVideo": "Video einblenden",
-    "skipIntro": "Intro überspringen »",
     "songComplete": "Song abgeschlossen!",
     "total": "Gesamt:",
     "upNext": "Als Nächstes:",
@@ -288,8 +287,6 @@
     "defaultHost": "Host",
     "pickASong": "Pick a song to start the party",
     "browseSongs": "Browse Songs",
-    "skipOutro": "Skip Outro »",
-    "skipInterruption": "Skip Interruption »",
     "duetP1": "Spieler 1",
     "duetP2": "Spieler 2",
     "duetOn": "Duett",
@@ -554,9 +551,10 @@
     "enterFullscreen": "Vollbild",
     "play": "Abspielen",
     "pause": "Pause",
-    "autoSkipOn": "Auto-skip: On",
-    "autoSkipOff": "Auto-skip: Off",
-    "autoSkipHint": "Automatically skip intros, outros and non-music sections"
+    "speed": "Geschwindigkeit",
+    "speedNormal": "Normal",
+    "speedReset": "Zurück zur normalen Geschwindigkeit",
+    "speedNote": "Bei anderer Geschwindigkeit spielt dieses Gerät den Originalton, mit Gesang."
   },
   "footer": {
     "privacyPolicy": "Datenschutz",

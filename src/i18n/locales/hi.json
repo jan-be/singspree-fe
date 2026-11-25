@@ -270,7 +270,6 @@
     "scores": "स्कोर",
     "hideVideo": "वीडियो छुपाएँ",
     "showVideo": "वीडियो दिखाएँ",
-    "skipIntro": "इंट्रो छोड़ें »",
     "songComplete": "गाना पूरा हुआ!",
     "total": "कुल:",
     "upNext": "अगला:",
@@ -287,8 +286,6 @@
     "defaultHost": "होस्ट",
     "pickASong": "Pick a song to start the party",
     "browseSongs": "Browse Songs",
-    "skipOutro": "Skip Outro »",
-    "skipInterruption": "Skip Interruption »",
     "duetP1": "खिलाड़ी 1",
     "duetP2": "खिलाड़ी 2",
     "duetOn": "डुएट",
@@ -550,9 +547,10 @@
     "enterFullscreen": "फ़ुलस्क्रीन में जाएँ",
     "play": "चलाएँ",
     "pause": "रोकें",
-    "autoSkipOn": "Auto-skip: On",
-    "autoSkipOff": "Auto-skip: Off",
-    "autoSkipHint": "Automatically skip intros, outros and non-music sections"
+    "speed": "गति",
+    "speedNormal": "सामान्य",
+    "speedReset": "सामान्य गति पर लौटें",
+    "speedNote": "दूसरी गति पर यह डिवाइस मूल आवाज़ चलाता है, गायन सहित।"
   },
   "footer": {
     "privacyPolicy": "गोपनीयता नीति",
