@@ -10,6 +10,7 @@ import { createInferenceScheduler } from "./inferenceScheduler";
 import { createLevelCalibration } from "./levelCalibration";
 import { createFrameAgeMeter, createLagWatch, createMicCapture } from "./micChunker";
 import { PROVISIONAL, createProvisionalTracker } from "./provisionalPitch";
+import { openMicStream } from "./micStream";
 import type { CaptureOutput, DisplayChunk, FrameAge, MicCapture, MicCaptureMessage, MicCaptureRequest, MicCaptureWorkerOptions, MicChunk, MicLevel, PitchWorkletOptions, PitchWorkletRequest } from "./micChunker";
 import type { PitchDetectRequest, PitchWorkerRequest, PitchWorkerResponse } from "./pitchModel";
 
@@ -351,7 +352,8 @@ const startPitchWorker = (WorkerCtor: new () => Worker, modelPath: string) => ne
 
 /**
  * Why joining failed, for the mic panel: 'denied' (the browser or the user
- * refused access), 'noDevice' (none, or the remembered one is gone) or 'failed'.
+ * refused access), 'noDevice' (none; or the one asked for is gone, where the
+ * default was not tried in its place: micStream.ts) or 'failed'.
  */
 export const micErrorKind = (e: unknown): MicErrorKind => {
   switch (typeof e === 'object' && e !== null && 'name' in e ? e.name : undefined) {
@@ -364,6 +366,8 @@ export const micErrorKind = (e: unknown): MicErrorKind => {
 /**
  * @param [options]
  *   deviceId: a specific input device (from enumerateDevices), default otherwise
+ *   onDeviceGone: that device is gone and the default microphone opened in its
+ *     place (micStream.ts); without it a device that is gone is a failure
  *   gpu: try the WebGPU pitch worker first (opt-in, see pitchGpuFlag.ts); WASM if it cannot start
  *   provisional: the highway's earlier pitch (opt-in, see fastPitchFlag.ts)
  *   earlyContext: start the AudioWorklet path's AudioContext before the microphone (opt-in, see fastPitchFlag.ts)
@@ -371,17 +375,10 @@ export const micErrorKind = (e: unknown): MicErrorKind => {
  *     for permission), 'loading' while the pitch detector loads, which the
  *     first time means downloading ~1 MB (runtime and model, compressed)
  */
-export const initMicInput = async ({ deviceId, gpu = false, provisional = false, earlyContext = false, onPhase }: { deviceId?: string, gpu?: boolean, provisional?: boolean, earlyContext?: boolean, onPhase?: (phase: MicPhase) => void } = {}): Promise<MicInput> => {
+export const initMicInput = async ({ deviceId, onDeviceGone, gpu = false, provisional = false, earlyContext = false, onPhase }: { deviceId?: string, onDeviceGone?: () => void, gpu?: boolean, provisional?: boolean, earlyContext?: boolean, onPhase?: (phase: MicPhase) => void } = {}): Promise<MicInput> => {
   onPhase?.('starting');
   const earlyAudioContext = earlyContext && !hasTrackProcessor ? await startContextEarly() : null;
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: {
-      echoCancellation: false,
-      autoGainControl: false,
-      noiseSuppression: false,
-      ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
-    },
-  }).catch((e: unknown) => {
+  const stream = await openMicStream({ deviceId, onDeviceGone }).catch((e: unknown) => {
     earlyAudioContext?.close();
     throw e;
   });

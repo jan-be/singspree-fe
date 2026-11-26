@@ -2553,7 +2553,17 @@ const PartyPage = () => {
     micErrorRef.current = null;
     let phase: MicPhase | null = null; // how far the start got, for the note of a failure
     try {
-      const result = await initMicInput({ deviceId: deviceId || undefined, gpu: isPitchGpuEnabled(), provisional: isFastPitchEnabled(), earlyContext: isEarlyContextEnabled(), onPhase: (p) => { phase = p; setMicPhase(p); } });
+      const result = await initMicInput({
+        deviceId: deviceId || undefined, gpu: isPitchGpuEnabled(), provisional: isFastPitchEnabled(), earlyContext: isEarlyContextEnabled(), onPhase: (p) => { phase = p; setMicPhase(p); },
+        // The remembered device is gone (unplugged, another browser profile): the default microphone
+        // opened in its place (micStream.ts), and the choice goes back to "default" with it
+        onDeviceGone: () => {
+          debugLog('mic', 'the chosen microphone is gone: singing into the default one');
+          if (micDeviceIdRef.current !== deviceId) return; // (another was chosen meanwhile)
+          setMicDeviceId(null);
+          try { localStorage.removeItem('singspree_mic_device'); } catch { /* */ }
+        },
+      });
       micOpenedAtRef.current = performance.now();
       stopMicRef.current = result.stopMicInput;
       micStatsRef.current = result.stats;
