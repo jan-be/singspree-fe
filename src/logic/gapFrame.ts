@@ -12,3 +12,13 @@ export const carryGap = (gap: number | undefined, fromBase: number | undefined, 
   if (gap === undefined || fromBase === undefined || !Number.isFinite(gap) || !Number.isFinite(fromBase)) return toBase;
   return toBase + (gap - fromBase);
 };
+
+/**
+ * The lowest gap the timing tools set (ms), the backend's MIN_GAP_MS. A gap
+ * below 0 is real: a video that starts after the chart's first beat puts tick
+ * 0 before 0:00, and the notes before 0:00 are never reached.
+ */
+export const MIN_GAP_MS = -600_000;
+
+/** A gap being typed or dragged, kept within what the backend stores */
+export const clampGap = (gap: number): number => Math.max(MIN_GAP_MS, gap);

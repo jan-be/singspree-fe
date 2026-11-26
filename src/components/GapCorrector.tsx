@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../logic/AuthContext";
 import { submitGapCorrection } from "../logic/authApi";
+import { clampGap } from "../logic/gapFrame";
 
 /** The song's timing as the party page hands it down (PartyPage gapData) */
 export interface GapData {
@@ -60,7 +61,7 @@ const GapCorrector = ({ songId, gapData, isOpen: controlledIsOpen, onOpenChange 
   useEffect(() => { if (isOpen) setSubmitState(null); }, [isOpen]);
 
   const updateGap = (newGap: number) => {
-    const clamped = Math.max(0, newGap);
+    const clamped = clampGap(newGap); // (below 0 too: a video that starts after the chart's first beat)
     setLocalGap(clamped);
     gapData.setGap(clamped);
   };

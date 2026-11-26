@@ -21,6 +21,7 @@ import type { LyricElement, LyricLine } from "../logic/LyricsParser";
 import type { FrameGovernor } from "../logic/frameGovernor";
 import type { HighwayPainter, PainterCaches } from "../logic/highwayPainters";
 import { DEFAULT_DIFFICULTY, TOLERANCE, type Difficulty } from "../logic/difficulty";
+import { clampGap } from "../logic/gapFrame";
 import type { OffThreadPainter } from "../logic/highwayRenderer";
 import type { PlayerColors } from "../logic/playerColor";
 
@@ -811,7 +812,7 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
     const dxPx = e.clientX - ds.startX;
     // Convert pixels → ticks → ms. Drag right = cursor moves right = gap decreases.
     const dGapMs = -(dxPx / ds.rectWidth) * lineDurationMs();
-    setGap?.(Math.max(0, ds.startGap + dGapMs)); // (a drag starts only with setGap: canDragGap)
+    setGap?.(clampGap(ds.startGap + dGapMs)); // (a drag starts only with setGap: canDragGap)
     setDragState({ ...ds, currentDx: dxPx });
   };
 
@@ -830,8 +831,8 @@ const MusicBars = ({ store, isHost, playerColors, playerParts, playerDifficultie
     const dxFractionOfLine = dxPx / ds.rectWidth;
     // Snap: if dragged more than 33% of line width, snap to whole-line jumps.
     const finalGap = Math.abs(dxFractionOfLine) > 0.33
-      ? Math.max(0, ds.startGap - Math.round(dxFractionOfLine) * lineDurationMs())
-      : Math.max(0, ds.startGap - dxFractionOfLine * lineDurationMs());
+      ? clampGap(ds.startGap - Math.round(dxFractionOfLine) * lineDurationMs())
+      : clampGap(ds.startGap - dxFractionOfLine * lineDurationMs());
     setGap?.(finalGap);
     setDragState(null);
   };
