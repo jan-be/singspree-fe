@@ -345,6 +345,22 @@
       "profile": "Zobacz swój profil"
     }
   },
+  "tour": {
+    "label": "Krótki przewodnik",
+    "step": "Krok {{n}} z {{count}}",
+    "skip": "Pomiń przewodnik",
+    "back": "Wstecz",
+    "next": "Dalej",
+    "done": "Śpiewamy!",
+    "songWaits": "Piosenka poczeka, aż skończysz.",
+    "volumeTitle": "Dźwięk",
+    "volumeText": "Głośność, a w piosenkach z osobną ścieżką wokalną także oryginalny wokal: przesuń „{{vocals}}” w dół, aby śpiewać bez niego.",
+    "micTitle": "Mikrofony",
+    "micText": "Dołącz do śpiewania i wybierz mikrofon, poziom trudności i kolor. Dwie osoby, jedno urządzenie? Dodaj kolejny mikrofon: każdy śpiewa jako osobny gracz.",
+    "partyTitle": "Ustawienia imprezy",
+    "partyTextQr": "Kod QR je otwiera: zamknij imprezę dla nowych osób, zrób ze znajomych współgospodarzy, którzy poprowadzą ją z tobą, i puść głosy śpiewających w głośnikach.",
+    "partyTextShare": "Ten przycisk otwiera kod imprezy i jej ustawienia: zamknij imprezę dla nowych osób, zrób ze znajomych współgospodarzy, którzy poprowadzą ją z tobą, i puść głosy śpiewających w głośnikach."
+  },
   "queue": {
     "title": "Kolejka",
     "empty": "Kolejka jest pusta",

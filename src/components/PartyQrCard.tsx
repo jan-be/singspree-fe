@@ -1,8 +1,9 @@
-import React, { useId } from "react";
+import React, { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Avatar from "./Avatar";
 import QrCode from "./QrCode";
 import { LockIcon } from "./Icons";
+import { TOUR_CAP } from "./PartyTour";
 import { useSecondClick } from "./ProfileParts";
 import { playerHue, type PlayerColors } from "../logic/playerColor";
 import type { AvatarPaths } from "../logic/avatar";
@@ -36,7 +37,45 @@ export interface PartyQrCardProps {
   /** the singers' microphones on the host's speakers (usePartyVoices.ts), and its switch */
   voices?: boolean;
   onSetVoices?: (on: boolean) => void;
+  /** the code to scan, on top: only where the bar shows none already (phones; sm up the QR card is always there) */
+  showCode?: boolean;
+  /** opened by the party page's tour (PartyTour.tsx): kept clear of its card on a phone */
+  tourOpen?: boolean;
 }
+
+/** The party's link, for those who would rather send it than show the code; the button copies it */
+const LinkRow = ({ joinUrl, linkUrl }: { joinUrl: string; linkUrl: string }) => {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return undefined;
+    const id = setTimeout(() => setCopied(false), 1500);
+    return () => clearTimeout(id);
+  }, [copied]);
+  return (
+    <div className="flex items-center gap-1 rounded-xl bg-white/[0.06] ring-1 ring-white/10 ps-3 pe-1 py-1" data-party-link="">
+      <span dir="ltr" className="flex-1 min-w-0 truncate font-mono text-[0.8125rem] text-white/85 select-all">{joinUrl.replace(/^https?:\/\//, '')}</span>
+      <button
+        type="button"
+        onClick={() => { navigator.clipboard.writeText(linkUrl).then(() => setCopied(true), () => {}); }}
+        title={t('party.copyLink')}
+        aria-label={t('party.copyLink')}
+        className={`btn-icon w-8 h-8 flex-shrink-0 ${copied ? 'text-neon-green' : ''}`}
+      >
+        {copied ? (
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ) : (
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="9" y="9" width="13" height="13" rx="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+        )}
+      </button>
+    </div>
+  );
+};
 
 /**
  * The enlarged QR code of the party bar: the code to scan and the link to
@@ -49,6 +88,9 @@ export interface PartyQrCardProps {
  * has no switch: nobody takes it. And the switch for the singers' voices on
  * the host's speakers (each phone sends its microphone to the host's page).
  * Beside a person, the button that sends them away for this party.
+ *
+ * From sm up the bar's QR card is always in sight, and it is what opens this:
+ * there (showCode false) the code is not repeated, only the link to copy.
  */
 /** Sends someone away: the first tap asks, as a slip would keep a friend out of the party */
 const KickButton = ({ name, onKick }: { name: string; onKick: (name: string) => void }) => {
@@ -69,10 +111,18 @@ const KickButton = ({ name, onKick }: { name: string; onKick: (name: string) => 
 };
 
 const PartyQrCard = ({ qrUrl, joinUrl, linkUrl, joiningOpen = true, controls = false, people = [], playerAvatars, playerColors, onSetCohost, onKick, onSetJoiningOpen,
-  voices = false, onSetVoices }: PartyQrCardProps) => {
+  voices = false, onSetVoices, showCode = true, tourOpen = false }: PartyQrCardProps) => {
   const { t } = useTranslation();
   const labelId = useId(); // the bar renders the card twice (laptop and phone layout), one of them hidden
   const voicesId = useId();
+  // Where the bar's own QR card is in sight, the code again would only repeat it: the link stays
+  const closed = (
+    <div className="px-1" data-joining-closed="">
+      <div className="text-white font-semibold text-sm">{t('party.joiningClosed')}</div>
+      <div className="mt-1 text-white/55 text-xs leading-snug">{t('party.joiningClosedHint')}</div>
+    </div>
+  );
+  const link = joiningOpen ? <LinkRow joinUrl={joinUrl} linkUrl={linkUrl} /> : closed;
   const code = (
     <>
       <div className="relative">
@@ -105,19 +155,34 @@ const PartyQrCard = ({ qrUrl, joinUrl, linkUrl, joiningOpen = true, controls = f
   );
 
   if (!controls) {
+    if (!showCode) {
+      return (
+        <div className="pop absolute top-full right-0 mt-2.5 p-2 z-50 w-[17.5rem]" data-tour-pop="">
+          {joiningOpen ? link : <div className="p-2">{closed}</div>}
+        </div>
+      );
+    }
     return (
-      <div className="absolute top-full right-0 mt-2.5 bg-white rounded-2xl p-5 shadow-[0_24px_60px_-16px_rgba(0,0,0,0.85)] flex flex-col items-center gap-3 z-50" style={{ minWidth: 220 }}>
+      <div className="absolute top-full right-0 mt-2.5 bg-white rounded-2xl p-5 shadow-[0_24px_60px_-16px_rgba(0,0,0,0.85)] flex flex-col items-center gap-3 z-50" style={{ minWidth: 220 }} data-tour-pop="">
         {code}
       </div>
     );
   }
 
   return (
-    // A popover with the white code on top; scrolls when a phone held sideways has no room for it all
-    <div className="pop absolute top-full right-0 mt-2.5 p-2 z-50 w-[17.5rem] max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain" data-party-door="">
-      <div className="bg-white rounded-[0.9rem] p-4 flex flex-col items-center gap-3">
-        {code}
-      </div>
+    // A popover with the white code on top (or the link alone, the code being in sight); scrolls when a
+    // phone held sideways has no room for it all
+    <div
+      className="pop absolute top-full right-0 mt-2.5 p-2 z-50 w-[17.5rem] max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain"
+      style={tourOpen ? TOUR_CAP(5) : undefined}
+      data-party-door=""
+      data-tour-pop=""
+    >
+      {showCode ? (
+        <div className="bg-white rounded-[0.9rem] p-4 flex flex-col items-center gap-3">
+          {code}
+        </div>
+      ) : link}
       <div className="px-2 pt-3 pb-1">
         <div className="flex items-center justify-between gap-3">
           <span id={labelId} className="text-sm font-medium text-white">{t('party.joiningSwitch')}</span>

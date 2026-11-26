@@ -5,6 +5,7 @@ import { markPopoverClosed } from '../logic/popoverGuard';
 import { useStoreValue } from '../logic/valueStore';
 import type { ValueStore } from '../logic/valueStore';
 import type { VoiceSingerView } from '../logic/voiceMixer';
+import { TOUR_CAP } from './PartyTour';
 
 /** The host page's voices on the speakers (usePartyVoices.ts): the singers' level, the echo, each singer */
 export interface SingerVoicesControl {
@@ -35,6 +36,8 @@ export interface VolumeControlProps {
   onDismissStemsHint?: () => void;
   /** the host's page while the party has voices on */
   singerVoices?: SingerVoicesControl;
+  /** the party page's tour (PartyTour.tsx) holds it open for its step */
+  tourOpen?: boolean;
 }
 
 /**
@@ -62,7 +65,7 @@ export interface VolumeControlProps {
  */
 const VolumeControl = ({
   volume, restoreVolume, vocalsLevel, instrumentalLevel = 100, onVolumeChange, onVocalsLevelChange, onInstrumentalLevelChange,
-  hasStems, volumeTooltip, stemsHint = false, onDismissStemsHint, singerVoices,
+  hasStems, volumeTooltip, stemsHint = false, onDismissStemsHint, singerVoices, tourOpen = false,
 }: VolumeControlProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -92,6 +95,13 @@ const VolumeControl = ({
   }, [volumeTooltip]);
   const used = () => { nudgedRef.current = false; };
 
+  // The tour opens it for its step and closes it after
+  const touredRef = useRef(false);
+  useEffect(() => {
+    if (tourOpen) { touredRef.current = true; setOpen(true); }
+    else if (touredRef.current) { touredRef.current = false; setOpen(false); }
+  }, [tourOpen]);
+
   useEffect(() => {
     if (!open) return;
     const handler = (e: PointerEvent) => {
@@ -106,7 +116,7 @@ const VolumeControl = ({
   const toggleInstrumental = () => onInstrumentalLevelChange?.(instrumentalLevel > 0 ? 0 : lastInstrumentalRef.current);
 
   return (
-    <div className="relative" ref={ref} onPointerDown={used} onKeyDown={used}>
+    <div className="relative" ref={ref} onPointerDown={used} onKeyDown={used} data-tour="volume">
       <button
         onClick={() => {
           used();
@@ -142,7 +152,11 @@ const VolumeControl = ({
       )}
 
       {open && (
-        <div className="pop absolute top-full left-1/2 -translate-x-1/2 mt-2.5 w-64 p-4 z-50 space-y-4">
+        <div
+          className="pop absolute top-full left-1/2 -translate-x-1/2 mt-2.5 w-64 p-4 z-50 space-y-4"
+          style={tourOpen ? { ...TOUR_CAP(5.5), overflowY: 'auto' } : undefined}
+          data-tour-pop=""
+        >
           {volumeTooltip && hasStems && (
             <div className="text-xs text-neon-purple text-center animate-pulse">
               {t('volume.useTheseControls')}

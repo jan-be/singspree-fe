@@ -41,4 +41,11 @@ export function chromeLaunchArgs(audioFilePath?: string): string[] {
   ];
 }
 
+/**
+ * The party page's first-visit tour (PartyTour.tsx) pauses the host's song and
+ * dims the page: tests that are not about it mark it seen on their contexts.
+ */
+export const skipPartyTour = (context: BrowserContext) =>
+  context.addInitScript(() => { try { localStorage.setItem('singspree_party_tour_seen', '1'); } catch { /* */ } });
+
 export { expect };

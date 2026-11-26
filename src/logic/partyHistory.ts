@@ -104,6 +104,15 @@ function update(partyId: string, fn: (p: PartyRecord) => void, now = Date.now())
 }
 
 /**
+ * Whether this browser was in another party before `partyId`'s (the party
+ * page's tour is for a first party): a record of another code, or of this
+ * code from long ago (codes are reused). This party's own record, from this
+ * visit or one before it (a reload), does not count.
+ */
+export const partiedBefore = (partyId: string, now = Date.now()): boolean =>
+  read().some(p => p.partyId !== partyId || now - (p.lastAt ?? 0) >= SAME_PARTY_MS);
+
+/**
  * A song started in the party (the party page, as its chart loads).
  * `host`: this browser runs the party; `me`: the name it sings under here.
  */

@@ -341,6 +341,22 @@
       "profile": "Till din profil"
     }
   },
+  "tour": {
+    "label": "Snabb rundtur",
+    "step": "Steg {{n}} av {{count}}",
+    "skip": "Hoppa över",
+    "back": "Tillbaka",
+    "next": "Nästa",
+    "done": "Nu sjunger vi!",
+    "songWaits": "Låten väntar tills du är klar.",
+    "volumeTitle": "Ljud",
+    "volumeText": "Volymen och, på låtar med eget sångspår, även originalsången: dra ner ”{{vocals}}” för att sjunga utan den.",
+    "micTitle": "Mikrofoner",
+    "micText": "Börja sjunga och välj mikrofon, svårighetsgrad och färg. Två sångare, en enhet? Lägg till en mikrofon till: varje mikrofon sjunger som en egen spelare.",
+    "partyTitle": "Festinställningar",
+    "partyTextQr": "QR-koden öppnar dem: stäng festen för nya gäster, gör vänner till medvärdar som styr festen med dig och låt sångarnas röster höras i högtalarna.",
+    "partyTextShare": "Den här knappen öppnar festens kod och inställningar: stäng festen för nya gäster, gör vänner till medvärdar som styr festen med dig och låt sångarnas röster höras i högtalarna."
+  },
   "queue": {
     "title": "Kö",
     "empty": "Kön är tom",

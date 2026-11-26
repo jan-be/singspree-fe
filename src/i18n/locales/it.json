@@ -341,6 +341,22 @@
       "profile": "Vai al tuo profilo"
     }
   },
+  "tour": {
+    "label": "Tour veloce",
+    "step": "Passo {{n}} di {{count}}",
+    "skip": "Salta il tour",
+    "back": "Indietro",
+    "next": "Avanti",
+    "done": "Si canta!",
+    "songWaits": "La tua canzone aspetta finché non hai finito.",
+    "volumeTitle": "Audio",
+    "volumeText": "Il volume e, nelle canzoni con una traccia vocale separata, anche la voce originale: abbassa “{{vocals}}” per cantare senza.",
+    "micTitle": "Microfoni",
+    "micText": "Unisciti al canto e scegli microfono, difficoltà e colore. Due cantanti, un dispositivo? Aggiungi un altro microfono: ognuno canta come un giocatore a sé.",
+    "partyTitle": "Impostazioni della festa",
+    "partyTextQr": "Il codice QR le apre: chiudi la festa ai nuovi arrivati, rendi i tuoi amici co-organizzatori che la guidano con te e fai suonare le voci dei cantanti negli altoparlanti.",
+    "partyTextShare": "Questo pulsante apre il codice della festa e le sue impostazioni: chiudi la festa ai nuovi arrivati, rendi i tuoi amici co-organizzatori che la guidano con te e fai suonare le voci dei cantanti negli altoparlanti."
+  },
   "queue": {
     "title": "Coda",
     "empty": "La coda è vuota",

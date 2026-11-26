@@ -345,6 +345,22 @@
       "profile": "See your profile"
     }
   },
+  "tour": {
+    "label": "Quick tour",
+    "step": "Step {{n}} of {{count}}",
+    "skip": "Skip tour",
+    "back": "Back",
+    "next": "Next",
+    "done": "Let's sing!",
+    "songWaits": "Your song waits until you're done.",
+    "volumeTitle": "Sound",
+    "volumeText": "The volume, and on songs with their own vocal track the original singer too: slide “{{vocals}}” down to sing without them.",
+    "micTitle": "Microphones",
+    "micText": "Join singing and pick your microphone, difficulty and color. Two singers, one device? Add another microphone: each one sings as its own player.",
+    "partyTitle": "Party settings",
+    "partyTextQr": "The QR code opens these: close the party to newcomers, make friends co-hosts who run it with you, and let singers' voices play through the speakers.",
+    "partyTextShare": "This button opens the party's code and these settings: close the party to newcomers, make friends co-hosts who run it with you, and let singers' voices play through the speakers."
+  },
   "queue": {
     "title": "Queue",
     "empty": "Queue is empty",

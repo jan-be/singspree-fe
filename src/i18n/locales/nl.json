@@ -341,6 +341,22 @@
       "profile": "Naar je profiel"
     }
   },
+  "tour": {
+    "label": "Korte rondleiding",
+    "step": "Stap {{n}} van {{count}}",
+    "skip": "Rondleiding overslaan",
+    "back": "Terug",
+    "next": "Volgende",
+    "done": "Zingen maar!",
+    "songWaits": "Je nummer wacht tot je klaar bent.",
+    "volumeTitle": "Geluid",
+    "volumeText": "Het volume en, bij nummers met een eigen zangspoor, ook de originele zanger: schuif “{{vocals}}” omlaag om zonder te zingen.",
+    "micTitle": "Microfoons",
+    "micText": "Doe mee met zingen en kies je microfoon, moeilijkheid en kleur. Twee zangers, één apparaat? Voeg nog een microfoon toe: elke microfoon zingt als een eigen speler.",
+    "partyTitle": "Feestinstellingen",
+    "partyTextQr": "De QR-code opent ze: sluit het feest voor nieuwkomers, maak vrienden co-host zodat ze het met je leiden, en laat de stemmen van zangers via de speakers klinken.",
+    "partyTextShare": "Deze knop opent de code van het feest en de instellingen: sluit het feest voor nieuwkomers, maak vrienden co-host zodat ze het met je leiden, en laat de stemmen van zangers via de speakers klinken."
+  },
   "queue": {
     "title": "Wachtrij",
     "empty": "Wachtrij is leeg",

@@ -2,7 +2,7 @@ import { assert, describe, test, expect, beforeEach, vi } from 'vitest';
 import {
   notePartySong, notePartySingers, notePartyQueue, loadParties, lastHostedParty, missedSongs,
   isLongParty, leftoverParty, dismissParty, LEFTOVER_FOR_MS, historySongIds, savePendingQueue, takePendingQueue,
-  notePartyPlaylist, partyRecord,
+  notePartyPlaylist, partyRecord, partiedBefore,
 } from './partyHistory';
 
 // vitest runs in node: minimal storage stand-ins
@@ -147,6 +147,24 @@ describe('pending queue (Start again)', () => {
   test("a playlist's songs say which playlist they are", () => {
     savePendingQueue([song('b')], { now: T, playlistId: 'p1' });
     expect(takePendingQueue({}, T + MIN).playlistId).toBe('p1');
+  });
+});
+
+describe('partiedBefore (the party page tour is for a first party)', () => {
+  beforeEach(() => localStorage.clear());
+
+  test('no history, or only this party (also from a reload), is a first party', () => {
+    expect(partiedBefore('NEW1', T)).toBe(false);
+    notePartySong('NEW1', song('a'), { now: T });
+    expect(partiedBefore('NEW1', T + 10 * MIN)).toBe(false);
+  });
+
+  test('another party, or the same code long ago, is not', () => {
+    notePartySong('OLD1', song('a'), { now: T });
+    expect(partiedBefore('NEW1', T + 10 * MIN)).toBe(true);
+    localStorage.clear();
+    notePartySong('SAME', song('a'), { now: T });
+    expect(partiedBefore('SAME', T + 24 * 60 * MIN)).toBe(true);
   });
 });
 

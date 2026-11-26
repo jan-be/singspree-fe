@@ -341,6 +341,22 @@
       "profile": "Tingnan ang profile mo"
     }
   },
+  "tour": {
+    "label": "Mabilis na tour",
+    "step": "Hakbang {{n}} sa {{count}}",
+    "skip": "Laktawan ang tour",
+    "back": "Bumalik",
+    "next": "Susunod",
+    "done": "Kanta na tayo!",
+    "songWaits": "Maghihintay ang kanta hanggang matapos ka.",
+    "volumeTitle": "Tunog",
+    "volumeText": "Ang volume, at sa mga kantang may sariling vocal track, pati ang orihinal na boses: ibaba ang “{{vocals}}” para kumanta nang wala ito.",
+    "micTitle": "Mga mikropono",
+    "micText": "Sumali sa pagkanta at piliin ang iyong mikropono, hirap at kulay. Dalawang kakanta sa iisang device? Magdagdag ng isa pang mikropono: bawat isa ay kumakanta bilang sariling manlalaro.",
+    "partyTitle": "Mga setting ng party",
+    "partyTextQr": "Binubuksan ito ng QR code: isara ang party sa mga bagong dating, gawing co-host ang mga kaibigan para kasama mong magpatakbo, at patugtugin ang boses ng mga kumakanta sa speaker.",
+    "partyTextShare": "Binubuksan ng button na ito ang code ng party at ang mga setting nito: isara ang party sa mga bagong dating, gawing co-host ang mga kaibigan para kasama mong magpatakbo, at patugtugin ang boses ng mga kumakanta sa speaker."
+  },
   "queue": {
     "title": "Pila",
     "empty": "Walang laman ang pila",

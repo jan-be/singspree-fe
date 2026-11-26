@@ -341,6 +341,22 @@
       "profile": "Voir votre profil"
     }
   },
+  "tour": {
+    "label": "Visite rapide",
+    "step": "Étape {{n}} sur {{count}}",
+    "skip": "Passer la visite",
+    "back": "Retour",
+    "next": "Suivant",
+    "done": "On chante !",
+    "songWaits": "Votre chanson attend que vous ayez fini.",
+    "volumeTitle": "Son",
+    "volumeText": "Le volume et, sur les chansons avec une piste vocale séparée, la voix originale : baissez « {{vocals}} » pour chanter sans elle.",
+    "micTitle": "Micros",
+    "micText": "Rejoignez le chant et choisissez votre micro, la difficulté et votre couleur. Deux chanteurs, un seul appareil ? Ajoutez un autre micro : chacun chante comme un joueur à part.",
+    "partyTitle": "Réglages de la fête",
+    "partyTextQr": "Le QR code les ouvre : fermez la fête aux nouveaux venus, faites de vos amis des co-hôtes qui la mènent avec vous, et laissez les voix des chanteurs passer dans les enceintes.",
+    "partyTextShare": "Ce bouton ouvre le code de la fête et ses réglages : fermez la fête aux nouveaux venus, faites de vos amis des co-hôtes qui la mènent avec vous, et laissez les voix des chanteurs passer dans les enceintes."
+  },
   "queue": {
     "title": "File d'attente",
     "empty": "La file d'attente est vide",

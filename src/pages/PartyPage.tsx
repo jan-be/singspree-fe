@@ -18,6 +18,7 @@ import { getTickData, readTextFile, getP2TickData } from "../logic/LyricsParser"
 import { scriptChoice, parseShown, loadScriptChoices, saveScriptChoice, songNames, SCRIPT_LABELS, SCRIPT_LANG } from "../logic/lyricsScripts";
 import VideoPlayer from "../components/VideoPlayer";
 import PartyBar from "../components/PartyBar";
+import PartyTour, { usePartyTour, type TourStepId } from "../components/PartyTour";
 import { apiUrl } from "../GlobalConsts";
 import { homePassOf, partyUrl, rememberHomePass, socketUrl, stemUrls } from "../logic/sites";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
@@ -348,6 +349,11 @@ const PartyPage = () => {
     } catch { return true; }
   });
 
+  // The first party's tour of the bar's menus (PartyTour.tsx; started further down, once the page
+  // is free of prompts). Not in the TV app: no microphone there, and a remote to press through it.
+  // The one-time callouts wait for it, so they do not come and go unseen under it
+  const tour = usePartyTour(!inTvApp(), partyId);
+
   // One-time callout for joiners: where to hide the video
   const [videoHint, setVideoHint] = useState(false);
   const dismissVideoHint = useCallback(() => {
@@ -355,12 +361,12 @@ const PartyPage = () => {
     try { localStorage.setItem('singspree_video_hint_seen', '1'); } catch { /* */ }
   }, []);
   useEffect(() => {
-    if (isHost || !showVideo || !activeSongId || activeSongId === 'none') return;
+    if (isHost || !showVideo || !activeSongId || activeSongId === 'none' || tour.pending) return;
     try { if (localStorage.getItem('singspree_video_hint_seen') === '1') return; } catch { /* */ }
     setVideoHint(true);
     const id = setTimeout(dismissVideoHint, 15_000);
     return () => clearTimeout(id);
-  }, [isHost, showVideo, activeSongId, dismissVideoHint]);
+  }, [isHost, showVideo, activeSongId, dismissVideoHint, tour.pending]);
 
   const toggleVideo = useCallback(() => {
     setShowVideo(prev => {
@@ -723,12 +729,12 @@ const PartyPage = () => {
     try { localStorage.setItem('singspree_stems_hint_seen', '1'); } catch { /* */ }
   }, []);
   useEffect(() => {
-    if (!hasStems || !joinerSoundOn) return; // nothing to explain while the sound is off
+    if (!hasStems || !joinerSoundOn || tour.pending) return; // nothing to explain while the sound is off
     try { if (localStorage.getItem('singspree_stems_hint_seen') === '1') return; } catch { /* */ }
     setStemsHint(true);
     const id = setTimeout(dismissStemsHint, 20_000);
     return () => clearTimeout(id);
-  }, [hasStems, joinerSoundOn, dismissStemsHint]);
+  }, [hasStems, joinerSoundOn, dismissStemsHint, tour.pending]);
   // Tooltip shown when user tries to adjust YouTube volume while stems are active
   const [volumeTooltip, setVolumeTooltip] = useState(false);
   const volumeRef = useRef(volume);
@@ -1506,10 +1512,10 @@ const PartyPage = () => {
   // The controls come and go like a video player's (useIdleControls): a move
   // of the mouse or a key brings them, a few quiet seconds take them away.
   // They stay while the song does not play (a paused video's do too), and
-  // while the queue, the part prompt, the timing fix or a first-time hint is up.
+  // while the queue, the part prompt, the timing fix, the tour or a first-time hint is up.
   const songPlaying = isHost ? videoState === 1 : hostPlaying;
   const idleRootRef = useIdleControls(
-    !songPlaying || queueOpen || isFixingTiming || partPrompt || (stemsHint && hasStems) || (videoHint && showVideo),
+    !songPlaying || queueOpen || isFixingTiming || partPrompt || tour.phase === 'on' || (stemsHint && hasStems) || (videoHint && showVideo),
   );
 
   // The free stage pauses on a click and toggles fullscreen on a double one,
@@ -2856,6 +2862,38 @@ const PartyPage = () => {
   useEffect(() => {
     for (const { singer } of extraSingersRef.current.values()) singer.setVoice(voices.extraWanted);
   }, [voices.extraWanted, extraStates]);
+  // The tour (PartyTour.tsx): the volume, the microphones, and for the host and co-hosts the party's
+  // settings behind the QR code. It comes once the page has been free for a moment of everything
+  // that asks for attention (a prompt to tap, the duet part, the score screen, the queue, a card)
+  // and of any menu opened meanwhile; it steps aside while one comes up. The host's song waits
+  // for it: paused while it is up, played on after (only what it paused itself).
+  const tourSteps = useMemo<TourStepId[]>(
+    () => (canControl && partySettings.known ? ['volume', 'mic', 'party'] : ['volume', 'mic']),
+    [canControl, partySettings.known],
+  );
+  const tourReady = !!partyId && !error && !songEnded && !stalled && !connLost && !partPrompt && !queueOpen && !isFixingTiming
+    && !appTestCardOpen && !feedbackCardOpen && !(!isHost && hostStatus && !hostStatus.connected)
+    && (!isHost || partySettings.known); // (whether the host's tour has the party's step)
+  const { phase: tourPhase, start: startTour } = tour;
+  useEffect(() => {
+    if (tourPhase !== 'waiting' || !tourReady) return undefined;
+    const id = setInterval(() => { if (!document.querySelector('nav .pop')) startTour(); }, 1500);
+    return () => clearInterval(id);
+  }, [tourPhase, tourReady, startTour]);
+  const tourStep = tourPhase === 'on' && tourReady ? tourSteps[Math.min(tour.index, tourSteps.length - 1)] : null;
+  const [tourHeld, setTourHeld] = useState(false);
+  useEffect(() => {
+    if (!isHost || !tourStep || videoState !== 1) return;
+    try { iframePlayerRef.current?.pauseVideo?.(); setTourHeld(true); } catch { /* */ }
+  }, [isHost, tourStep, videoState]);
+  useEffect(() => {
+    if (tourStep || !tourHeld) return;
+    setTourHeld(false);
+    try { iframePlayerRef.current?.playVideo?.(); } catch { /* */ }
+  }, [tourStep, tourHeld]);
+  // The volume step with the song's own vocal track in it says what the callout would have
+  useEffect(() => { if (tourStep === 'volume' && hasStems) dismissStemsHint(); }, [tourStep, hasStems, dismissStemsHint]);
+
   // For the mic panel: the other microphones and the names already sung under
   // in the party (not counting this device's own)
   const multiMic = useMemo(() => {
@@ -3854,6 +3892,7 @@ const PartyPage = () => {
           singers: voices.singers, level: voices.singersLevel, onLevelChange: voices.setSingersLevel,
           echo: voices.echo, onEchoChange: voices.setEcho, onSingerLevelChange: voices.setSingerLevel,
         } : undefined}
+        tourStep={tourStep}
       />
       {/* While the camera films, the singer sees it */}
       {cameraLive && filmRef.current && <CameraPreview film={filmRef.current} onOff={() => handleCameraChange(false)} />}
@@ -4518,6 +4557,8 @@ const PartyPage = () => {
       <ShareDialog share={shareVideo} onClose={() => setShareVideo(null)} />
       {/* "How do you like SingSpree?", on Android the app's test for now, after a few songs on the score screen (stays while someone types) */}
       <AfterSongsPrompt where="party" between={songEnded} getContext={() => ({ host: isHost, nickname: currentUserNameRef.current, partyId })} />
+
+      {tourStep && <PartyTour steps={tourSteps} index={tour.index} onIndexChange={tour.setIndex} onEnd={tour.end} songHeld={tourHeld} />}
     </div>
   );
 };

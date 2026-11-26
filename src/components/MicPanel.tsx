@@ -13,6 +13,7 @@ import type { MicPhase, MicStats } from '../logic/MicrophoneInput';
 import { useAuth } from '../logic/AuthContext';
 import type { ValueStore } from '../logic/valueStore';
 import type { VoiceLinkState } from '../logic/voiceLink';
+import { TOUR_CAP } from './PartyTour';
 
 /**
  * Microphone panel (top right): join / leave singing, input device, a live
@@ -20,7 +21,9 @@ import type { VoiceLinkState } from '../logic/voiceLink';
  * button and the colour dot in the scoreboard.
  *
  * Device names are only known once microphone access was granted; the list
- * is refreshed when the panel opens and when devices change.
+ * is refreshed when the panel opens and when devices change. Before that the
+ * browser lists none: "Add microphone" asks for access first (and lets go of
+ * the microphone again at once), then adds one.
  *
  * Joining takes a moment (the first time several seconds, see initMicInput):
  * while micPhase is set the mic button spins, closed panel or not, and the
@@ -78,6 +81,8 @@ export interface MicPanelProps {
   onSaveRecordingsChange?: (on: boolean) => void;
   /** the singer's switch for their voice on the host's speakers; state: the connection (null on the host's page) */
   voice?: { on: boolean; onChange: (on: boolean) => void; state: VoiceLinkState | null };
+  /** the party page's tour (PartyTour.tsx) holds it open for its step, "More microphones" unfolded */
+  tourOpen?: boolean;
 }
 
 const Spinner = () => (
@@ -215,7 +220,7 @@ const MicPanel = ({
   deviceId, onDeviceChange, multiMic,
   ownColor, onColorChange, latency, onOpenChange,
   difficulty = DEFAULT_DIFFICULTY, onDifficultyChange,
-  saveRecordings = true, onSaveRecordingsChange, voice,
+  saveRecordings = true, onSaveRecordingsChange, voice, tourOpen = false,
 }: MicPanelProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -229,6 +234,31 @@ const MicPanel = ({
   const ref = useRef<HTMLDivElement>(null);
   const extraStatesRef = useRef(multiMic?.states);
   extraStatesRef.current = multiMic?.states;
+
+  // The tour opens the panel with "More microphones" unfolded and in sight, and
+  // afterwards leaves the panel closed and that part as it found it
+  const moreRef = useRef<HTMLDivElement>(null);
+  const toured = useRef<{ more: boolean } | null>(null);
+  useEffect(() => {
+    if (tourOpen) {
+      if (!toured.current) toured.current = { more: moreOpen };
+      setOpen(true);
+      setMoreOpen(true);
+    } else if (toured.current) {
+      setMoreOpen(toured.current.more);
+      toured.current = null;
+      setOpen(false);
+    }
+  }, [tourOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const el = moreRef.current;
+    if (!tourOpen || !open || !moreOpen || !el) return undefined;
+    // (and again as it grows: the microphones are listed a moment later, and "Add microphone" with them)
+    const show = () => el.scrollIntoView({ block: 'nearest' });
+    const ro = new ResizeObserver(show);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [tourOpen, open, moreOpen]);
 
   useEffect(() => {
     if (!open) return;
@@ -263,14 +293,38 @@ const MicPanel = ({
   // Every microphone once: what this page's microphones use is not offered to the others
   const slots = multiMic?.slots ?? [];
   const mainChoice = freeDevices(devices, slots.map(s => s.deviceId), deviceId);
-  const nextDevice = () => {
-    const { free, defaultFree } = freeDevices(devices, [deviceId, ...slots.map(s => s.deviceId)]);
+  const nextDevice = (list: readonly MediaDeviceInfo[] = devices) => {
+    const { free, defaultFree } = freeDevices(list, [deviceId, ...slots.map(s => s.deviceId)]);
     return free[0]?.deviceId ?? (defaultFree ? null : undefined);
+  };
+  const addMic = (device: string | null) => multiMic?.onSlotsChange([...multiMic.slots, newExtraMic(multiMic.slots, {
+    label: n => t('mic.extraName', { n }), taken: multiMic.taken, palette: PLAYER_COLOR_PALETTE, usedColors: [ownColor], device,
+  })]);
+  // No microphone listed yet (no access): "Add microphone" asks for it, then adds the next free one
+  // (none free: the line that says so shows instead)
+  const listed = devices.some(d => d.deviceId);
+  const [asking, setAsking] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+  const askThenAdd = async () => {
+    setAddError(null);
+    setAsking(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      for (const track of stream.getTracks()) track.stop();
+      const list = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput');
+      setDevices(list);
+      const device = nextDevice(list);
+      if (device !== undefined) addMic(device);
+    } catch (e) {
+      setAddError(t((e as Error | null)?.name === 'NotFoundError' ? 'mic.error.noDevice' : 'mic.error.denied'));
+    } finally {
+      setAsking(false);
+    }
   };
   const phaseText = micPhase === 'loading' ? t('mic.loading') : t('mic.starting');
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative" ref={ref} data-tour="mic">
       <button
         type="button"
         onClick={() => setOpen(p => !p)}
@@ -292,7 +346,11 @@ const MicPanel = ({
       {open && (
         // On phones the button sits near the middle of a narrow screen, so the
         // panel spans the width under the capsule instead of hanging off its edge
-        <div className="pop fixed inset-x-3 top-[4.25rem] sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2.5 sm:w-[19rem] max-h-[calc(100dvh-5.5rem)] overflow-y-auto p-4 z-50 space-y-4 text-sm">
+        <div
+          className="pop fixed inset-x-3 top-[4.25rem] sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2.5 sm:w-[19rem] max-h-[calc(100dvh-5.5rem)] overflow-y-auto p-4 z-50 space-y-4 text-sm"
+          style={tourOpen ? TOUR_CAP(5.5) : undefined}
+          data-tour-pop=""
+        >
           <div className="pop-label">{t('mic.title')}</div>
 
           <button
@@ -381,8 +439,8 @@ const MicPanel = ({
           )}
 
           {multiMic && (
-            // Advanced: more microphones on this device, each its own singer
-            <div className="border-t border-white/10 pt-3">
+            // Advanced: more microphones on this device, each its own singer (the tour's step rings it)
+            <div ref={moreRef} className={`border-t border-white/10 pt-3 ${tourOpen ? 'tour-focus' : ''}`}>
               <button
                 type="button"
                 onClick={() => setMoreOpen(o => !o)}
@@ -415,19 +473,17 @@ const MicPanel = ({
                     );
                   })}
                   {nextDevice() !== undefined ? (
-                    <button
-                      type="button"
-                      onClick={() => multiMic.onSlotsChange([...multiMic.slots, newExtraMic(multiMic.slots, {
-                        label: n => t('mic.extraName', { n }), taken: multiMic.taken, palette: PLAYER_COLOR_PALETTE, usedColors: [ownColor],
-                        device: nextDevice(),
-                      })])}
-                      className="btn btn-ghost btn-sm w-full"
-                    >
+                    <button type="button" data-add-mic="" onClick={() => addMic(nextDevice() ?? null)} className="btn btn-ghost btn-sm w-full">
                       <MicIcon size={15} />{t('mic.add')}
                     </button>
-                  ) : devices.some(d => d.deviceId) && ( // (before the microphone is allowed the browser lists none of them)
+                  ) : listed ? (
                     <p className="text-xs text-white/45">{t('mic.noFreeDevice')}</p>
+                  ) : !!navigator.mediaDevices?.getUserMedia && (
+                    <button type="button" data-add-mic="ask" onClick={askThenAdd} disabled={asking} aria-busy={asking} className="btn btn-ghost btn-sm w-full">
+                      {asking ? <Spinner /> : <MicIcon size={15} />}{t('mic.add')}
+                    </button>
                   )}
+                  {addError && !listed && <p role="alert" className="text-xs text-red-400">{addError}</p>}
                   {multiMic.slots.length > 0 && !micActive && <p className="text-xs text-white/45">{t('mic.followsYours')}</p>}
                 </div>
               )}

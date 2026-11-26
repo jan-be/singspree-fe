@@ -1,5 +1,5 @@
 import { test, expect, chromium, type Browser } from '@playwright/test';
-import { chromeLaunchArgs } from './fixtures';
+import { chromeLaunchArgs, skipPartyTour } from './fixtures';
 
 /**
  * Party E2E tests with real audio simulation.
@@ -43,6 +43,7 @@ test.describe('Party with audio', () => {
     const context = await browser.newContext({
       permissions: ['microphone'],
     });
+    await skipPartyTour(context);
     const page = await context.newPage();
 
     // Collect console messages for debugging
@@ -78,6 +79,7 @@ test.describe('Party with audio', () => {
     const hostContext = await browser.newContext({
       permissions: ['microphone'],
     });
+    await skipPartyTour(hostContext);
     const hostPage = await hostContext.newPage();
     await hostPage.goto(`http://localhost:3001/sing/${validSongId}`);
     await hostPage.waitForTimeout(3000);
@@ -102,6 +104,7 @@ test.describe('Party with audio', () => {
     const joinerContext = await browser.newContext({
       permissions: ['microphone'],
     });
+    await skipPartyTour(joinerContext);
     const joinerPage = await joinerContext.newPage();
     await joinerPage.goto(`http://localhost:3001/join/${partyId}`);
     await joinerPage.waitForTimeout(2000);

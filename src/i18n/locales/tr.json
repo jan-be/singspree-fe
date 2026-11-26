@@ -341,6 +341,22 @@
       "profile": "Profiline git"
     }
   },
+  "tour": {
+    "label": "Hızlı tur",
+    "step": "Adım {{n}} / {{count}}",
+    "skip": "Turu atla",
+    "back": "Geri",
+    "next": "İleri",
+    "done": "Hadi söyleyelim!",
+    "songWaits": "Şarkın sen bitirene kadar bekler.",
+    "volumeTitle": "Ses",
+    "volumeText": "Ses düzeyi ve kendi vokal parçası olan şarkılarda orijinal ses de: onsuz söylemek için “{{vocals}}” kaydırıcısını indir.",
+    "micTitle": "Mikrofonlar",
+    "micText": "Şarkıya katıl; mikrofonunu, zorluğu ve rengini seç. Tek cihazda iki kişi mi? Bir mikrofon daha ekle: her biri kendi puanıyla ayrı bir oyuncu olarak söyler.",
+    "partyTitle": "Parti ayarları",
+    "partyTextQr": "QR kod bunları açar: partiyi yeni gelenlere kapat, arkadaşlarını partiyi seninle yöneten yardımcı ev sahipleri yap ve şarkıcıların seslerini hoparlörlerden çal.",
+    "partyTextShare": "Bu düğme partinin kodunu ve ayarlarını açar: partiyi yeni gelenlere kapat, arkadaşlarını partiyi seninle yöneten yardımcı ev sahipleri yap ve şarkıcıların seslerini hoparlörlerden çal."
+  },
   "queue": {
     "title": "Sıra",
     "empty": "Sıra boş",

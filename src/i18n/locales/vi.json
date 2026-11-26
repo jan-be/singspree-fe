@@ -339,6 +339,22 @@
       "profile": "Xem hồ sơ của bạn"
     }
   },
+  "tour": {
+    "label": "Hướng dẫn nhanh",
+    "step": "Bước {{n}}/{{count}}",
+    "skip": "Bỏ qua",
+    "back": "Quay lại",
+    "next": "Tiếp",
+    "done": "Hát thôi!",
+    "songWaits": "Bài hát sẽ chờ đến khi bạn xem xong.",
+    "volumeTitle": "Âm thanh",
+    "volumeText": "Âm lượng, và với bài có phần giọng hát tách riêng thì cả giọng ca sĩ gốc: kéo “{{vocals}}” xuống để hát mà không có giọng gốc.",
+    "micTitle": "Micro",
+    "micText": "Tham gia hát và chọn micro, độ khó và màu của bạn. Hai người hát trên một thiết bị? Thêm một micro nữa: mỗi micro hát như một người chơi riêng.",
+    "partyTitle": "Cài đặt bữa tiệc",
+    "partyTextQr": "Mã QR mở các cài đặt này: đóng bữa tiệc với người mới, đặt bạn bè làm đồng chủ phòng để cùng điều khiển, và cho giọng ca sĩ phát qua loa.",
+    "partyTextShare": "Nút này mở mã của bữa tiệc và các cài đặt: đóng bữa tiệc với người mới, đặt bạn bè làm đồng chủ phòng để cùng điều khiển, và cho giọng ca sĩ phát qua loa."
+  },
   "queue": {
     "title": "Hàng chờ",
     "empty": "Hàng chờ trống",

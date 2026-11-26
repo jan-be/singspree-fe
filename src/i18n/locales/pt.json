@@ -341,6 +341,22 @@
       "profile": "Ver seu perfil"
     }
   },
+  "tour": {
+    "label": "Tour rápido",
+    "step": "Passo {{n}} de {{count}}",
+    "skip": "Pular tour",
+    "back": "Voltar",
+    "next": "Próximo",
+    "done": "Bora cantar!",
+    "songWaits": "Sua música espera até você terminar.",
+    "volumeTitle": "Som",
+    "volumeText": "O volume e, nas músicas com faixa vocal própria, também a voz original: abaixe “{{vocals}}” para cantar sem ela.",
+    "micTitle": "Microfones",
+    "micText": "Entre na cantoria e escolha seu microfone, a dificuldade e a cor. Duas pessoas, um aparelho? Adicione outro microfone: cada um canta como um jogador próprio.",
+    "partyTitle": "Configurações da festa",
+    "partyTextQr": "O código QR abre estas opções: feche a festa para novos convidados, torne amigos coanfitriões que comandam a festa com você e deixe as vozes dos cantores tocarem nos alto-falantes.",
+    "partyTextShare": "Este botão abre o código da festa e estas opções: feche a festa para novos convidados, torne amigos coanfitriões que comandam a festa com você e deixe as vozes dos cantores tocarem nos alto-falantes."
+  },
   "queue": {
     "title": "Fila",
     "empty": "A fila está vazia",

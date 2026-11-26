@@ -1,5 +1,5 @@
 import { test, expect, chromium, type Browser, type BrowserContext, type Page } from '@playwright/test';
-import { chromeLaunchArgs } from './fixtures';
+import { chromeLaunchArgs, skipPartyTour } from './fixtures';
 import { startBotSinger } from './wsSinger';
 
 /** What MONITOR_SCRIPT keeps in each page (window.__stress) */
@@ -230,6 +230,7 @@ test.describe('Stress: many simultaneous singers', () => {
     const bots: ReturnType<typeof startBotSinger>[] = [];
     const newBrowserSinger = async (name: string) => {
       const context = await browser.newContext({ permissions: ['microphone'] });
+      await skipPartyTour(context);
       await context.addInitScript(MONITOR_SCRIPT);
       // The app starts a host's microphone only on a click, or when it remembers
       // the mic being on from the previous song (joiners start singing either

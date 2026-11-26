@@ -1,5 +1,5 @@
 import { test, expect, chromium, type Browser } from '@playwright/test';
-import { chromeLaunchArgs } from './fixtures';
+import { chromeLaunchArgs, skipPartyTour } from './fixtures';
 
 /**
  * Pitch detection E2E test.
@@ -43,6 +43,7 @@ test.describe('Pitch detection pipeline', () => {
     const context = await browser.newContext({
       permissions: ['microphone'],
     });
+    await skipPartyTour(context);
     const page = await context.newPage();
 
     // Navigate to localhost (Vite serves index.html even without backend)
@@ -102,6 +103,7 @@ test.describe('Pitch detection pipeline', () => {
     const context = await browser.newContext({
       permissions: ['microphone'],
     });
+    await skipPartyTour(context);
     const page = await context.newPage();
 
     // Collect pitch worker logs
@@ -142,6 +144,7 @@ test.describe('Pitch detection pipeline', () => {
     const context = await browser.newContext({
       permissions: ['microphone'],
     });
+    await skipPartyTour(context);
     const page = await context.newPage();
 
     let backend: string | null = null;

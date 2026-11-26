@@ -345,6 +345,22 @@
       "profile": "Zu deinem Profil"
     }
   },
+  "tour": {
+    "label": "Kurze Tour",
+    "step": "Schritt {{n}} von {{count}}",
+    "skip": "Tour überspringen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "done": "Los geht’s!",
+    "songWaits": "Dein Song wartet, bis du fertig bist.",
+    "volumeTitle": "Ton",
+    "volumeText": "Die Lautstärke und bei Songs mit eigener Gesangsspur auch die Originalstimme: Schieb „{{vocals}}“ runter, um ohne sie zu singen.",
+    "micTitle": "Mikrofone",
+    "micText": "Mitsingen und Mikrofon, Schwierigkeit und Farbe wählen. Zwei Leute, ein Gerät? Füge ein weiteres Mikrofon hinzu: Jedes singt als eigener Spieler.",
+    "partyTitle": "Party-Einstellungen",
+    "partyTextQr": "Der QR-Code öffnet sie: die Party für Neue schließen, Freunde zu Co-Hosts machen, die sie mit dir leiten, und die Stimmen der Singenden über die Lautsprecher spielen.",
+    "partyTextShare": "Dieser Knopf öffnet den Code der Party und ihre Einstellungen: die Party für Neue schließen, Freunde zu Co-Hosts machen, die sie mit dir leiten, und die Stimmen der Singenden über die Lautsprecher spielen."
+  },
   "queue": {
     "title": "Warteschlange",
     "empty": "Warteschlange ist leer",

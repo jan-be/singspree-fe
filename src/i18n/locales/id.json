@@ -339,6 +339,22 @@
       "profile": "Lihat profilmu"
     }
   },
+  "tour": {
+    "label": "Tur singkat",
+    "step": "Langkah {{n}} dari {{count}}",
+    "skip": "Lewati tur",
+    "back": "Kembali",
+    "next": "Lanjut",
+    "done": "Ayo bernyanyi!",
+    "songWaits": "Lagu akan menunggu sampai tur selesai.",
+    "volumeTitle": "Suara",
+    "volumeText": "Volume, dan pada lagu dengan trek vokal sendiri juga suara penyanyi aslinya: geser “{{vocals}}” ke bawah untuk bernyanyi tanpanya.",
+    "micTitle": "Mikrofon",
+    "micText": "Ikut bernyanyi dan pilih mikrofon, tingkat kesulitan, dan warna. Dua penyanyi, satu perangkat? Tambah mikrofon lain: masing-masing bernyanyi sebagai pemain sendiri.",
+    "partyTitle": "Pengaturan pesta",
+    "partyTextQr": "Kode QR membukanya: tutup pesta untuk pendatang baru, jadikan teman co-host yang ikut menjalankannya, dan putar suara penyanyi lewat speaker.",
+    "partyTextShare": "Tombol ini membuka kode pesta dan pengaturannya: tutup pesta untuk pendatang baru, jadikan teman co-host yang ikut menjalankannya, dan putar suara penyanyi lewat speaker."
+  },
   "queue": {
     "title": "Antrean",
     "empty": "Antrean kosong",

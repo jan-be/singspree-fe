@@ -18,6 +18,7 @@ import Wordmark from "./Wordmark";
 import { Link } from "react-router-dom";
 import QrCode from "./QrCode";
 import PartyQrCard, { type PartyQrCardProps } from "./PartyQrCard";
+import type { TourStepId } from "./PartyTour";
 import { partyJoinUrl } from "../logic/referrer";
 import { useSongNames } from "../logic/useSongNames";
 import type { SongNamesSource } from "../logic/lyricsScripts";
@@ -72,6 +73,8 @@ export interface PartyBarProps
   canControl?: boolean;
   /** influencer mode's camera button (next to the microphone's), when the account has it */
   camera?: CameraButtonProps;
+  /** the first-visit tour's step (PartyTour.tsx): the menu it holds open */
+  tourStep?: TourStepId | null;
 }
 
 // isHost: this page is the host's (it ends the party, a joiner's leaves it).
@@ -83,7 +86,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
   difficulty, onDifficultyChange, saveRecordings, onSaveRecordingsChange, camera,
   showVideo, onToggleVideo, videoHint, onDismissVideoHint, queueOpen, queuePoppedOut, onToggleQueue, queueCount = 0, song = null, live, upNextEnd = 0, upNextSong = null, onFreeClick,
   getReportContext, canControl = false, joiningOpen = true, people, playerAvatars, playerColors, onSetCohost, onKick, onSetJoiningOpen,
-  voices, onSetVoices, voice, singerVoices }: PartyBarProps) => {
+  voices, onSetVoices, voice, singerVoices, tourStep = null }: PartyBarProps) => {
   const { t } = useTranslation();
   const namesOf = useSongNames();
   const names = song?.title ? namesOf(song) : null;
@@ -105,6 +108,13 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
 
   const [qrOpen, setQrOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // The tour opens the party's door for its step, and closes it again after
+  const tourParty = tourStep === 'party';
+  const tourPartyRef = useRef(false);
+  useEffect(() => {
+    if (tourParty) { tourPartyRef.current = true; setQrOpen(true); }
+    else if (tourPartyRef.current) { tourPartyRef.current = false; setQrOpen(false); }
+  }, [tourParty]);
   // The QR card (sm up) and the phones' share button: either opens the party's door
   const qrRef = useRef<HTMLDivElement>(null);
   const qrPhoneRef = useRef<HTMLDivElement>(null);
@@ -129,7 +139,8 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
     return () => document.removeEventListener("pointerdown", handleClick);
   }, [menuOpen]);
 
-  const qrCard = urls && (
+  // showCode: on phones, where the bar shows no QR code of its own
+  const qrCard = (showCode: boolean) => urls && (
     <PartyQrCard
       qrUrl={urls.qr}
       joinUrl={urls.join}
@@ -144,6 +155,8 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
       onSetJoiningOpen={onSetJoiningOpen}
       voices={voices}
       onSetVoices={onSetVoices}
+      showCode={showCode}
+      tourOpen={tourParty}
     />
   );
 
@@ -216,6 +229,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
             onColorChange={onColorChange}
             latency={latency}
             onOpenChange={handleMicPanelOpenChange}
+            tourOpen={tourStep === 'mic'}
             difficulty={difficulty}
             onDifficultyChange={onDifficultyChange}
             saveRecordings={saveRecordings}
@@ -236,6 +250,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
             stemsHint={stemsHint && !micPanelOpen && !menuOpen && !queueOpen}
             onDismissStemsHint={onDismissStemsHint}
             singerVoices={singerVoices}
+            tourOpen={tourStep === 'volume'}
           />
 
           {/* Joiners: show / hide the video (off saves mobile data while
@@ -382,7 +397,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
           {/* Phones: a share button for the party's card */}
           {urls && (
             <>
-              <div className={`sm:hidden relative flex-shrink-0 ${queueCount > 0 && onToggleQueue ? FADE : ''}`} ref={qrPhoneRef}>
+              <div className={`sm:hidden relative flex-shrink-0 ${queueCount > 0 && onToggleQueue ? FADE : ''}`} ref={qrPhoneRef} data-tour="party">
                 <button
                   onClick={() => setQrOpen(p => !p)}
                   aria-expanded={qrOpen}
@@ -397,7 +412,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
                     </svg>
                   ) : <LockIcon size={18} strokeWidth={1.8} />}
                 </button>
-                {qrOpen && qrCard}
+                {qrOpen && qrCard(true)}
               </div>
             </>
           )}
@@ -407,7 +422,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
             code, a card of their own that stays at full size; a click opens the
             party's door (people, co-hosts, the link) */}
         {urls && (
-          <div data-ui-keep="" className="hidden sm:block relative flex-shrink-0 pointer-events-auto" ref={qrRef}>
+          <div data-ui-keep="" className="hidden sm:block relative flex-shrink-0 pointer-events-auto" ref={qrRef} data-tour="party">
             <button
               type="button"
               onClick={() => setQrOpen(p => !p)}
@@ -422,7 +437,7 @@ const PartyBar = ({ partyId, songId, gapData, onGoToMenu, onEndParty, onLeavePar
               </span>
               <span className="pl-[0.2em] text-neon-cyan font-mono font-semibold text-lg short:text-sm leading-none tracking-[0.2em]">{partyId}</span>
             </button>
-            {qrOpen && qrCard}
+            {qrOpen && qrCard(false)}
           </div>
         )}
         </div>
