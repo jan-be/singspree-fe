@@ -1,30 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
 <defs>
-<radialGradient id="w" cx=".5" cy=".5" r=".7"><stop offset="0" stop-color="#2d2056"/><stop offset=".55" stop-color="#18162e"/><stop offset="1" stop-color="#0d0d18"/></radialGradient>
-<pattern id="b" width="96" height="48" patternUnits="userSpaceOnUse"><path d="M0 1H96M0 25H96M24 1V25M72 25V49" stroke="#000" stroke-width="3" opacity=".35" fill="none"/></pattern>
+<clipPath id="c"><rect width="512" height="512" rx="104"/></clipPath>
+<radialGradient id="wb" cx=".5" cy=".46" r=".75"><stop offset="0" stop-color="#33235e"/><stop offset=".55" stop-color="#1b1734"/><stop offset="1" stop-color="#0d0c18"/></radialGradient>
+<pattern id="wm" width="96" height="48" patternUnits="userSpaceOnUse"><path d="M0 1.5H96M0 25.5H96M24 1.5V25.5M72 25.5V49.5" stroke="#06050d" stroke-width="3" opacity="0.5" fill="none"/><path d="M0 3.75H96M0 27.75H96" stroke="#fff" stroke-width="1.5" opacity="0.05" fill="none"/></pattern>
+<pattern id="wt" width="288" height="144" patternUnits="userSpaceOnUse"><rect x="121.5" y="3" width="93" height="21" fill="#000" opacity="0.23"/><rect x="265.5" y="27" width="93" height="21" fill="#fff" opacity="0.05"/><rect x="-22.5" y="27" width="93" height="21" fill="#fff" opacity="0.05"/><rect x="25.5" y="51" width="93" height="21" fill="#000" opacity="0.16"/><rect x="121.5" y="51" width="93" height="21" fill="#000" opacity="0.2"/><rect x="217.5" y="51" width="93" height="21" fill="#fff" opacity="0.05"/><rect x="-70.5" y="51" width="93" height="21" fill="#fff" opacity="0.05"/><rect x="73.5" y="75" width="93" height="21" fill="#000" opacity="0.21"/><rect x="25.5" y="99" width="93" height="21" fill="#fff" opacity="0.04"/><rect x="73.5" y="123" width="93" height="21" fill="#000" opacity="0.09"/><rect x="265.5" y="123" width="93" height="21" fill="#fff" opacity="0.03"/><rect x="-22.5" y="123" width="93" height="21" fill="#fff" opacity="0.03"/></pattern>
+<radialGradient id="wv" cx=".5" cy=".5" r=".72"><stop offset=".5" stop-opacity="0"/><stop offset="1" stop-opacity="0.55"/></radialGradient>
+<radialGradient id="wl0" gradientUnits="userSpaceOnUse" cx="240" cy="330" r="270"><stop offset="0" stop-color="#d12bff" stop-opacity="0.34"/><stop offset=".45" stop-color="#d12bff" stop-opacity="0.13"/><stop offset="1" stop-color="#d12bff" stop-opacity="0"/></radialGradient>
+<radialGradient id="wl1" gradientUnits="userSpaceOnUse" cx="345" cy="135" r="220"><stop offset="0" stop-color="#00d8ff" stop-opacity="0.24"/><stop offset=".45" stop-color="#00d8ff" stop-opacity="0.09"/><stop offset="1" stop-color="#00d8ff" stop-opacity="0"/></radialGradient>
 <linearGradient id="p" gradientUnits="userSpaceOnUse" x1="0" y1="170" x2="0" y2="420"><stop offset="0" stop-color="#b44aff"/><stop offset="1" stop-color="#ff1ff0"/></linearGradient>
-<pattern id="g" width="15" height="15" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 7.5H15M7.5 0V15" stroke="#b8f9ff" stroke-width="4" opacity=".6"/></pattern>
+<linearGradient id="p2" gradientUnits="userSpaceOnUse" x1="0" y1="170" x2="0" y2="420"><stop offset="0" stop-color="#d59bff"/><stop offset="1" stop-color="#ff8df6"/></linearGradient>
+<pattern id="g" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 7H14M7 0V14" stroke="#c9f6ff" stroke-width="3.5" opacity="0.65"/></pattern>
 <path id="s" d="M160 398H250C308 398 344 378 344 342C344 304 306 294 252 286C200 278 156 262 156 228C156 206 176 198 189 193"/>
-<rect id="h" x="-26" y="-22" width="82" height="44" rx="15"/>
-<path id="k" d="M72 -44V44"/>
-<circle id="o" cx="122" cy="0" r="38"/>
+<path id="mt" d="M122 -22L9 -14Q0 -14 0 -5V5Q0 14 9 14L122 22M117 0a39 39 0 1 0 78 0a39 39 0 1 0 -78 0ZM151 -38Q134 0 151 38"/>
+<path id="mb" d="M9 -14L113 -22Q122 -22 122 -13V13Q122 22 113 22L9 14Q0 14 0 5V-5Q0 -14 9 -14ZM117 0a39 39 0 1 0 78 0a39 39 0 1 0 -78 0Z"/>
 </defs>
-<rect width="512" height="512" rx="104" fill="url(#w)"/>
-<rect width="512" height="512" rx="104" fill="url(#b)"/>
-<g fill="none" stroke-linecap="round" transform="translate(-6 0)">
-<g stroke="url(#p)">
-<use href="#s" stroke-width="104" opacity=".13"/><use href="#s" stroke-width="76" opacity=".3"/>
-<use href="#s" stroke-width="48"/><use href="#s" stroke="#ffe0fb" stroke-width="14"/>
-</g>
-<g stroke="#00e5ff" fill="#00e5ff" fill-opacity=".3" transform="translate(225 180) rotate(-20)">
-<use href="#h" fill="#221a40" fill-opacity="1"/><use href="#o"/><use href="#h" fill-opacity=".6"/>
-<circle cx="122" cy="0" r="27" fill="url(#g)" fill-opacity="1" stroke="none"/>
-<g fill="none">
-<use href="#h" stroke-width="72" opacity=".13"/><use href="#k" stroke-width="72" opacity=".13"/><use href="#o" stroke-width="76" opacity=".13"/>
-<use href="#h" stroke-width="46" opacity=".3"/><use href="#k" stroke-width="46" opacity=".3"/><use href="#o" stroke-width="50" opacity=".3"/>
-<g stroke="#2eeaff"><use href="#h" stroke-width="22"/><use href="#k" stroke-width="22"/><use href="#o" stroke-width="24"/></g>
-<g stroke="#e0fdff"><use href="#h" stroke-width="7"/><use href="#k" stroke-width="7"/><use href="#o" stroke-width="8"/></g>
-</g>
-</g>
+<g clip-path="url(#c)">
+<rect width="512" height="512" fill="url(#wb)"/><rect width="512" height="512" fill="url(#wl0)"/><rect width="512" height="512" fill="url(#wl1)"/><rect width="512" height="512" fill="url(#wt)"/><rect width="512" height="512" fill="url(#wm)"/><rect width="512" height="512" fill="url(#wv)"/><g transform="translate(-14 5)"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#s" stroke="url(#p)" stroke-width="151.8" opacity="0.03"/><use href="#s" stroke="url(#p)" stroke-width="132.6" opacity="0.04"/><use href="#s" stroke="url(#p)" stroke-width="114.72" opacity="0.04"/><use href="#s" stroke="url(#p)" stroke-width="98.28" opacity="0.05"/><use href="#s" stroke="url(#p)" stroke-width="83.41" opacity="0.06"/><use href="#s" stroke="url(#p)" stroke-width="70.3" opacity="0.07"/><use href="#s" stroke="url(#p)" stroke-width="59.23" opacity="0.07"/><use href="#s" stroke="url(#p)" stroke-width="50.68" opacity="0.08"/><use href="#s" stroke="url(#p)" stroke-width="46"/><use href="#s" stroke="url(#p2)" stroke-width="27.6"/><use href="#s" stroke="#ffe9fc" stroke-width="12.42"/><g transform="translate(185.24 194.37) rotate(-20) scale(1.12)">
+<use href="#mb" fill="#1c1638"/>
+<use href="#mb" fill="#12dcff" fill-opacity="0.3"/>
+<path d="M151 -38Q134 0 151 38A39 39 0 1 0 151 -38Z" fill="url(#g)"/>
+<use href="#mt" stroke="#12dcff" stroke-width="56" opacity="0.04"/><use href="#mt" stroke="#12dcff" stroke-width="48.38" opacity="0.04"/><use href="#mt" stroke="#12dcff" stroke-width="41.28" opacity="0.05"/><use href="#mt" stroke="#12dcff" stroke-width="34.75" opacity="0.06"/><use href="#mt" stroke="#12dcff" stroke-width="28.85" opacity="0.07"/><use href="#mt" stroke="#12dcff" stroke-width="23.64" opacity="0.08"/><use href="#mt" stroke="#12dcff" stroke-width="19.25" opacity="0.09"/><use href="#mt" stroke="#12dcff" stroke-width="15.86" opacity="0.1"/><use href="#mt" stroke="#12dcff" stroke-width="14"/><use href="#mt" stroke="#7ff0ff" stroke-width="8.4"/><use href="#mt" stroke="#e8feff" stroke-width="3.78"/>
+
+</g></g></g>
 </g>
 </svg>

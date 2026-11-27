@@ -39,6 +39,9 @@ export function createInlineSvg(raw: string, { label }: InlineSvgOptions = {}) {
   const inner = raw.slice(raw.indexOf(">", raw.indexOf("<svg")) + 1, raw.lastIndexOf("</svg>"));
   const viewBox = open.match(/viewBox="([^"]+)"/)![1];
   const [, , vbW, vbH] = viewBox.split(/[\s,]+/).map(Number);
+  // A drawing whose glow reaches past its box says so (overflow="visible" on
+  // its <svg>): an inline <svg> cuts at its box unless told otherwise.
+  const overflow = open.match(/\boverflow="([^"]+)"/)?.[1];
   const isNumber = (v: number | string) => typeof v === "number" || /^\d+(\.\d+)?$/.test(String(v));
 
   return function InlineSvg({ width, height, style, className }: InlineSvgProps) {
@@ -53,7 +56,7 @@ export function createInlineSvg(raw: string, { label }: InlineSvgOptions = {}) {
         viewBox={viewBox}
         width={w}
         height={h}
-        style={{ aspectRatio: `${vbW} / ${vbH}`, ...style }}
+        style={{ aspectRatio: `${vbW} / ${vbH}`, ...(overflow ? { overflow } : null), ...style }}
         className={className}
         focusable="false"
         {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": "true" })}

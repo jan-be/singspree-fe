@@ -46,6 +46,12 @@ describe('Wordmark', () => {
     expect(first.length).toBeGreaterThan(0);
     expect(first.filter(id => second.includes(id))).toEqual([]);
   });
+
+  it('lets its glow reach past its box, as the file asks; the icon is cut at its own', () => {
+    expect(read('../wordmark.svg')).toMatch(/^<svg[^>]* overflow="visible"/);
+    expect(renderToStaticMarkup(createElement(Wordmark, { height: 28 }))).toMatch(/style="[^"]*overflow:visible/);
+    expect(renderToStaticMarkup(createElement(AppIcon, { width: 16, height: 16 }))).not.toContain('overflow');
+  });
 });
 
 describe('withIdSuffix', () => {
