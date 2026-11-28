@@ -398,7 +398,10 @@
     "played": "Reproducidas",
     "moveTop": "Mover al principio",
     "moveBottom": "Mover al final",
-    "queueAgain": "Volver a añadir a la cola"
+    "queueAgain": "Volver a añadir a la cola",
+    "singsIt": "La canta {{name}}",
+    "take": "Yo la canto",
+    "giveBack": "Devolvérsela a {{name}}"
   },
   "chartJob": {
     "stage": {

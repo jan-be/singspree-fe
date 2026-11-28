@@ -396,7 +396,10 @@
     "played": "再生済み",
     "moveTop": "一番上へ",
     "moveBottom": "一番下へ",
-    "queueAgain": "もう一度キューに追加"
+    "queueAgain": "もう一度キューに追加",
+    "singsIt": "{{name}}が歌う",
+    "take": "私が歌う",
+    "giveBack": "{{name}}に返す"
   },
   "chartJob": {
     "stage": {

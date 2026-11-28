@@ -396,7 +396,10 @@
     "played": "เล่นแล้ว",
     "moveTop": "ย้ายไปบนสุด",
     "moveBottom": "ย้ายไปล่างสุด",
-    "queueAgain": "เพิ่มเข้าคิวอีกครั้ง"
+    "queueAgain": "เพิ่มเข้าคิวอีกครั้ง",
+    "singsIt": "{{name}} ร้อง",
+    "take": "ฉันร้องเอง",
+    "giveBack": "คืนให้ {{name}}"
   },
   "chartJob": {
     "stage": {

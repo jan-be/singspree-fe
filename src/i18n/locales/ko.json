@@ -396,7 +396,10 @@
     "played": "재생함",
     "moveTop": "맨 위로",
     "moveBottom": "맨 아래로",
-    "queueAgain": "대기열에 다시 추가"
+    "queueAgain": "대기열에 다시 추가",
+    "singsIt": "{{name}} 님이 부름",
+    "take": "내가 부를게요",
+    "giveBack": "{{name}} 님에게 돌려주기"
   },
   "chartJob": {
     "stage": {

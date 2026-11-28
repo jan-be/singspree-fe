@@ -402,7 +402,10 @@
     "played": "Zagrane",
     "moveTop": "Przenieś na górę",
     "moveBottom": "Przenieś na dół",
-    "queueAgain": "Dodaj ponownie do kolejki"
+    "queueAgain": "Dodaj ponownie do kolejki",
+    "singsIt": "Śpiewa: {{name}}",
+    "take": "Ja zaśpiewam",
+    "giveBack": "Oddaj osobie {{name}}"
   },
   "chartJob": {
     "stage": {

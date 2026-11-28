@@ -17,7 +17,7 @@ export interface QueueWindowSong extends SongNamesSource {
   beta?: boolean;
 }
 
-export interface QueueWindowProps extends Pick<QueuePanelProps, "canManage" | "currentUserName" | "onAdd" | "onAddJob" | "onRemove" | "onReorder" | "onSkip" | "played"> {
+export interface QueueWindowProps extends Pick<QueuePanelProps, "canManage" | "currentUserName" | "onAdd" | "onAddJob" | "onRemove" | "onReorder" | "onAssign" | "hosts" | "onSkip" | "played"> {
   queue: QueueEntry[];
   partyId?: string;
   song: QueueWindowSong | null;
@@ -104,7 +104,7 @@ const NowPlaying = ({ song, singers, playerColors, playerAvatars }: { song: Queu
  */
 const QueueWindow = ({
   partyId, song, singers = [], playerColors, playerAvatars, members,
-  queue, canManage, currentUserName, onAdd, onAddJob, onRemove, onReorder, onSkip,
+  queue, canManage, currentUserName, onAdd, onAddJob, onRemove, onReorder, onAssign, hosts, onSkip,
   suggestFrom, played, onDock, extraAction,
 }: QueueWindowProps) => {
   const { t, i18n } = useTranslation();
@@ -154,6 +154,8 @@ const QueueWindow = ({
             onAddJob={onAddJob}
             onRemove={onRemove}
             onReorder={onReorder}
+            onAssign={onAssign}
+            hosts={hosts}
             onSkip={onSkip}
             suggestFrom={suggestFrom}
             played={played}

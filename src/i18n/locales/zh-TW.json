@@ -396,7 +396,10 @@
     "played": "已播放",
     "moveTop": "移到最前",
     "moveBottom": "移到最後",
-    "queueAgain": "再次加入佇列"
+    "queueAgain": "再次加入佇列",
+    "singsIt": "由 {{name}} 演唱",
+    "take": "我來唱",
+    "giveBack": "還給 {{name}}"
   },
   "chartJob": {
     "stage": {

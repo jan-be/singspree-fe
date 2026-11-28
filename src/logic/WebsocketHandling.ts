@@ -428,6 +428,20 @@ export const sendQueueRemove = (ws: ObjSocket, { index }: { index: number }) => 
   });
 };
 
+/**
+ * Whose song a queue entry is (its name tag): the host or a co-host gives it
+ * to someone in the party, anyone else takes one the host or a co-host added
+ * for themselves, or gives one they took back. songId (jobId while it is being
+ * charted) tells the server which entry was meant, in case the queue moved.
+ * A server from before ignores the message.
+ */
+export const sendQueueAssign = (ws: ObjSocket, { index, username, songId, jobId }: { index: number; username: string; songId?: string | null; jobId?: number }) => {
+  ws.sendObj({
+    type: "queue:assign",
+    data: { index, username, ...(songId ? { songId } : { jobId }) },
+  });
+};
+
 // The server reads fromIndex / toIndex; with { from, to } it moved nothing
 // and sent the unchanged queue back, so no reorder ever took.
 export const sendQueueReorder = (ws: ObjSocket, { from, to }: { from: number; to: number }) => {

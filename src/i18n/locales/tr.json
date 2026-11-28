@@ -398,7 +398,10 @@
     "played": "Çalındı",
     "moveTop": "En üste taşı",
     "moveBottom": "En alta taşı",
-    "queueAgain": "Yeniden sıraya ekle"
+    "queueAgain": "Yeniden sıraya ekle",
+    "singsIt": "{{name}} söylüyor",
+    "take": "Ben söylerim",
+    "giveBack": "{{name}} kişisine geri ver"
   },
   "chartJob": {
     "stage": {

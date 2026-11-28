@@ -396,7 +396,10 @@
     "played": "Sudah diputar",
     "moveTop": "Pindah ke atas",
     "moveBottom": "Pindah ke bawah",
-    "queueAgain": "Tambahkan lagi ke antrean"
+    "queueAgain": "Tambahkan lagi ke antrean",
+    "singsIt": "Dinyanyikan {{name}}",
+    "take": "Saya nyanyikan",
+    "giveBack": "Kembalikan ke {{name}}"
   },
   "chartJob": {
     "stage": {

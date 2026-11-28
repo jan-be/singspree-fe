@@ -398,7 +398,10 @@
     "played": "बज चुके",
     "moveTop": "सबसे ऊपर ले जाएँ",
     "moveBottom": "सबसे नीचे ले जाएँ",
-    "queueAgain": "फिर से कतार में जोड़ें"
+    "queueAgain": "फिर से कतार में जोड़ें",
+    "singsIt": "{{name}} गाएँगे",
+    "take": "इसे मैं गाऊँ",
+    "giveBack": "{{name}} को वापस दें"
   },
   "chartJob": {
     "stage": {

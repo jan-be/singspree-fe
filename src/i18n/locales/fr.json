@@ -398,7 +398,10 @@
     "played": "Déjà passées",
     "moveTop": "Placer en tête",
     "moveBottom": "Placer à la fin",
-    "queueAgain": "Remettre dans la file"
+    "queueAgain": "Remettre dans la file",
+    "singsIt": "{{name}} la chante",
+    "take": "Je la chante",
+    "giveBack": "La rendre à {{name}}"
   },
   "chartJob": {
     "stage": {

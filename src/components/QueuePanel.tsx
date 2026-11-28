@@ -13,7 +13,7 @@ import { InListMark } from "./SongPicker";
 import SongThumb from "./SongThumb";
 import { useDragReorder, DragHandle, DRAG_OVER_CLASS } from "./DragReorder";
 import { DropdownChevron } from "./Dropdown";
-import { ToTopIcon, ToBottomIcon } from "./Icons";
+import { ToTopIcon, ToBottomIcon, MicIcon, GiveBackIcon } from "./Icons";
 import Avatar from "./Avatar";
 import PartyPeople from "./PartyPeople";
 
@@ -30,6 +30,10 @@ export interface QueuePanelProps {
   partyId?: string;
   onRemove?: (index: number) => void;
   onReorder?: (fromIndex: number, toIndex: number) => void;
+  /** an entry becomes `username`'s song: a guest takes one the host or a co-host added, or gives it back */
+  onAssign?: (index: number, entry: QueueEntry, username: string) => void;
+  /** the host and the co-hosts: anyone may take a song one of them added */
+  hosts?: readonly string[];
   onAdd?: AddToQueue;
   onAddJob?: AddJobToParty;
   onSkip?: () => void;
@@ -42,12 +46,12 @@ export interface QueuePanelProps {
 
 const FAILED = new Set<string | undefined>(['failed', 'rejected']);
 
-/** Who added an entry: their avatar and name ("you" for your own) */
-const AddedBy = ({ name, mine, playerColors, playerAvatars }: { name?: string; mine: boolean; playerColors?: PlayerColors; playerAvatars?: AvatarPaths }) => {
+/** Whose song an entry is: their avatar and name ("you" for your own); `taken`: someone else added it */
+const AddedBy = ({ name, mine, taken, playerColors, playerAvatars }: { name?: string; mine: boolean; taken: boolean; playerColors?: PlayerColors; playerAvatars?: AvatarPaths }) => {
   const { t } = useTranslation();
   if (!name) return null;
   return (
-    <span className="inline-flex items-center gap-1 min-w-0 max-w-full" title={t('queue.addedBy', { name })}>
+    <span className="inline-flex items-center gap-1 min-w-0 max-w-full" title={t(taken ? 'queue.singsIt' : 'queue.addedBy', { name })}>
       <Avatar username={name} src={playerAvatars?.[name]} hue={playerHue(playerColors, name)} size={16} />
       <span className={`truncate ${mine ? 'text-white font-medium' : ''}`}>{mine ? t('queue.you') : name}</span>
     </span>
@@ -128,10 +132,12 @@ const PlayedSongs = ({ played, queued, onAdd }: { played: readonly HistorySong[]
  * The party's queue: who sings what next. The first entry that can play is
  * marked "Up next"; a song still being charted (a pasted link, made by AI)
  * shows its progress and keeps its place — passed over until it is ready, so
- * one at the front plays as soon as it is. Every entry says who added it.
+ * one at the front plays as soon as it is. Every entry says whose song it is.
  *
  * canManage: the host or a co-host, who may remove any entry and reorder them (everyone else removes their own):
- * by dragging, or each entry's arrows straight to the top (plays next) or the bottom.
+ * by dragging, or the arrows above and below the drag handle straight to the top (plays next) or the bottom.
+ * Everyone else takes a song the host or a co-host added (hosts: a playlist's) to sing it (onAssign), and gives
+ * back one they took; a taken song is given back, not removed.
  * played: what already played, folded away above the queue (PlayedSongs), each one's "+" queues it again.
  * onSkip (host and co-hosts): skip the current song — armed on first click, fires on the second.
  * onAddJob(jobId, videoTitle): queue a song being charted (QueueAddSong)
@@ -140,7 +146,9 @@ const PlayedSongs = ({ played, queued, onAdd }: { played: readonly HistorySong[]
  * members: who is in the party (usernames), shown as avatars under the title; playerAvatars: their pictures;
  * partyId: goes along when someone reports a picture from there.
  */
-const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, playerAvatars, members, partyId, onRemove, onReorder, onAdd, onAddJob, onSkip, headerAction, suggestFrom, played = [] }: QueuePanelProps) => {
+const NO_NAMES: readonly string[] = [];
+
+const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, playerAvatars, members, partyId, onRemove, onReorder, onAssign, hosts = NO_NAMES, onAdd, onAddJob, onSkip, headerAction, suggestFrom, played = [] }: QueuePanelProps) => {
   const { t } = useTranslation();
   const namesOf = useSongNames();
   const [skipArmed, setSkipArmed] = useState(false);
@@ -187,8 +195,13 @@ const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, play
         <ol className="divide-y divide-white/[0.06]" aria-label={t('queue.title')}>
           {queue.map((item, index) => {
             const mine = item.addedBy === currentUserName;
-            const canRemove = canManage || mine;
+            // (a song someone took is given back, not removed: the server's rule)
+            const canRemove = canManage || (mine && !item.claimedFrom);
+            // A guest takes a song the host or a co-host added (their playlist's) to sing it, and gives back one they took
+            const canTake = !canManage && !!onAssign && !mine && !!item.addedBy && hosts.includes(item.addedBy);
+            const giveBackTo = !canManage && onAssign && mine ? item.claimedFrom : undefined;
             const canDrag = canManage;
+            const arrows = canDrag && queue.length > 1;
             const isDragOver = dragOverIndex === index;
             const pending = isPendingEntry(item);
             const failed = pending && FAILED.has(item.job.status);
@@ -204,8 +217,35 @@ const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, play
                 {...itemProps(index, canDrag)}
               >
                 {isNext && <span aria-hidden="true" className="absolute left-0 inset-y-2 w-[3px] rounded-r-full bg-neon-green/80" />}
-                {/* Position, or the drag handle for the host */}
-                <DragHandle enabled={canDrag} position={index + 1} className="pt-2" />
+                {/* Position, or the drag handle for the host: with the arrows straight to the top (plays next)
+                    above it and to the bottom below it, without dragging it there place by place (issue #9) */}
+                {arrows ? (
+                  <div className="flex flex-col items-center flex-shrink-0 -my-1.5 -ml-1.5">
+                    <button
+                      type="button"
+                      onClick={() => onReorder?.(index, 0)}
+                      disabled={index === 0}
+                      className="btn-icon w-7 h-6 text-white/40 hover:text-white disabled:invisible"
+                      title={t('queue.moveTop')}
+                      aria-label={`${t('queue.moveTop')}: ${names.title}`}
+                    >
+                      <ToTopIcon size={14} />
+                    </button>
+                    <DragHandle enabled position={index + 1} />
+                    <button
+                      type="button"
+                      onClick={() => onReorder?.(index, queue.length - 1)}
+                      disabled={index === queue.length - 1}
+                      className="btn-icon w-7 h-6 text-white/40 hover:text-white disabled:invisible"
+                      title={t('queue.moveBottom')}
+                      aria-label={`${t('queue.moveBottom')}: ${names.title}`}
+                    >
+                      <ToBottomIcon size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <DragHandle enabled={canDrag} position={index + 1} className="pt-2" />
+                )}
 
                 <SongThumb videoId={item.videoId} generated={item.generated} beta={item.beta} ai={pending} dim={pending} className="w-16" />
 
@@ -219,34 +259,31 @@ const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, play
                   <div className="flex items-center gap-1.5 text-white/55 text-xs min-w-0">
                     {names.artist && <span className="truncate min-w-0" lang={names.lang}>{names.artist}</span>}
                     {names.artist && item.addedBy && <span aria-hidden="true">·</span>}
-                    <AddedBy name={item.addedBy} mine={mine} playerColors={playerColors} playerAvatars={playerAvatars} />
+                    <AddedBy name={item.addedBy} mine={mine} taken={!!item.claimedFrom} playerColors={playerColors} playerAvatars={playerAvatars} />
                   </div>
                   {pending && <PendingProgress entry={item} waitsAtFront={index === frontPending && (nextIndex === -1 || index < nextIndex)} />}
                 </div>
-                {/* Straight to the top (plays next) or the bottom, without dragging it there place by place */}
-                {canDrag && queue.length > 1 && (
-                  <div className="flex flex-col flex-shrink-0 -my-1">
-                    <button
-                      type="button"
-                      onClick={() => onReorder?.(index, 0)}
-                      disabled={index === 0}
-                      className="btn-icon w-7 h-7 text-white/40 hover:text-white disabled:invisible"
-                      title={t('queue.moveTop')}
-                      aria-label={`${t('queue.moveTop')}: ${names.title}`}
-                    >
-                      <ToTopIcon size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onReorder?.(index, queue.length - 1)}
-                      disabled={index === queue.length - 1}
-                      className="btn-icon w-7 h-7 text-white/40 hover:text-white disabled:invisible"
-                      title={t('queue.moveBottom')}
-                      aria-label={`${t('queue.moveBottom')}: ${names.title}`}
-                    >
-                      <ToBottomIcon size={14} />
-                    </button>
-                  </div>
+                {canTake && (
+                  <button
+                    type="button"
+                    onClick={() => onAssign?.(index, item, currentUserName)}
+                    className="btn-icon w-8 h-8 -mr-1 text-white/45 hover:text-white"
+                    title={t('queue.take')}
+                    aria-label={`${t('queue.take')}: ${names.title}`}
+                  >
+                    <MicIcon size={15} />
+                  </button>
+                )}
+                {giveBackTo && (
+                  <button
+                    type="button"
+                    onClick={() => onAssign?.(index, item, giveBackTo)}
+                    className="btn-icon w-8 h-8 -mr-1 text-white/45 hover:text-white"
+                    title={t('queue.giveBack', { name: giveBackTo })}
+                    aria-label={`${t('queue.giveBack', { name: giveBackTo })}: ${names.title}`}
+                  >
+                    <GiveBackIcon size={15} />
+                  </button>
                 )}
                 {canRemove && (
                   <button

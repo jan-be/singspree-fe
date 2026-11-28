@@ -398,7 +398,10 @@
     "played": "Napatugtog na",
     "moveTop": "Ilipat sa itaas",
     "moveBottom": "Ilipat sa ibaba",
-    "queueAgain": "Idagdag ulit sa pila"
+    "queueAgain": "Idagdag ulit sa pila",
+    "singsIt": "Si {{name}} ang kakanta",
+    "take": "Ako ang kakanta",
+    "giveBack": "Ibalik kay {{name}}"
   },
   "chartJob": {
     "stage": {

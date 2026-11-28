@@ -402,7 +402,10 @@
     "played": "Уже прозвучали",
     "moveTop": "В начало",
     "moveBottom": "В конец",
-    "queueAgain": "Снова добавить в очередь"
+    "queueAgain": "Снова добавить в очередь",
+    "singsIt": "Поёт: {{name}}",
+    "take": "Я спою",
+    "giveBack": "Вернуть: {{name}}"
   },
   "chartJob": {
     "stage": {

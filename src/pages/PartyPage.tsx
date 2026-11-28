@@ -56,6 +56,7 @@ import {
   sendCohost, sendKick, sendPartySettings, sendPlaybackControl,
   sendQueueRemove,
   sendQueueReorder,
+  sendQueueAssign,
   sendPlayerPart,
   sendPlayerDifficulty,
   sendPingReply,
@@ -3509,6 +3510,11 @@ const PartyPage = () => {
     if (wss) sendQueueReorder(wss, { from, to });
   }, [wss]);
 
+  // Whose song an entry is (QueuePanel): a guest takes one from the host's list, or gives it back
+  const handleQueueAssign = useCallback((index: number, entry: QueueEntry, username: string) => {
+    if (wss) sendQueueAssign(wss, { index, username, songId: entry.songId, jobId: entry.job?.id });
+  }, [wss]);
+
   // When the YouTube video ends, signal song:end to the server
   const handleVideoEnd = useCallback(() => {
     finishTake();
@@ -3691,6 +3697,8 @@ const PartyPage = () => {
     () => (canControl ? cardPeople({ members, cohosts: partySettings.cohosts, owner: partyOwner, extras: extraNames, me: currentUserName }) : []),
     [canControl, members, partySettings.cohosts, partyOwner, extraNames, currentUserName],
   );
+  // Whose songs in the queue anyone may take to sing them: the host's and the co-hosts' (QueuePanel)
+  const queueHosts = useMemo(() => [...(partyOwner ? [partyOwner] : []), ...partySettings.cohosts], [partyOwner, partySettings.cohosts]);
   const retryJoin = useCallback(() => { setRefused(false); setJoinAttempt(n => n + 1); }, []);
 
   // What "Save as playlist" keeps: the song on stage, then the queue (logic/playlists.ts)
@@ -3728,6 +3736,8 @@ const PartyPage = () => {
       onAddJob={handleQueueAddJob}
       onRemove={handleQueueRemove}
       onReorder={handleQueueReorder}
+      onAssign={handleQueueAssign}
+      hosts={queueHosts}
       onSkip={canControl && wss ? handleSkipSong : undefined}
       suggestFrom={partySuggestFrom}
       played={playedSongs}
@@ -4237,6 +4247,8 @@ const PartyPage = () => {
             onAddJob={handleQueueAddJob}
             onRemove={handleQueueRemove}
             onReorder={handleQueueReorder}
+            onAssign={handleQueueAssign}
+            hosts={queueHosts}
             onSkip={canControl && wss ? handleSkipSong : undefined}
             suggestFrom={partySuggestFrom}
             played={playedSongs}

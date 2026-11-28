@@ -398,7 +398,10 @@
     "played": "Già riprodotte",
     "moveTop": "Sposta in cima",
     "moveBottom": "Sposta in fondo",
-    "queueAgain": "Rimetti in coda"
+    "queueAgain": "Rimetti in coda",
+    "singsIt": "La canta {{name}}",
+    "take": "La canto io",
+    "giveBack": "Restituiscila a {{name}}"
   },
   "chartJob": {
     "stage": {

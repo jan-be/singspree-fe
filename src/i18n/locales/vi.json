@@ -396,7 +396,10 @@
     "played": "Đã phát",
     "moveTop": "Lên đầu",
     "moveBottom": "Xuống cuối",
-    "queueAgain": "Thêm lại vào hàng chờ"
+    "queueAgain": "Thêm lại vào hàng chờ",
+    "singsIt": "{{name}} hát",
+    "take": "Mình hát",
+    "giveBack": "Trả lại cho {{name}}"
   },
   "chartJob": {
     "stage": {

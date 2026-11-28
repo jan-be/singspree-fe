@@ -398,7 +398,10 @@
     "played": "Gespeeld",
     "moveTop": "Naar boven",
     "moveBottom": "Naar onderen",
-    "queueAgain": "Opnieuw in de wachtrij zetten"
+    "queueAgain": "Opnieuw in de wachtrij zetten",
+    "singsIt": "{{name}} zingt het",
+    "take": "Ik zing het",
+    "giveBack": "Teruggeven aan {{name}}"
   },
   "chartJob": {
     "stage": {

@@ -26,7 +26,10 @@ export interface ChartQueueEntry {
   generated?: boolean;
   /** a song still being charted, or failed */
   job?: ChartJob;
+  /** whose song it is: who added it, or who took it or was given it (QueuePanel's bar, the server's queue:assign) */
   addedBy?: string;
+  /** who added it, while someone else has it */
+  claimedFrom?: string;
 }
 
 /** An entry still waiting for its chart, or failed (isPendingEntry) */

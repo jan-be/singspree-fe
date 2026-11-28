@@ -402,7 +402,10 @@
     "played": "Gespielt",
     "moveTop": "Ganz nach oben",
     "moveBottom": "Ganz nach unten",
-    "queueAgain": "Wieder in die Warteschlange"
+    "queueAgain": "Wieder in die Warteschlange",
+    "singsIt": "Singt: {{name}}",
+    "take": "Ich singe",
+    "giveBack": "An {{name}} zurückgeben"
   },
   "chartJob": {
     "stage": {

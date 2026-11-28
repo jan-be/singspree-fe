@@ -398,7 +398,10 @@
     "played": "Já tocadas",
     "moveTop": "Mover para o topo",
     "moveBottom": "Mover para o fim",
-    "queueAgain": "Adicionar à fila de novo"
+    "queueAgain": "Adicionar à fila de novo",
+    "singsIt": "{{name}} canta",
+    "take": "Eu canto",
+    "giveBack": "Devolver para {{name}}"
   },
   "chartJob": {
     "stage": {

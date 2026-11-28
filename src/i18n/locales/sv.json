@@ -398,7 +398,10 @@
     "played": "Spelade",
     "moveTop": "Flytta högst upp",
     "moveBottom": "Flytta längst ner",
-    "queueAgain": "Lägg i kön igen"
+    "queueAgain": "Lägg i kön igen",
+    "singsIt": "{{name}} sjunger den",
+    "take": "Jag sjunger",
+    "giveBack": "Ge tillbaka till {{name}}"
   },
   "chartJob": {
     "stage": {
