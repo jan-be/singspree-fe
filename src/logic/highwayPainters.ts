@@ -31,7 +31,7 @@
  *   image(picture, x, y, w, h, alpha)
  */
 import { CanvasRecorder, type RecordedLayer } from "./canvasRecorder";
-import { HEIGHT, paintBackdrop, fadeEdges, copyIn } from "./highwayPaint";
+import { HEIGHT, paintBackdrop, fadeEdges, copyIn, RAP_FILL, RAP_EDGE, RAP_EDGE_WIDTH, FREE_FILL } from "./highwayPaint";
 import type { CacheRef, FadeCache, HighwayPainter, NoteKind, PathPoint, Picture, PictureCanvas, TextStyle } from "./highwayPaint";
 
 export type { HighwayPainter, NoteKind, PathPoint, TextStyle } from "./highwayPaint";
@@ -164,14 +164,15 @@ export class Canvas2DPainter implements HighwayPainter {
   }
 
   // `kind`: a rap note ('rap') is spoken, not pitched: its bar sits at the
-  // chart's nominal tone and is drawn hollow with a dashed edge, so it reads
-  // as "say it" rather than "hit this note". A freestyle note ('free') is not
-  // judged at all, its tone a placeholder: a faint bar without an edge, which
-  // shows when to sing but sets no target.
+  // chart's nominal tone, filled a little lighter inside a white dashed edge,
+  // so it reads as "say it" rather than "hit this note" and is still plain to
+  // see. A freestyle note ('free') is not judged at all, its tone a
+  // placeholder: a fainter bar without an edge, which shows when to sing but
+  // sets no target. (RAP_FILL and the rest: highwayPaint.ts)
   noteRect(x: number, y: number, w: number, h: number, r: number, fill: string, stroke: string, alpha: number, kind?: NoteKind | null | false) {
     const { ctx } = this;
     if (kind === "free") {
-      ctx.globalAlpha = alpha * 0.4;
+      ctx.globalAlpha = alpha * FREE_FILL;
       roundRect(ctx, x, y, w, h, r);
       ctx.fillStyle = fill;
       ctx.fill();
@@ -179,15 +180,16 @@ export class Canvas2DPainter implements HighwayPainter {
       return;
     }
     const isRap = kind === "rap";
-    ctx.globalAlpha = isRap ? alpha * 0.7 : alpha;
+    ctx.globalAlpha = isRap ? alpha * RAP_FILL : alpha;
     roundRect(ctx, x, y, w, h, r);
-    if (!isRap) {
-      ctx.fillStyle = fill;
-      ctx.fill();
+    ctx.fillStyle = fill;
+    ctx.fill();
+    if (isRap) {
+      ctx.globalAlpha = alpha;
+      ctx.setLineDash([3, 2]);
     }
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = isRap ? fill : stroke;
-    if (isRap) ctx.setLineDash([3, 2]);
+    ctx.lineWidth = isRap ? RAP_EDGE_WIDTH : 1;
+    ctx.strokeStyle = isRap ? RAP_EDGE : stroke;
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.globalAlpha = 1;

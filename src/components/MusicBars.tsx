@@ -231,8 +231,9 @@ function paintLineContent(P: HighwayPainter, geom: LineGeometry) {
   });
 }
 
-// How a note's bar is drawn (the painters' noteRect): rap hollow and dashed,
-// freestyle faint without an edge, since nothing is judged there
+// How a note's bar is drawn (the painters' noteRect): rap a little lighter
+// inside a white dashed edge, freestyle fainter without an edge, since nothing
+// is judged there
 const noteKind = (el: LyricElement) => (el.isRap ? "rap" : el.isFreestyle ? "free" : null);
 
 function noteRect(P: HighwayPainter, geom: LineGeometry, el: LyricElement, fill: string, stroke: string, alpha = 1) {

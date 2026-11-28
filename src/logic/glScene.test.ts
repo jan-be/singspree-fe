@@ -30,22 +30,26 @@ describe('GLScene', () => {
     expect(s.take().scene.batches).toEqual([[BOXES, 0, 2], [SPRITES, 0, 2], [BOXES, 2, 1]]);
   });
 
-  it('folds the alpha into premultiplied colours, hollows rap notes and fades freestyle ones', () => {
+  it('folds the alpha into premultiplied colours, edges rap notes in white dashes and fades freestyle ones', () => {
     const s = scene();
     s.noteRect(0, 0, 20, 8, 10, '#ffffff', 'rgba(0,0,0,1)', 0.5, null);
-    s.noteRect(0, 0, 20, 8, 4, '#ffffff', 'rgba(0,0,0,1)', 0.5, 'rap');
+    s.noteRect(0, 0, 20, 8, 4, '#ff0000', 'rgba(0,0,0,1)', 0.5, 'rap');
     s.noteRect(0, 0, 20, 8, 4, '#ffffff', 'rgba(0,0,0,1)', 0.5, 'free');
     const { boxes } = s.take().scene;
     expect(Array.from(boxes.subarray(4, 8))).toEqual([4, 1, 0, 0]); // radius capped at h / 2
     expect(Array.from(boxes.subarray(8, 12))).toEqual([0.5, 0.5, 0.5, 0.5]);
     const rap = boxes.subarray(BOX_FLOATS, 2 * BOX_FLOATS);
+    expect(rap[5]).toBe(1.5); // a wider edge
     expect(rap[6]).toBe(1); // dashed
-    expect(Array.from(rap.subarray(8, 12))).toEqual([0, 0, 0, 0]); // no fill
-    expect(rap[15]).toBeCloseTo(0.35, 5); // the fill colour as the edge, at 0.7 of the alpha
+    expect(rap[8]).toBeCloseTo(0.375, 5); // filled, at 0.75 of the alpha
+    expect(rap[9]).toBe(0);
+    expect(rap[11]).toBeCloseTo(0.375, 5);
+    expect(rap[12]).toBeCloseTo(0.45, 2); // a white edge at 0.9, times the alpha
+    expect(rap[12]).toBeCloseTo(rap[15], 5);
     const free = boxes.subarray(2 * BOX_FLOATS, 3 * BOX_FLOATS);
     expect(free[5]).toBe(0); // no edge
     expect(free[6]).toBe(0); // not dashed
-    expect(free[11]).toBeCloseTo(0.2, 5); // the fill at 0.4 of the alpha
+    expect(free[11]).toBeCloseTo(0.3, 5); // the fill at 0.6 of the alpha
     expect(Array.from(free.subarray(12, 16))).toEqual([0, 0, 0, 0]);
   });
 

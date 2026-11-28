@@ -33,6 +33,16 @@ export interface FadeCache {
 
 /** A note bar's kind (noteRect): a rap note, a freestyle note, or none of them. */
 export type NoteKind = "rap" | "free";
+/**
+ * How both painters draw a rap or freestyle bar (noteRect): a rap bar is
+ * filled a little lighter than a sung one, inside a white dashed edge; a
+ * freestyle bar is fainter still, without an edge. (Until 2026-11-27 a rap bar
+ * was a dashed outline only, hard to see: a song of rap was nearly empty.)
+ */
+export const RAP_FILL = 0.75;
+export const RAP_EDGE = "rgba(255,255,255,0.9)";
+export const RAP_EDGE_WIDTH = 1.5;
+export const FREE_FILL = 0.6;
 /** A point of a sung line, in CSS pixels. */
 export interface PathPoint {
   x: number;

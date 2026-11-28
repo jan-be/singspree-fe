@@ -3,8 +3,8 @@
  * highwayPainters.ts turned into instance data for the worker's WebGL
  * renderer (highwayGL.ts), which draws each kind of shape with one shader:
  *
- *   boxes     rounded rectangles, filled and/or outlined (dashed for rap notes,
- *             no edge for freestyle notes):
+ *   boxes     rounded rectangles, filled and/or outlined (a dashed edge for
+ *             rap notes, no edge for freestyle notes):
  *             notes, outlines, the grid, the cursor, tag backgrounds
  *   strokes   round-capped line segments with up to three bands (halo, line,
  *             core): the sung lines, single sung notes, sparkles, the
@@ -21,6 +21,7 @@
  */
 import { premultiplied, type Rgba } from './cssColor';
 import { PictureLedger, measureContext, type NewPicture } from './canvasRecorder';
+import { FREE_FILL, RAP_EDGE, RAP_EDGE_WIDTH, RAP_FILL } from './highwayPaint';
 import type { HighwayPainter, NoteKind, PathPoint, Picture, TextStyle } from './highwayPaint';
 
 // Instance layouts (floats per instance), shared with highwayGL.ts
@@ -212,15 +213,14 @@ export class GLScene implements HighwayPainter {
     this.addBox(x0, y - width / 2, x1 - x0, width, 0, 0, false, premultiplied(color), 1, NONE, 0);
   }
 
-  // kind: 'rap' hollow and dashed, 'free' (freestyle) a faint fill without an edge, as Canvas2DPainter
+  // kind: 'rap' a lighter fill inside a white dashed edge, 'free' (freestyle) a fainter fill without an edge, as Canvas2DPainter
   noteRect(x: number, y: number, w: number, h: number, r: number, fill: string, stroke: string, alpha: number, kind?: NoteKind | null | false) {
     if (kind === 'free') {
-      this.addBox(x, y, w, h, r, 0, false, premultiplied(fill), alpha * 0.4, NONE, 0);
+      this.addBox(x, y, w, h, r, 0, false, premultiplied(fill), alpha * FREE_FILL, NONE, 0);
       return;
     }
     const isRap = kind === 'rap';
-    const a = isRap ? alpha * 0.7 : alpha;
-    this.addBox(x, y, w, h, r, 1, isRap, isRap ? NONE : premultiplied(fill), a, premultiplied(isRap ? fill : stroke), a);
+    this.addBox(x, y, w, h, r, isRap ? RAP_EDGE_WIDTH : 1, isRap, premultiplied(fill), isRap ? alpha * RAP_FILL : alpha, premultiplied(isRap ? RAP_EDGE : stroke), alpha);
   }
 
   specialOutline(x: number, y: number, w: number, h: number, r: number, alpha: number, withHalo: boolean) {
