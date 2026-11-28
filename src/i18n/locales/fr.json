@@ -401,7 +401,9 @@
     "queueAgain": "Remettre dans la file",
     "singsIt": "{{name}} la chante",
     "take": "Je la chante",
-    "giveBack": "La rendre à {{name}}"
+    "letGo": "Je ne la chante pas",
+    "letGoOf": "{{name}} ne la chante pas",
+    "noSinger": "Encore personne"
   },
   "chartJob": {
     "stage": {

@@ -405,7 +405,9 @@
     "queueAgain": "Add to the queue again",
     "singsIt": "{{name}} sings it",
     "take": "I'll sing it",
-    "giveBack": "Give it back to {{name}}"
+    "letGo": "I won't sing it",
+    "letGoOf": "{{name}} won't sing it",
+    "noSinger": "No singer yet"
   },
   "chartJob": {
     "stage": {

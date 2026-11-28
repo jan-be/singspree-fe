@@ -405,7 +405,9 @@
     "queueAgain": "Снова добавить в очередь",
     "singsIt": "Поёт: {{name}}",
     "take": "Я спою",
-    "giveBack": "Вернуть: {{name}}"
+    "letGo": "Я не буду петь",
+    "letGoOf": "{{name}} не будет петь",
+    "noSinger": "Пока никто"
   },
   "chartJob": {
     "stage": {

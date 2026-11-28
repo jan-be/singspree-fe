@@ -405,7 +405,9 @@
     "queueAgain": "Dodaj ponownie do kolejki",
     "singsIt": "Śpiewa: {{name}}",
     "take": "Ja zaśpiewam",
-    "giveBack": "Oddaj osobie {{name}}"
+    "letGo": "Nie zaśpiewam",
+    "letGoOf": "{{name}} nie zaśpiewa",
+    "noSinger": "Jeszcze nikt"
   },
   "chartJob": {
     "stage": {

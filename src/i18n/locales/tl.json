@@ -401,7 +401,9 @@
     "queueAgain": "Idagdag ulit sa pila",
     "singsIt": "Si {{name}} ang kakanta",
     "take": "Ako ang kakanta",
-    "giveBack": "Ibalik kay {{name}}"
+    "letGo": "Hindi ako ang kakanta",
+    "letGoOf": "Hindi si {{name}} ang kakanta",
+    "noSinger": "Wala pang kakanta"
   },
   "chartJob": {
     "stage": {

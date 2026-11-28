@@ -399,7 +399,9 @@
     "queueAgain": "เพิ่มเข้าคิวอีกครั้ง",
     "singsIt": "{{name}} ร้อง",
     "take": "ฉันร้องเอง",
-    "giveBack": "คืนให้ {{name}}"
+    "letGo": "ฉันไม่ร้องแล้ว",
+    "letGoOf": "{{name}} ไม่ร้องแล้ว",
+    "noSinger": "ยังไม่มีคนร้อง"
   },
   "chartJob": {
     "stage": {

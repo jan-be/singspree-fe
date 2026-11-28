@@ -170,7 +170,7 @@ export const ToBottomIcon = ({ size = 14, strokeWidth = 2, className }: IconProp
   </svg>
 );
 
-/** An arrow turning back — give something back (a song taken from the queue). */
+/** An arrow turning back — undo taking something (your name comes off a song in the queue). */
 export const GiveBackIcon = ({ size = 14, strokeWidth = 2, className }: IconProps) => (
   <svg width={size} height={size} strokeWidth={strokeWidth} className={className} aria-hidden="true" {...base}>
     <path d="M9 14 4 9l5-5" />

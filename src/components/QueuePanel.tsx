@@ -30,7 +30,7 @@ export interface QueuePanelProps {
   partyId?: string;
   onRemove?: (index: number) => void;
   onReorder?: (fromIndex: number, toIndex: number) => void;
-  /** an entry becomes `username`'s song: a guest takes one the host or a co-host added, or gives it back */
+  /** an entry becomes `username`'s song (their name goes on it), or with '' nobody's: the name comes off */
   onAssign?: (index: number, entry: QueueEntry, username: string) => void;
   /** the host and the co-hosts: anyone may take a song one of them added */
   hosts?: readonly string[];
@@ -46,10 +46,11 @@ export interface QueuePanelProps {
 
 const FAILED = new Set<string | undefined>(['failed', 'rejected']);
 
-/** Whose song an entry is: their avatar and name ("you" for your own); `taken`: someone else added it */
+/** Whose song an entry is: their avatar and name ("you" for your own); `taken`: someone else added it.
+ *  Without a name nobody sings it yet, and it says so */
 const AddedBy = ({ name, mine, taken, playerColors, playerAvatars }: { name?: string; mine: boolean; taken: boolean; playerColors?: PlayerColors; playerAvatars?: AvatarPaths }) => {
   const { t } = useTranslation();
-  if (!name) return null;
+  if (!name) return <span className="truncate text-white/45">{t('queue.noSinger')}</span>;
   return (
     <span className="inline-flex items-center gap-1 min-w-0 max-w-full" title={t(taken ? 'queue.singsIt' : 'queue.addedBy', { name })}>
       <Avatar username={name} src={playerAvatars?.[name]} hue={playerHue(playerColors, name)} size={16} />
@@ -136,8 +137,9 @@ const PlayedSongs = ({ played, queued, onAdd }: { played: readonly HistorySong[]
  *
  * canManage: the host or a co-host, who may remove any entry and reorder them (everyone else removes their own):
  * by dragging, or the arrows above and below the drag handle straight to the top (plays next) or the bottom.
- * Everyone else takes a song the host or a co-host added (hosts: a playlist's) to sing it (onAssign), and gives
- * back one they took; a taken song is given back, not removed.
+ * Who sings what (onAssign): the mic puts your name on a song nobody sings yet, or (everyone but the hosts) on one
+ * the host or a co-host added (hosts: a playlist's); the arrow takes your name off again, and for the host and
+ * co-hosts anyone's. A song you took is not yours to remove.
  * played: what already played, folded away above the queue (PlayedSongs), each one's "+" queues it again.
  * onSkip (host and co-hosts): skip the current song — armed on first click, fires on the second.
  * onAddJob(jobId, videoTitle): queue a song being charted (QueueAddSong)
@@ -195,11 +197,15 @@ const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, play
         <ol className="divide-y divide-white/[0.06]" aria-label={t('queue.title')}>
           {queue.map((item, index) => {
             const mine = item.addedBy === currentUserName;
-            // (a song someone took is given back, not removed: the server's rule)
-            const canRemove = canManage || (mine && !item.claimedFrom);
-            // A guest takes a song the host or a co-host added (their playlist's) to sing it, and gives back one they took
-            const canTake = !canManage && !!onAssign && !mine && !!item.addedBy && hosts.includes(item.addedBy);
-            const giveBackTo = !canManage && onAssign && mine ? item.claimedFrom : undefined;
+            // (its name was taken off: nobody sings it yet)
+            const open = !item.addedBy;
+            // (the server's rule: everyone else removes what they added, while it has their name or nobody's)
+            const canRemove = canManage || (open ? item.claimedFrom === currentUserName : mine && !item.claimedFrom);
+            // The mic: "I'll sing it", on a song nobody sings yet, or one the host or a co-host added (their playlist's)
+            const canTake = !!onAssign && !mine && (open || (!canManage && hosts.includes(item.addedBy!)));
+            // The arrow takes the name off again: your own, or for the host and co-hosts anyone's
+            const canLetGo = !!onAssign && !open && (mine || canManage);
+            const letGoLabel = mine ? t('queue.letGo') : t('queue.letGoOf', { name: item.addedBy });
             const canDrag = canManage;
             const arrows = canDrag && queue.length > 1;
             const isDragOver = dragOverIndex === index;
@@ -258,7 +264,7 @@ const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, play
                   </div>
                   <div className="flex items-center gap-1.5 text-white/55 text-xs min-w-0">
                     {names.artist && <span className="truncate min-w-0" lang={names.lang}>{names.artist}</span>}
-                    {names.artist && item.addedBy && <span aria-hidden="true">·</span>}
+                    {names.artist && <span aria-hidden="true">·</span>}
                     <AddedBy name={item.addedBy} mine={mine} taken={!!item.claimedFrom} playerColors={playerColors} playerAvatars={playerAvatars} />
                   </div>
                   {pending && <PendingProgress entry={item} waitsAtFront={index === frontPending && (nextIndex === -1 || index < nextIndex)} />}
@@ -274,13 +280,13 @@ const QueuePanel = ({ queue = [], canManage, currentUserName, playerColors, play
                     <MicIcon size={15} />
                   </button>
                 )}
-                {giveBackTo && (
+                {canLetGo && (
                   <button
                     type="button"
-                    onClick={() => onAssign?.(index, item, giveBackTo)}
+                    onClick={() => onAssign?.(index, item, '')}
                     className="btn-icon w-8 h-8 -mr-1 text-white/45 hover:text-white"
-                    title={t('queue.giveBack', { name: giveBackTo })}
-                    aria-label={`${t('queue.giveBack', { name: giveBackTo })}: ${names.title}`}
+                    title={letGoLabel}
+                    aria-label={`${letGoLabel}: ${names.title}`}
                   >
                     <GiveBackIcon size={15} />
                   </button>

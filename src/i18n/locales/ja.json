@@ -399,7 +399,9 @@
     "queueAgain": "もう一度キューに追加",
     "singsIt": "{{name}}が歌う",
     "take": "私が歌う",
-    "giveBack": "{{name}}に返す"
+    "letGo": "私は歌わない",
+    "letGoOf": "{{name}}は歌わない",
+    "noSinger": "歌う人未定"
   },
   "chartJob": {
     "stage": {

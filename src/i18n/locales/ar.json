@@ -409,7 +409,9 @@
     "queueAgain": "أضفها إلى قائمة الانتظار مجددًا",
     "singsIt": "يغنيها {{name}}",
     "take": "سأغنيها",
-    "giveBack": "إعادتها إلى {{name}}"
+    "letGo": "لن أغنيها",
+    "letGoOf": "{{name}} لن يغنيها",
+    "noSinger": "لا أحد بعد"
   },
   "chartJob": {
     "stage": {

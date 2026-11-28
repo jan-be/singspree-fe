@@ -429,11 +429,11 @@ export const sendQueueRemove = (ws: ObjSocket, { index }: { index: number }) => 
 };
 
 /**
- * Whose song a queue entry is (its name tag): the host or a co-host gives it
- * to someone in the party, anyone else takes one the host or a co-host added
- * for themselves, or gives one they took back. songId (jobId while it is being
- * charted) tells the server which entry was meant, in case the queue moved.
- * A server from before ignores the message.
+ * Whose song a queue entry is (its name tag): `username` takes it (yourself:
+ * one nobody sings yet, or one the host or a co-host added), and '' takes the
+ * name off again (your own; the host and co-hosts anyone's), so nobody sings
+ * it yet. songId (jobId while it is being charted) tells the server which
+ * entry was meant, in case the queue moved.
  */
 export const sendQueueAssign = (ws: ObjSocket, { index, username, songId, jobId }: { index: number; username: string; songId?: string | null; jobId?: number }) => {
   ws.sendObj({

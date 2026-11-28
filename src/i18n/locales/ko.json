@@ -399,7 +399,9 @@
     "queueAgain": "대기열에 다시 추가",
     "singsIt": "{{name}} 님이 부름",
     "take": "내가 부를게요",
-    "giveBack": "{{name}} 님에게 돌려주기"
+    "letGo": "안 부를게요",
+    "letGoOf": "{{name}} 님은 안 불러요",
+    "noSinger": "부를 사람 없음"
   },
   "chartJob": {
     "stage": {

@@ -399,7 +399,9 @@
     "queueAgain": "再次加入队列",
     "singsIt": "由 {{name}} 演唱",
     "take": "我来唱",
-    "giveBack": "还给 {{name}}"
+    "letGo": "我不唱了",
+    "letGoOf": "{{name}} 不唱了",
+    "noSinger": "还没人唱"
   },
   "chartJob": {
     "stage": {

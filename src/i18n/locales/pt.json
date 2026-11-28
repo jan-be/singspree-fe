@@ -401,7 +401,9 @@
     "queueAgain": "Adicionar à fila de novo",
     "singsIt": "{{name}} canta",
     "take": "Eu canto",
-    "giveBack": "Devolver para {{name}}"
+    "letGo": "Não vou cantar",
+    "letGoOf": "{{name}} não vai cantar",
+    "noSinger": "Ainda ninguém"
   },
   "chartJob": {
     "stage": {

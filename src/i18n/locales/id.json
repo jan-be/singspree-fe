@@ -399,7 +399,9 @@
     "queueAgain": "Tambahkan lagi ke antrean",
     "singsIt": "Dinyanyikan {{name}}",
     "take": "Saya nyanyikan",
-    "giveBack": "Kembalikan ke {{name}}"
+    "letGo": "Saya tidak menyanyikannya",
+    "letGoOf": "{{name}} tidak menyanyikannya",
+    "noSinger": "Belum ada penyanyi"
   },
   "chartJob": {
     "stage": {

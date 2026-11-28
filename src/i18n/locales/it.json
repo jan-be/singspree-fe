@@ -401,7 +401,9 @@
     "queueAgain": "Rimetti in coda",
     "singsIt": "La canta {{name}}",
     "take": "La canto io",
-    "giveBack": "Restituiscila a {{name}}"
+    "letGo": "Non la canto",
+    "letGoOf": "{{name}} non la canta",
+    "noSinger": "Ancora nessuno"
   },
   "chartJob": {
     "stage": {

@@ -405,7 +405,9 @@
     "queueAgain": "Wieder in die Warteschlange",
     "singsIt": "Singt: {{name}}",
     "take": "Ich singe",
-    "giveBack": "An {{name}} zurückgeben"
+    "letGo": "Ich singe doch nicht",
+    "letGoOf": "{{name}} singt doch nicht",
+    "noSinger": "Noch frei"
   },
   "chartJob": {
     "stage": {

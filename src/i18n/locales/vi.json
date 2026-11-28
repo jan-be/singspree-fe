@@ -399,7 +399,9 @@
     "queueAgain": "Thêm lại vào hàng chờ",
     "singsIt": "{{name}} hát",
     "take": "Mình hát",
-    "giveBack": "Trả lại cho {{name}}"
+    "letGo": "Mình không hát nữa",
+    "letGoOf": "{{name}} không hát nữa",
+    "noSinger": "Chưa ai hát"
   },
   "chartJob": {
     "stage": {
